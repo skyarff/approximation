@@ -1,0 +1,22 @@
+.sf {
+    display: flex;
+    justify-content: start;
+    text-align: center;
+}
+
+.cf {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.ef {
+    display: flex;
+    justify-content: end;
+    text-align: center;
+}
+
+.check {
+    background: #FF000044;
+}
+

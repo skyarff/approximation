@@ -1,0 +1,13 @@
+.def_btn {
+    box-shadow: none !important;
+    /* background: red !important; */
+    background: transparent !important;
+    border-radius: 0 !important;
+    text-transform: none !important;
+    font-size: 12px !important;
+}
+
+.def_btn:hover {
+    /* background: #d8ebe9 !important; */
+    background: #a5e6df !important;
+}
