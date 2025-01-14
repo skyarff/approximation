@@ -87,7 +87,11 @@
 
 <script>
 import { read, utils } from 'xlsx';
-import { AdvancedComponentPredictor } from '@/app_lib/index';
+// import { AdvancedComponentPredictor } from '@/app_lib/index';
+
+import { ans } from '@/app_lib/index';
+
+
 
 export default {
     data() {
@@ -96,8 +100,12 @@ export default {
             formula: '',
             approximationData: null,
             predictor: null,
-            results: null
+            results: null,
         }
+    },
+    mounted() {
+
+        console.log('ans', ans)
     },
     methods: {
         async fileUpload(event) {
@@ -143,6 +151,8 @@ export default {
             });
         },
 
+
+
         addSymbol(symbol) {
             if (this.formula === null) this.formula = '';
             this.formula += symbol;
@@ -152,136 +162,6 @@ export default {
             if (this.formula.length) this.formula = this.formula.slice(0, -1);
         },
 
-        makeApproximation() {
-            try {
-                // Подготовка данных
-                const X = this.approximationData.map(row => {
-                    const values = Object.values(row).slice(1);
-                    return values.map(Number);
-                });
-
-                const y = this.approximationData.map(row => {
-                    return Number(Object.values(row)[0]);
-                });
-
-                // Нормализация данных
-                const xMeans = X[0].map((_, j) =>
-                    X.reduce((sum, row) => sum + row[j], 0) / X.length
-                );
-                const xStds = X[0].map((_, j) => {
-                    const mean = xMeans[j];
-                    const variance = X.reduce((sum, row) => sum + Math.pow(row[j] - mean, 2), 0) / X.length;
-                    return Math.sqrt(variance);
-                });
-
-                const X_normalized = X.map(row =>
-                    row.map((val, j) => (val - xMeans[j]) / (xStds[j] || 1))
-                );
-
-                const yMean = y.reduce((a, b) => a + b) / y.length;
-                const yStd = Math.sqrt(y.reduce((a, b) => Math.pow(b - yMean, 2), 0) / y.length);
-                const y_normalized = y.map(val => (val - yMean) / yStd);
-
-                // Создаем модель с измененными параметрами
-                this.predictor = new AdvancedComponentPredictor(
-                    10,    // уменьшаем количество компонент
-                    2,     // уменьшаем мета-компоненты
-                    0.001  // уменьшаем скорость обучения
-                );
-
-                // Сохраняем параметры нормализации
-                this.predictor.xMeans = xMeans;
-                this.predictor.xStds = xStds;
-                this.predictor.yMean = yMean;
-                this.predictor.yStd = yStd;
-
-                // Обучаем модель на нормализованных данных
-                this.predictor.fit(X_normalized, y_normalized);
-
-                // Получаем предсказания
-                const predictions = this.predictor.predict(X_normalized)
-                    .map(pred => pred * yStd + yMean); // возвращаем к исходному масштабу
-
-                // Выводим метрики
-                const metrics = {
-                    MSE: predictions.reduce((sum, pred, i) => sum + Math.pow(pred - y[i], 2), 0) / predictions.length,
-                    MAE: predictions.reduce((sum, pred, i) => sum + Math.abs(pred - y[i]), 0) / predictions.length,
-                    R2: 1 - (predictions.reduce((sum, pred, i) => sum + Math.pow(pred - y[i], 2), 0) /
-                        y.reduce((sum, val) => sum + Math.pow(val - yMean, 2), 0))
-                };
-
-                console.log('\nМетрики качества:');
-                console.table(metrics);
-
-                // Выводим примеры предсказаний
-                console.log('\nПримеры предсказаний (первые 10):');
-                const examples = Array.from({ length: Math.min(10, y.length) }, (_, i) => ({
-                    'Реальное значение': y[i],
-                    'Предсказание': predictions[i].toFixed(2),
-                    'Абсолютная ошибка': Math.abs(predictions[i] - y[i]).toFixed(2),
-                    'Относительная ошибка %': ((Math.abs(predictions[i] - y[i]) / y[i]) * 100).toFixed(2)
-                }));
-                console.table(examples);
-
-                // Сохраняем результаты
-                this.results = { metrics, predictions, examples };
-
-            } catch (error) {
-                console.error('Ошибка при аппроксимации:', error);
-                this.$store.dispatch('notify', {
-                    text: `Ошибка при выполнении аппроксимации: ${error.message}`,
-                    color: 'error'
-                });
-            }
-        },
-
-        predict() {
-            if (!this.predictor) {
-                this.$store.dispatch('notify', {
-                    text: 'Сначала нужно обучить модель',
-                    color: 'warning'
-                });
-                return;
-            }
-
-            try {
-                // Берем 5 примеров из данных
-                const testData = this.approximationData.slice(0, 5).map(row => {
-                    const values = Object.values(row).slice(1);
-                    return values.map(Number);
-                });
-
-                // Нормализуем тестовые данные
-                const testData_normalized = testData.map(row =>
-                    row.map((val, j) => (val - this.predictor.xMeans[j]) / (this.predictor.xStds[j] || 1))
-                );
-
-                // Получаем и денормализуем предсказания
-                const predictions = this.predictor.predict(testData_normalized)
-                    .map(pred => pred * this.predictor.yStd + this.predictor.yMean);
-
-                // Получаем реальные значения
-                const realValues = this.approximationData.slice(0, 5)
-                    .map(row => Number(Object.values(row)[0]));
-
-                // Выводим результаты
-                console.log('\nРезультаты предсказания:');
-                const results = testData.map((data, i) => ({
-                    'Входные данные': data.join(', '),
-                    'Предсказание': predictions[i].toFixed(2),
-                    'Реальное значение': realValues[i],
-                    'Ошибка': Math.abs(predictions[i] - realValues[i]).toFixed(2)
-                }));
-                console.table(results);
-
-            } catch (error) {
-                console.error('Ошибка при предсказании:', error);
-                this.$store.dispatch('notify', {
-                    text: `Ошибка при выполнении предсказания: ${error.message}`,
-                    color: 'error'
-                });
-            }
-        }
     },
 }
 </script>
