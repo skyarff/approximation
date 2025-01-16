@@ -119,15 +119,14 @@ function getBasis(n, b, correlation = true, constant = true) {
 
 
 function dataProcessing(data, basisFunctions) {
-  const basis = ['x^4', 'x^3', 'x^2', 'x'];
+  const basis = ['x^2', 'x'];
 
 
   const fields = Object.keys(data[0]);
+  console.log(fields)
 
 
   const fullBasis = getBasis(fields.length, basis, true, true);
-
-  console.log('fullBasis', fullBasis)
 
 
   let A = [];
