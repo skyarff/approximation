@@ -63,24 +63,26 @@ function parsePower(powerStr) {
 }
 
 
-function getPairs(n) {
-  const ans = [];
+function getPairsThrees(n) {
+  const ans = [[], []];
   for (let i = 1; i < n; i++) {
     let j = i + 1;
     for (; j < n; j++) {
-      ans.push([i, j])
+      ans[0].push([i, j])
+      let k = j + 1;
+        for (; k < n; k++) {
+          ans[1].push([i, j, k])
+        }
     }
   }
   return ans;
 }
 
 
-function getBasis(n, b, correlation = true, constant = true, step) {
+function getBasis(n, b, constant = true, step) {
 
-  const pairs = getPairs(n);
+  const [pairs, threes] = getPairsThrees(n);
   const basis = [];
-
-
 
   for (let i = 0; i < b.length; i++) {
 
@@ -97,8 +99,7 @@ function getBasis(n, b, correlation = true, constant = true, step) {
       );
     }
 
-
-    for (let k = 0; k < pairs.length && correlation && base[0][0] > 1; k++) {
+    for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
       for (let j = step; j < p.val; j += step) {
         basis.push(
           {
@@ -109,6 +110,22 @@ function getBasis(n, b, correlation = true, constant = true, step) {
         );
       }
     }
+
+    for (let k = 0; k < threes.length && base[0][0]; k++) {
+      for (let j = step; j < p.val - 1; j += step) {
+        for (let t = step; t < p.val - j; t += step) {
+          basis.push(
+            {
+              b: base[0].substring(1),
+              v: threes[k],
+              p: [(p.val - j - t) * p.sign , j * p.sign, t * p.sign]
+            }
+          );
+        }
+      }
+
+    }
+
   }
 
   if (constant) {
@@ -128,7 +145,7 @@ function getBasis(n, b, correlation = true, constant = true, step) {
 function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1) {
 
   const fields = Object.keys(data[0]);
-  const fullBasis = getBasis(fields.length, basis, true, true, step);
+  const fullBasis = getBasis(fields.length, basis, true, step);
 
   console.log('fullBasis', fullBasis)
 
