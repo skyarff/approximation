@@ -5,18 +5,6 @@ import { solveMatrix } from '@/app_lib/matrixOperations';
 const L1 = 0.75;
 const L2 = 0.75;
 
-const data = [
-  { z: 1, y: 1, x: 2 },
-  { z: 4, y: 2, x: 5 },
-  { z: 9, y: 3, x: 2 },
-  { z: 16, y: 4, x: 9 },
-  { z: 25, y: 5, x: 4 },
-  { z: 36, y: 6, x: 42 },
-  { z: 49, y: 7, x: 5 },
-  { z: 64, y: 8, x: 1 },
-  { z: 81, y: 9, x: 9 },
-  { z: 100, y: 10, x: 2 }
-];
 
 // const data = [
 //   [1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
@@ -56,6 +44,24 @@ const basisFunctions = {
   }
 };
 
+function parsePower(powerStr) {
+  if (!powerStr) return { val: 1, sign: 1 };
+
+  let power = powerStr;
+  let sign = power[0] === '-' ? -1 : 1;
+
+  if (sign === -1) power = power.substring(1);
+
+  if (power.includes('/')) {
+    const [num, den] = power.split('/');
+    power = Number(num) / Number(den);
+  } else {
+    power = Number(power);
+  }
+
+  return { val: power, sign: sign };
+}
+
 
 function getPairs(n) {
   const ans = [];
@@ -68,34 +74,34 @@ function getPairs(n) {
   return ans;
 }
 
-const basis = ['x^3', 'x^2', 'x'];
 
-function getBasis(n, b, correlation = true, constant = true) {
+function getBasis(n, b, correlation = true, constant = true, step) {
 
   const pairs = getPairs(n);
   const basis = [];
 
   for (let i = 0; i < b.length; i++) {
     let base = b[i].split('^');
-    const p = base.length > 1 ? base[1] : 1;
+    const p = parsePower(base[1]);
 
     for (let t = 1; t < n; t++) {
       basis.push(
         {
           b: base[0],
           v: [t],
-          p: [p]
+          p: [p.val * p.sign]
         }
       );
     }
 
-    for (let k = 0; k < correlation && pairs.length; k++) {
-      for (let j = 1; j < p; j++) {
+
+    for (let k = 0; k < pairs.length && correlation; k++) {
+      for (let j = step; j < p.val; j += step) {
         basis.push(
           {
             b: base[0],
             v: pairs[k],
-            p: [p - j, j]
+            p: [(p.val - j) * p.sign , j * p.sign]
           }
         );
       }
@@ -118,17 +124,12 @@ function getBasis(n, b, correlation = true, constant = true) {
 }
 
 
-function dataProcessing(data, basisFunctions) {
-  const basis = ['x^4', 'x^3', 'x^2', 'x'];
-
+function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1) {
 
   const fields = Object.keys(data[0]);
-
-
-  const fullBasis = getBasis(fields.length, basis, true, true);
+  const fullBasis = getBasis(fields.length, basis, true, true, step);
 
   console.log('fullBasis', fullBasis)
-
 
   let A = [];
   for (let i = 0; i < fullBasis.length; i++) {
@@ -172,13 +173,15 @@ function dataProcessing(data, basisFunctions) {
         val *= Math.pow(func(data[i][fields[fullBasis[index].v[t]]]), fullBasis[index].p[t]);
       sum += data[i][fields[0]] * val;
     }
+
     return sum - L1;
   });
 
   const weights = solveMatrix(A, B);
-  const r2 = R2(fullBasis, weights, data);
+  const success = weights.some(w => Number.isFinite(w));
+  const r2 = R2(fullBasis, weights, data, success);
 
-  return { A, B, R2: r2, weights };
+  return { A, B, R2: r2, weights, success };
 }
 
 function R2(fullBasis, weights, data) {
@@ -202,7 +205,6 @@ function R2(fullBasis, weights, data) {
   return 1 - (rss / tss);
 }
 
-const ans = dataProcessing(data, basisFunctions);
 
 
-export { ans }
+export { dataProcessing }

@@ -87,9 +87,7 @@
 
 <script>
 import { read, utils } from 'xlsx';
-// import { AdvancedComponentPredictor } from '@/app_lib/index';
-
-import { ans } from '@/app_lib/index';
+import { dataProcessing } from '@/app_lib/index';
 
 
 
@@ -101,20 +99,37 @@ export default {
             approximationData: null,
             predictor: null,
             results: null,
+            data: [
+                { z: 1, y: 1, x: 2 },
+                { z: 4, y: 2, x: 5 },
+                { z: 9, y: 3, x: 2 },
+                { z: 16, y: 4, x: 9 },
+                { z: 25, y: 5, x: 4 },
+                { z: 36, y: 6, x: 42 },
+                { z: 49, y: 7, x: 5 },
+                { z: 64, y: 8, x: 1 },
+                { z: 81, y: 9, x: 9 },
+                { z: 100, y: 10, x: 2 }
+            ],
+            basis: ['x^2', 'x', 'x^3' ],
+            L1: 10,
+            L2: 20
         }
     },
     mounted() {
 
-        console.log('ans', ans)
+        // console.log('pow', Math.pow(4, eval('1/2')))
     },
     methods: {
+        makeApproximation() {
+            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2))
+        },
         async fileUpload(event) {
             const file = event.target.files[0];
             if (file && file.name.endsWith('.xlsx')) {
                 this.file = file;
                 // Читаем данные из Excel
-                const data = await this.readExcelFile(file);
-                this.approximationData = data;
+                this.data = await this.readExcelFile(file);
             } else {
                 this.$store.dispatch('notify', {
                     text: 'Пожалуйста, выберите файл формата .xlsx',
