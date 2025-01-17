@@ -80,14 +80,17 @@ function getBasis(n, b, correlation = true, constant = true, step) {
   const pairs = getPairs(n);
   const basis = [];
 
+
+
   for (let i = 0; i < b.length; i++) {
-    let base = b[i].split('^');
+
+    const base = b[i].split('^');
     const p = parsePower(base[1]);
 
     for (let t = 1; t < n; t++) {
       basis.push(
         {
-          b: base[0],
+          b: base[0].substring(1),
           v: [t],
           p: [p.val * p.sign]
         }
@@ -95,18 +98,16 @@ function getBasis(n, b, correlation = true, constant = true, step) {
     }
 
 
-    for (let k = 0; k < pairs.length && correlation; k++) {
+    for (let k = 0; k < pairs.length && correlation && base[0][0] > 1; k++) {
       for (let j = step; j < p.val; j += step) {
         basis.push(
           {
-            b: base[0],
+            b: base[0].substring(1),
             v: pairs[k],
             p: [(p.val - j) * p.sign , j * p.sign]
           }
         );
       }
-
-
     }
   }
 
