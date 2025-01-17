@@ -198,14 +198,16 @@ function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1) {
   const weights = solveMatrix(A, B);
   const success = weights.some(w => Number.isFinite(w));
   const r2 = R2(fullBasis, weights, data, success);
+  const aic = calculateAIC(fullBasis, weights, data, success);
+  const mse = calculateMSE(fullBasis, weights, data);
 
-  return { A, B, R2: r2, weights, success };
+  return { A, B, R2: r2, weights, success, AIC: aic, MSE: mse };
 }
 
-function R2(fullBasis, weights, data) {
+function calculatePredicted(fullBasis, weights, data) {
   const fields = Object.keys(data[0]);
   
-  const predicted = data.map((_, k) => {
+  return data.map((_, k) => {
     return fullBasis.reduce((sum, b, index) => {
       const func = basisFunctions.getFunction(b.b);
       let val = 1;
@@ -215,6 +217,14 @@ function R2(fullBasis, weights, data) {
       return sum + weights[index] * val;
     }, 0);
   });
+}
+
+function R2(fullBasis, weights, data, success) {
+  if (!success) return null;
+
+  const fields = Object.keys(data[0]);
+  
+  const predicted = calculatePredicted(fullBasis, weights, data);
 
   const mean = data.reduce((sum, val) => sum + val[fields[0]], 0) / data.length;
   const tss = data.reduce((sum, val) => sum + Math.pow(val[fields[0]] - mean, 2), 0);
@@ -223,6 +233,32 @@ function R2(fullBasis, weights, data) {
   return 1 - (rss / tss);
 }
 
+function calculateAIC(fullBasis, weights, data, success) {
+  if (!success) return null;
 
+  const fields = Object.keys(data[0]);
+  const n = data.length;
+  const k = fullBasis.length;
+  
+  const predicted = calculatePredicted(fullBasis, weights, data);
+  const rss = data.reduce((sum, val, i) => sum + Math.pow(val[fields[0]] - predicted[i], 2), 0);
+
+  const aic = n * Math.log(rss/n) + 2*k;
+
+  return aic;
+}
+
+// MSE (Mean Squared Error) - среднеквадратическая ошибка
+function calculateMSE(fullBasis, weights, data) {
+  const predicted = calculatePredicted(fullBasis, weights, data);
+  const fields = Object.keys(data[0]);
+  const n = data.length;
+  
+  const squaredErrors = data.map((val, i) => 
+    Math.pow(val[fields[0]] - predicted[i], 2)
+  );
+  
+  return squaredErrors.reduce((sum, err) => sum + err, 0) / n;
+}
 
 export { dataProcessing }
