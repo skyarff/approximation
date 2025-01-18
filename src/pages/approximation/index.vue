@@ -111,9 +111,7 @@ export default {
                 { z: 81, y: 9, x: 9, t: 2 },
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
-            basis: ['1x^2', '1x', '2x^5' ],
-            L1: 1,
-            L2: 2
+            basis: ['2x^3', '2x^2', '1x', '1logM']
         }
     },
     mounted() {
@@ -122,7 +120,7 @@ export default {
     },
     methods: {
         makeApproximation() {
-            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2, 1))
+            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2, 1, true))
         },
         async fileUpload(event) {
             const file = event.target.files[0];

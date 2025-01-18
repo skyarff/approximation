@@ -19,7 +19,7 @@ function solveMatrix(A, B) {
         }
 
         // Проверка на вырожденность матрицы
-        if (Math.abs(augmentedMatrix[i][i]) < 1e-10) {
+        if (Math.abs(augmentedMatrix[i][i]) < 1e-308) {
             throw new Error('Матрица вырождена');
         }
 

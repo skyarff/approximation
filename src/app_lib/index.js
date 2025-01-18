@@ -2,18 +2,6 @@
 import { solveMatrix } from '@/app_lib/matrixOperations';
 
 
-const L1 = 0.75;
-const L2 = 0.75;
-
-
-// const data = [
-//   [1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
-//   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-//   [2, 5, 2, 9, 4, 42, 5, 1, 9, 2],
-// ]
-
-const dataY = [1, 4, 9, 16, 25, 36, 49, 64, 81, 100];
-
 
 const basisFunctions = {
   getFunction: (basis) => {
@@ -28,14 +16,10 @@ const basisFunctions = {
         return x => Math.cos(x);
       case 'tan':
         return x => Math.tan(x);
-      case 'exp':
-        return x => Math.exp(x);
-      case 'log':
-        return x => Math.log(x);
+      case 'logM':
+        return x => Math.log(Math.abs(x));
       case 'abs':
         return x => Math.abs(x);
-      case 'sqrt':
-        return x => Math.sqrt(x);
       case 'tanh':
         return x => Math.tanh(x);
       default:
@@ -61,6 +45,17 @@ function parsePower(powerStr) {
 
   return { val: power, sign: sign };
 }
+
+
+function normalizationForND (data, fields) {
+  for (let i = 0; i < data.length; i++) {
+    for (let field of fields) {
+      if (Math.abs(data[i][field]) < 1e-25) {
+        data[i][field] = 1e-25;
+      }
+    }
+  }
+};
 
 
 function getPairsThrees(n) {
@@ -111,7 +106,7 @@ function getBasis(n, b, constant = true, step) {
       }
     }
 
-    for (let k = 0; k < threes.length && base[0][0]; k++) {
+    for (let k = 0; k < threes.length && base[0][0] > 2; k++) {
       for (let j = step; j < p.val - 1; j += step) {
         for (let t = step; t < p.val - j; t += step) {
           basis.push(
@@ -142,43 +137,68 @@ function getBasis(n, b, constant = true, step) {
 }
 
 
-function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1) {
+function computeA(data, fullBasis, fields, basisFunctions) {
+  const functionCache = new Map();
+  
+  const precomputedValues = fullBasis.map((basisElement, basisIndex) => {
+    const func = basisFunctions.getFunction(basisElement.b);
+    const key = `${basisElement.b}_${basisIndex}`;
+    
+    return data.map((dataPoint, dataIndex) => {
+      let val = 1;
+      for (let t = 0; t < basisElement.v.length; t++) {
+        const fieldValue = dataPoint[fields[basisElement.v[t]]];
+        const cacheKey = `${key}_${dataIndex}_${t}`;
+        
+        let funcResult;
+        if (functionCache.has(cacheKey)) {
+          funcResult = functionCache.get(cacheKey);
+        } else {
+          funcResult = Math.pow(func(fieldValue), basisElement.p[t]);
+          functionCache.set(cacheKey, funcResult);
+        }
+        
+        val *= funcResult;
+      }
+      return val;
+    });
+  });
+
+  const A = new Array(fullBasis.length);
+  
+  for (let i = 0; i < fullBasis.length; i++) {
+    A[i] = new Array(fullBasis.length);
+    for (let j = 0; j < fullBasis.length; j++) {
+      let sum = 0;
+      for (let k = 0; k < data.length; k++)
+        sum += precomputedValues[i][k] * precomputedValues[j][k];
+      A[i][j] = sum;
+    }
+  }
+
+  return A;
+}
+
+function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, ndNormalization = false) {
+
 
   const fields = Object.keys(data[0]);
+
+  if (ndNormalization)
+    normalizationForND(data, fields);
+
   const fullBasis = getBasis(fields.length, basis, true, step);
 
   console.log('fullBasis', fullBasis)
 
-  let A = [];
-  for (let i = 0; i < fullBasis.length; i++) {
-    let row = [];
-    for (let j = 0; j < fullBasis.length; j++) {
+  const A = computeA(data, fullBasis, fields, basisFunctions);
 
-      const funcI = basisFunctions.getFunction(fullBasis[i].b);
-      const funcJ = basisFunctions.getFunction(fullBasis[j].b);
-
-      let sum = 0;
-      for (let k = 0; k < data.length; k++) {
-
-        let val1 = 1;
-        for (let t = 0; t < fullBasis[i].v.length; t++) 
-          val1 *= Math.pow(funcI(data[k][fields[fullBasis[i].v[t]]]), fullBasis[i].p[t]);
-          
-
-        let val2 = 1;
-        for (let t = 0; t < fullBasis[j].v.length; t++)
-          val2 *= Math.pow(funcJ(data[k][fields[[fullBasis[j].v[t]]]]), fullBasis[j].p[t]);
-
-        sum += val1 * val2;
-      }
-      row.push(sum);
-    }
-    A.push(row);
-  }
+  console.log('матрица A сформирована')
 
   for (let i = 0; i < A.length; i++) {
     A[i][i] += 2 * L2;
   }
+  
 
   const B = fullBasis.map((b, index) => {
     const func = basisFunctions.getFunction(b.b);
@@ -195,6 +215,7 @@ function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1) {
     return sum - L1;
   });
 
+  console.log('матрица сформирована')
   const weights = solveMatrix(A, B);
   const success = weights.some(w => Number.isFinite(w));
   const r2 = R2(fullBasis, weights, data, success);
