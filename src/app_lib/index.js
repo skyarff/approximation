@@ -1,5 +1,6 @@
 
 import { solveMatrix } from '@/app_lib/matrixOperations';
+import { Array } from 'core-js';
 
 
 
@@ -87,7 +88,7 @@ function getPairsThrees(n) {
 function getBasis(n, b, constant = true, step) {
 
   const [pairs, threes] = getPairsThrees(n);
-  const basis = [];
+  const basis = {};
 
   for (let i = 0; i < b.length; i++) {
 
@@ -95,37 +96,39 @@ function getBasis(n, b, constant = true, step) {
     const p = parsePower(base[1]);
 
     for (let t = 1; t < n; t++) {
-      basis.push(
-        {
-          b: base[0].substring(1),
-          v: [t],
-          p: [p.val * p.sign]
-        }
-      );
+
+      const r = {
+        b: Array(1).fill(base[0].substring(1)),
+        v: [t],
+        p: [p.val * p.sign],
+      }
+    
+      basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
     }
 
     for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
       for (let j = step; j < p.val; j += step) {
-        basis.push(
-          {
-            b: base[0].substring(1),
-            v: pairs[k],
-            p: [(p.val - j) * p.sign , j * p.sign]
-          }
-        );
+
+        const r = {
+          b: Array(2).fill(base[0].substring(1)),
+          v: pairs[k],
+          p: [(p.val - j) * p.sign , j * p.sign],
+        }
+        basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
+
       }
     }
 
     for (let k = 0; k < threes.length && base[0][0] > 2; k++) {
       for (let j = step; j < p.val - 1; j += step) {
         for (let t = step; t < p.val - j; t += step) {
-          basis.push(
-            {
-              b: base[0].substring(1),
-              v: threes[k],
-              p: [(p.val - j - t) * p.sign , j * p.sign, t * p.sign]
-            }
-          );
+
+          const r = {
+            b: Array(3).fill(base[0].substring(1)),
+            v: threes[k],
+            p: [(p.val - j - t) * p.sign , j * p.sign, t * p.sign],
+          }
+          basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
         }
       }
 
@@ -134,9 +137,9 @@ function getBasis(n, b, constant = true, step) {
   }
 
   if (constant) {
-    basis.push(
+    basis['111'] = (
       {
-        b: '1',
+        b: Array(1).fill('1'),
         v: [1],
         p: [1]
       }
@@ -151,19 +154,22 @@ function computeA(data, fullBasis, fields, basisFunctions) {
   const functionCache = new Map();
   
   const precomputedValues = fullBasis.map((basisElement, basisIndex) => {
-    const func = basisFunctions.getFunction(basisElement.b);
-    const key = `${basisElement.b}_${basisIndex}`;
+    
+    const key = `${basisElement.b.join()}_${basisIndex}`;
     
     return data.map((dataPoint, dataIndex) => {
       let val = 1;
       for (let t = 0; t < basisElement.v.length; t++) {
-        const fieldValue = dataPoint[fields[basisElement.v[t]]];
         const cacheKey = `${key}_${dataIndex}_${t}`;
+
         
         let funcResult;
         if (functionCache.has(cacheKey)) {
           funcResult = functionCache.get(cacheKey);
         } else {
+          const func = basisFunctions.getFunction(basisElement.b[t]);
+          const fieldValue = dataPoint[fields[basisElement.v[t]]];
+
           funcResult = Math.pow(func(fieldValue), basisElement.p[t]);
           functionCache.set(cacheKey, funcResult);
         }
@@ -197,7 +203,8 @@ function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, normN = false, k 
   console.log('k', k)
   dataNormalization(data, fields, normN, k);
 
-  const fullBasis = getBasis(fields.length, basis, true, step);
+  const basisArray = getBasis(fields.length, basis, true, step);
+  const fullBasis  = Object.values(basisArray);
 
   console.log('fullBasis', fullBasis)
 
@@ -211,14 +218,17 @@ function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, normN = false, k 
   
 
   const B = fullBasis.map((b, index) => {
-    const func = basisFunctions.getFunction(b.b);
+    
     let sum = 0;
 
     for (let i = 0; i < data.length; i++) {
 
       let val = 1;
-      for (let t = 0; t < fullBasis[index].v.length; t++)
+      for (let t = 0; t < fullBasis[index].v.length; t++) {
+        const func = basisFunctions.getFunction(b.b[t]);
         val *= Math.pow(func(data[i][fields[fullBasis[index].v[t]]]), fullBasis[index].p[t]);
+      }
+        
       sum += data[i][fields[0]] * val;
     }
 
@@ -240,9 +250,10 @@ function calculatePredicted(fullBasis, weights, data) {
   
   return data.map((_, k) => {
     return fullBasis.reduce((sum, b, index) => {
-      const func = basisFunctions.getFunction(b.b);
+      
       let val = 1;
       for (let t = 0; t < b.v.length; t++) {
+        const func = basisFunctions.getFunction(b.b[t]);
         val *= Math.pow(func(data[k][fields[b.v[t]]]), b.p[t]);
       }
       return sum + weights[index] * val;
