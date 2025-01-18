@@ -177,7 +177,11 @@ function computeA(data, fullBasis, fields, basisFunctions) {
         
         val *= funcResult;
       }
-      return val;
+
+      if (basisElement.hasOwnProperty('outputFunc')) {
+        return basisFunctions.getFunction(basisElement.outputFunc)(val);
+      } return val;
+
     });
   });
 
@@ -234,7 +238,10 @@ function dataProcessing(data, b, L1 = 0, L2 = 0, step = 1, normN = false, k = 1,
       sum += data[i][fields[0]] * val;
     }
 
-    return sum - L1;
+    if (b.hasOwnProperty('outputFunc')) {
+      return basisFunctions.getFunction(b.outputFunc)(sum) - L1;
+    } return sum - L1;
+
   });
 
   console.log('матрица сформирована')
