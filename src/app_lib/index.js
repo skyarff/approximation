@@ -102,7 +102,7 @@ function getBasis(n, b, basis, constant = true, step) {
         p: [p.val * p.sign],
       }
     
-      basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
+      basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
     }
 
     for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
@@ -113,7 +113,7 @@ function getBasis(n, b, basis, constant = true, step) {
           v: pairs[k],
           p: [(p.val - j) * p.sign , j * p.sign],
         }
-        basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
+        basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
 
       }
     }
@@ -127,7 +127,7 @@ function getBasis(n, b, basis, constant = true, step) {
             v: threes[k],
             p: [(p.val - j - t) * p.sign , j * p.sign, t * p.sign],
           }
-          basis[r.b + r.v.join() + r.p.join()] = ({ b: r.b, v: r.v, p: r.p });
+          basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
         }
       }
 
@@ -144,6 +144,8 @@ function getBasis(n, b, basis, constant = true, step) {
       }
     );
   }
+
+  console.log('basis', basis)
 
   return basis;
 }
@@ -181,6 +183,7 @@ function computeA(data, fullBasis, fields, basisFunctions) {
 
   const A = new Array(fullBasis.length);
   
+  /////////////////
   for (let i = 0; i < fullBasis.length; i++) {
     A[i] = new Array(fullBasis.length);
     for (let j = 0; j < fullBasis.length; j++) {
@@ -190,7 +193,8 @@ function computeA(data, fullBasis, fields, basisFunctions) {
       A[i][j] = sum;
     }
   }
-
+  /////////////////
+  
   return A;
 }
 
