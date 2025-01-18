@@ -120,7 +120,7 @@ export default {
     },
     methods: {
         makeApproximation() {
-            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2, 1, true, 1))
+            console.log('APPdata', dataProcessing(this.data, this.basis, {}, this.L1, this.L2, 1, true, 1))
         },
         async fileUpload(event) {
             const file = event.target.files[0];

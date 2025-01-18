@@ -87,8 +87,8 @@ function getPairsThrees(n) {
 
 function getBasis(n, b, basis, constant = true, step) {
 
-  const [pairs, threes] = getPairsThrees(n);
-
+  const [pairs, threes] = b.length > 0 ? getPairsThrees(n) : [];
+    
   for (let i = 0; i < b.length; i++) {
 
     const base = b[i].split('^');
@@ -202,7 +202,7 @@ function computeA(data, fullBasis, fields, basisFunctions) {
   return A;
 }
 
-function dataProcessing(data, b, L1 = 0, L2 = 0, step = 1, normN = false, k = 1, basis = {}) {
+function dataProcessing(data, b = [], basis = {}, L1 = 0, L2 = 0, step = 1, normN = false, k = 1 ) {
 
   const fields = Object.keys(data[0]);
 
