@@ -18,6 +18,8 @@ const basisFunctions = {
         return x => Math.tan(x);
       case 'logM':
         return x => Math.log(Math.abs(x));
+      case 'exp':
+        return x => Math.exp(x);
       case 'abs':
         return x => Math.abs(x);
       case 'tanh':
@@ -47,14 +49,22 @@ function parsePower(powerStr) {
 }
 
 
-function normalizationForND (data, fields) {
+function dataNormalization (data, fields, normN = false, k = 1) {
+
+  if (!normN && k === 1) return;
+
   for (let i = 0; i < data.length; i++) {
     for (let field of fields) {
-      if (Math.abs(data[i][field]) < 1e-25) {
-        data[i][field] = 1e-25;
+
+      if (k !== 1) data[i][field] *= k
+
+      if (normN && Math.abs(data[i][field]) < 1e-20) {
+        data[i][field] = 1e-20;
       }
+
     }
   }
+
 };
 
 
@@ -179,13 +189,13 @@ function computeA(data, fullBasis, fields, basisFunctions) {
   return A;
 }
 
-function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, ndNormalization = false) {
+function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, normN = false, k = 1) {
 
 
   const fields = Object.keys(data[0]);
 
-  if (ndNormalization)
-    normalizationForND(data, fields);
+  console.log('k', k)
+  dataNormalization(data, fields, normN, k);
 
   const fullBasis = getBasis(fields.length, basis, true, step);
 

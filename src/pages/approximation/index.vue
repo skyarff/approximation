@@ -111,7 +111,7 @@ export default {
                 { z: 81, y: 9, x: 9, t: 2 },
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
-            basis: ['2x^3', '2x^2', '1x', '1logM']
+            basis: ['3x^3', '2x^2', '1x', '3sin^3', '2sin^2',]
         }
     },
     mounted() {
@@ -120,13 +120,12 @@ export default {
     },
     methods: {
         makeApproximation() {
-            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2, 1, true))
+            console.log('APPdata', dataProcessing(this.data, this.basis, this.L1, this.L2, 1, true, 1))
         },
         async fileUpload(event) {
             const file = event.target.files[0];
             if (file && file.name.endsWith('.xlsx')) {
                 this.file = file;
-                // Читаем данные из Excel
                 this.data = await this.readExcelFile(file);
             } else {
                 this.$store.dispatch('notify', {
@@ -143,11 +142,9 @@ export default {
                 reader.onload = async (e) => {
                     try {
                         const data = e.target.result;
-                        // Используем импортированные функции
                         const workbook = read(data, { type: 'array' });
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
-                        // Конвертируем в массив
                         const jsonData = utils.sheet_to_json(worksheet);
 
                         console.log('Прочитанные данные:', jsonData);
@@ -157,8 +154,6 @@ export default {
                         reject(error);
                     }
                 };
-
-
 
                 reader.readAsArrayBuffer(file);
             });
