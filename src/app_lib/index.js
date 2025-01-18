@@ -85,10 +85,9 @@ function getPairsThrees(n) {
 }
 
 
-function getBasis(n, b, constant = true, step) {
+function getBasis(n, b, basis, constant = true, step) {
 
   const [pairs, threes] = getPairsThrees(n);
-  const basis = {};
 
   for (let i = 0; i < b.length; i++) {
 
@@ -195,15 +194,14 @@ function computeA(data, fullBasis, fields, basisFunctions) {
   return A;
 }
 
-function dataProcessing(data, basis, L1 = 0, L2 = 0, step = 1, normN = false, k = 1) {
-
+function dataProcessing(data, b, L1 = 0, L2 = 0, step = 1, normN = false, k = 1, basis = {}) {
 
   const fields = Object.keys(data[0]);
 
   console.log('k', k)
   dataNormalization(data, fields, normN, k);
 
-  const basisArray = getBasis(fields.length, basis, true, step);
+  const basisArray = getBasis(fields.length, b, basis, true, step);
   const fullBasis  = Object.values(basisArray);
 
   console.log('fullBasis', fullBasis)
