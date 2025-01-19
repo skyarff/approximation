@@ -26,7 +26,7 @@ const basisFunctions = {
       case 'tanh':
         return x => Math.tanh(x);
       default:
-        console.log(`Неизвестная функция: ${basis}`);
+        return x => x;
     }
   }
 };
@@ -178,10 +178,7 @@ function computeA(data, fullBasis, fields, basisFunctions) {
         val *= funcResult;
       }
 
-      if (basisElement.hasOwnProperty('outputFunc')) {
-        return basisFunctions.getFunction(basisElement.outputFunc)(val);
-      } return val;
-
+      return basisFunctions.getFunction(basisElement.outputFunc)(val);
     });
   });
 
@@ -238,9 +235,7 @@ function dataProcessing(data, b = [], basis = {}, L1 = 0, L2 = 0, step = 1, norm
       sum += data[i][fields[0]] * val;
     }
 
-    if (b.hasOwnProperty('outputFunc')) {
-      return basisFunctions.getFunction(b.outputFunc)(sum) - L1;
-    } return sum - L1;
+    return basisFunctions.getFunction(b.outputFunc)(sum) - L1;
 
   });
 
@@ -265,7 +260,9 @@ function calculatePredicted(fullBasis, weights, data) {
         const func = basisFunctions.getFunction(b.b[t]);
         val *= Math.pow(func(data[k][fields[b.v[t]]]), b.p[t]);
       }
-      return sum + weights[index] * val;
+
+      return sum + weights[index] * basisFunctions.getFunction(b.outputFunc)(val);
+
     }, 0);
   });
 }
