@@ -13,7 +13,7 @@ const basisFunctions = {
                 return x => Math.cos(x);
             case 'tan':
                 return x => Math.tan(x);
-            case 'logM':
+            case 'ln':
                 return x => Math.log(Math.abs(x));
             case 'exp':
                 return x => Math.exp(x);
@@ -121,8 +121,6 @@ function getBasis(n, b, basis, constant = true, step) {
             }
         );
     }
-
-    console.log('basis', basis)
 
     return basis;
 }

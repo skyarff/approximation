@@ -8,16 +8,16 @@ import { basisFunctions, getBasis } from './basis';
 console.log('basisFunctions', basisFunctions)
 
 
-function dataNormalization (data, fields, normN = false, k = 1) {
+function dataNormalization (data, fields, normSV = false, k = 1) {
 
-  if (!normN && k === 1) return;
+  if (!normSV && k === 1) return;
 
   for (let i = 0; i < data.length; i++) {
     for (let field of fields) {
 
       if (k !== 1) data[i][field] *= k
 
-      if (normN && Math.abs(data[i][field]) < 1e-20) {
+      if (normSV && Math.abs(data[i][field]) < 1e-20) {
         data[i][field] = 1e-20;
       }
 
@@ -74,18 +74,14 @@ function computeA(data, fullBasis, fields) {
   return A;
 }
 
-function dataProcessing(data, b = [], basis = {}, L1 = 0, L2 = 0, step = 1, normN = false, k = 1) {
+function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
 
   const fields = Object.keys(data[0]);
 
   console.log('k', k)
-  dataNormalization(data, fields, normN, k);
+  dataNormalization(data, fields, normSV, k);
 
-  const basisArray = getBasis(fields.length, b, basis, true, step);
-  const fullBasis  = Object.values(basisArray);
-
-  console.log('fullBasis', fullBasis)
-
+  const fullBasis  = Object.values(basis);
   const A = computeA(data, fullBasis, fields);
 
   console.log('матрица A сформирована')
@@ -94,7 +90,7 @@ function dataProcessing(data, b = [], basis = {}, L1 = 0, L2 = 0, step = 1, norm
     A[i][i] += 2 * L2;
   }
   
-
+  
   const B = fullBasis.map((b, index) => {
     
     let sum = 0;

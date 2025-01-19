@@ -71,14 +71,72 @@
             </v-row>
         </div>
 
+        <div class="w-100 pa-2">
+            <v-row>
+                <v-col cols="1">
+                    <v-text-field label="L1" v-model="L1" />
+                </v-col>
+                <v-col cols="1">
+                    <v-text-field label="L2" v-model="L1" />
+                </v-col>
+                <v-col cols="1">
+                    <v-text-field label="Step" v-model="step" />
+                </v-col>
+            </v-row>
+
+           
+        </div>
+
+        <div class="w-100 pa-2">
+
+            <v-row>
+                <v-col cols="2">
+                    <v-autocomplete v-model="selectedFunction" :items="functions"
+                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                        label="Выберите функцию"></v-autocomplete>
+                </v-col>
+                <v-col cols="1">
+                    <v-text-field type="number" v-model="degree" label="Степень"></v-text-field>
+                </v-col>
+                <v-col cols="1">
+                    <v-select v-model="depth" :items="depths" item-title="val" item-value="val"
+                        label="Глубина"></v-select>
+                </v-col>
+                <v-col>
+                    <v-btn @click="addSimplifiedBasis">
+                        Добавить
+                    </v-btn>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                    <v-list density="compact">
+                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index" :title="basis">
+                            <template v-slot:append>
+                                <v-btn icon="mdi-close" density="compact" variant="text"
+                                    @click="simplifiedBasis.splice(index, 1)"></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-col>
+            </v-row>
+
+            
+
+
+        </div>
 
         <div class="w-100">
-            <v-btn @click="makeApproximation">
+            <v-btn class="mr-6" @click="makeApproximation">
                 Аппроксимировать
             </v-btn>
-            <v-btn @click="predict">
-                Predict
+            <v-btn @click="getSimplifiedBasis">
+                Получить расширенные базисы
             </v-btn>
+            <!-- <v-btn @click="predict">
+                Predict
+            </v-btn> -->
         </div>
 
 
@@ -88,6 +146,7 @@
 <script>
 import { read, utils } from 'xlsx';
 import { dataProcessing } from '@/app_lib/index';
+import { getBasis } from '@/app_lib/basis';
 
 
 
@@ -95,10 +154,25 @@ export default {
     data() {
         return {
             file: null,
-            formula: '',
-            approximationData: null,
-            predictor: null,
-            results: null,
+            functions: [
+                { id: 1, val: 'x', label: 'Идентичность' },
+                { id: 2, val: 'sqrt', label: 'Квадратный корень' },
+                { id: 3, val: 'sin', label: 'Синус' },
+                { id: 4, val: 'cos', label: 'Косинус' },
+                { id: 5, val: 'tan', label: 'Тангенс' },
+                { id: 6, val: 'ln', label: 'Натуральный логарифм' },
+                { id: 7, val: 'exp', label: 'Экспонента' },
+                { id: 8, val: 'abs', label: 'Модуль' },
+                { id: 9, val: 'tanh', label: 'Гиперболический тангенс' }
+            ],
+            selectedFunction: 'x',
+            degree: 1,
+            depth: 1,
+            depths: [
+                { id: 0, val: 1 },
+                { id: 1, val: 2 },
+                { id: 2, val: 3 }
+            ],
             data: [
                 { z: 1, y: 1, x: 2, t: 2 },
                 { z: 4, y: 2, x: 5, t: 2 },
@@ -111,7 +185,15 @@ export default {
                 { z: 81, y: 9, x: 9, t: 2 },
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
-            basis: ['3x^3', '2x^2', '1x', '3sin^3', '2sin^2',]
+            simplifiedBasis: ['3x^3', '2x^2', '1x', '3sin^3', '2sin^2'],
+            basis: {},
+            L1: 1,
+            L2: 1,
+            step: 1,
+            normSV: true,
+            k: 1,
+            constant: true,
+            result: null,
         }
     },
     mounted() {
@@ -120,7 +202,24 @@ export default {
     },
     methods: {
         makeApproximation() {
-            console.log('APPdata', dataProcessing(this.data, this.basis, {}, this.L1, this.L2, 1, true, 1))
+            this.result = dataProcessing(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
+            console.log('this.result', this.result)
+        },
+        addSimplifiedBasis() {
+            this.simplifiedBasis.push(`${this.depth}${this.selectedFunction}^${this.degree}`)
+        },
+        getSimplifiedBasis() {
+            if (this.data.length > 0) {
+                const fields = Object.keys(this.data[0]);
+                this.basis = getBasis(fields.length, this.simplifiedBasis, this.basis, this.constant, this.step);
+                console.log('this.basis_', this.basis)
+
+            } else {
+                this.$store.dispatch('notify', {
+                    text: 'Данные отсутствуют.',
+                    color: 'warning'
+                });
+            }
         },
         async fileUpload(event) {
             const file = event.target.files[0];
