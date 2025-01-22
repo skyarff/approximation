@@ -1,7 +1,7 @@
 export default class WorkerPool {
     constructor() {
         // Получаем количество логических процессоров
-        this.maxWorkers = navigator.hardwareConcurrency || 4;
+        this.maxWorkers = navigator.hardwareConcurrency || 2;
         // Оставляем два потока для UI
         this.optimalSize = Math.max(1, this.maxWorkers - 2);
         
