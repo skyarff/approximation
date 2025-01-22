@@ -3,66 +3,9 @@ import { solveMatrix } from '@/app_lib/matrixOperations';
 import { Array } from 'core-js';
 import { R2, calculateAIC, calculateMSE } from './metrics';
 import { basisFunctions } from './basis';
+import WorkerPool from './workerPool';
 
 
-
-class WorkerPool {
-  constructor(size) {
-    this.workers = [];
-    this.tasks = [];
-
-    for (let i = 0; i < size; i++) {
-      const workerCode = `
-              self.onmessage = function(e) {
-                  const { precomputedValues, start, end, fullBasisLength, dataLength } = e.data;
-                  
-                  const result = [];
-                  for (let i = start; i < end; i++) {
-                      const row = new Array(fullBasisLength);
-                      for (let j = 0; j < fullBasisLength; j++) {
-                          let sum = 0;
-                          for (let k = 0; k < dataLength; k++) {
-                              sum += precomputedValues[i][k] * precomputedValues[j][k];
-                          }
-                          row[j] = sum;
-                      }
-                      result.push(row);
-                  }
-                  
-                  self.postMessage({ result, start, end });
-              }
-          `;
-
-      const blob = new Blob([workerCode], { type: 'application/javascript' });
-      const worker = new Worker(URL.createObjectURL(blob));
-      this.workers.push(worker);
-    }
-  }
-
-  async processChunk(precomputedValues, start, end, fullBasisLength, dataLength) {
-    return new Promise((resolve) => {
-      const worker = this.workers.find(w => !w.busy);
-      if (worker) {
-        worker.busy = true;
-        worker.onmessage = (e) => {
-          worker.busy = false;
-          resolve(e.data.result);
-        };
-        worker.postMessage({
-          precomputedValues,
-          start,
-          end,
-          fullBasisLength,
-          dataLength
-        });
-      }
-    });
-  }
-
-  terminate() {
-    this.workers.forEach(worker => worker.terminate());
-  }
-}
 
 
 
@@ -116,45 +59,49 @@ async function computeA(data, fullBasis, fields) {
   });
 
   const A = new Array(fullBasis.length);
-
-  // Создаем пул воркеров (например, 4 воркера)
-  const poolSize = 4;
-  const pool = new WorkerPool(poolSize);
-
-  // Разбиваем задачу на части
-  const chunkSize = Math.ceil(fullBasis.length / poolSize);
-  const chunks = [];
-
-  for (let i = 0; i < fullBasis.length; i += chunkSize) {
-    chunks.push({
-      start: i,
-      end: Math.min(i + chunkSize, fullBasis.length)
-    });
-  }
-
-  // Запускаем обработку чанков параллельно
-  const results = await Promise.all(chunks.map(chunk =>
-    pool.processChunk(
-      precomputedValues,
-      chunk.start,
-      chunk.end,
-      fullBasis.length,
-      data.length
-    )
-  ));
-
-  // Собираем результаты
-  results.forEach((result, index) => {
-    const startIndex = chunks[index].start;
-    result.forEach((row, rowIndex) => {
-      A[startIndex + rowIndex] = row;
-    });
-  });
-
-  // Завершаем работу пула
-  pool.terminate();
-
-  return A;
+    
+    // Создаем пул с оптимальным количеством воркеров
+    const pool = new WorkerPool();
+    
+    // Разбиваем задачу на части в зависимости от количества воркеров
+    const chunkSize = Math.ceil(fullBasis.length / pool.workers.length);
+    const chunks = [];
+    
+    for (let i = 0; i < fullBasis.length; i += chunkSize) {
+        chunks.push({
+            start: i,
+            end: Math.min(i + chunkSize, fullBasis.length)
+        });
+    }
+    
+    // Периодически проверяем возможность добавления воркеров
+    const checkInterval = setInterval(() => pool.checkAndAdjustPool(), 5000);
+    
+    try {
+        // Запускаем обработку чанков параллельно
+        const results = await Promise.all(chunks.map(chunk => 
+            pool.processChunk(
+                precomputedValues,
+                chunk.start,
+                chunk.end,
+                fullBasis.length,
+                data.length
+            )
+        ));
+        
+        // Собираем результаты
+        results.forEach((result, index) => {
+            const startIndex = chunks[index].start;
+            result.forEach((row, rowIndex) => {
+                A[startIndex + rowIndex] = row;
+            });
+        });
+        
+        return A;
+    } finally {
+        clearInterval(checkInterval);
+        pool.terminate();
+    }
 }
 
 async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
