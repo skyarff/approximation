@@ -201,9 +201,13 @@ export default {
 
     },
     methods: {
-        makeApproximation() {
-            this.result = dataProcessing(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
-            console.log('this.result', this.result)
+        async makeApproximation() {
+            this.result = await dataProcessing(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
+
+            console.log('Готовый результат:', this.result);
+
+            console.log('R2:', this.result.R2);
+            console.log('Веса:', this.result.weights);
         },
         addSimplifiedBasis() {
             this.simplifiedBasis.push(`${this.depth}${this.selectedFunction}^${this.degree}`)
