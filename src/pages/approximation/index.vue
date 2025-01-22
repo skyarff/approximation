@@ -81,7 +81,7 @@
             <v-row>
                 <v-col cols="4">
                     <v-list density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index" :title="basis">
+                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index" :title="getSimplifiedBasisName(basis)">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
                                     @click="simplifiedBasis.splice(index, 1)"></v-btn>
@@ -90,16 +90,19 @@
                     </v-list>
                 </v-col>
 
-                <v-col cols="8">
-                    <v-list density="compact" style="height: 200px;">
+                <div style="height: fit-content; width: 50%; background: #CC0000CC;">
+                    <v-col cols="8">
+                    <v-list  density="compact" style="height: 200px;">
                         <v-list-item v-for="(basisKey, index) in Object.keys(customBases)" :key="index" :title="basisKey">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
-                                    @click="customBases.splice(index, 1)"></v-btn>
+                                @click="delete customBases[basisKey]"></v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
                 </v-col>
+                </div>
+                
             </v-row>
 
         </div>
@@ -230,6 +233,12 @@ export default {
                     color: 'warning'
                 });
             }
+        },
+        getSimplifiedBasisName(basis) {
+            const rows = basis.split('^');
+            const depth = rows.length > 0 ? `${rows[0][0]}` : '1'
+            const degree = rows.length > 1 ? `^${rows[1]}` : ''
+            return `${rows[0].substring(1)}(x)${degree} - глубина ${depth}`
         },
         async fileUpload(event) {
             const file = event.target.files[0];
