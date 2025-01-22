@@ -9,109 +9,78 @@
             </v-btn>
         </div>
 
-        <div class="w-100 pa-2">
-
-            <v-row>
-                <v-col cols="5">
-                    <v-card>
-                        <v-toolbar density="compact" aria-multiline="true">
-                            <v-btn icon @click="addSymbol('x')">x</v-btn>
-                            <v-btn icon @click="addSymbol('e')">e</v-btn>
-                            <v-btn icon @click="addSymbol('3.14')">pi</v-btn>
-                            <v-btn icon @click="addSymbol('sin')">sin</v-btn>
-                            <v-btn icon @click="addSymbol('cos')">cos</v-btn>
-                            <v-btn icon @click="addSymbol('log')">log</v-btn>
-                            <v-btn icon @click="addSymbol('(')">(</v-btn>
-                            <v-btn icon @click="addSymbol(')')">)</v-btn>
-
-                        </v-toolbar>
-                        <v-toolbar density="compact" aria-multiline="true">
-                            <v-btn icon @click="addSymbol('+')">+</v-btn>
-                            <v-btn icon @click="addSymbol('-')">−</v-btn>
-                            <v-btn icon @click="addSymbol('×')">×</v-btn>
-                            <v-btn icon @click="addSymbol('÷')">÷</v-btn>
-                            <v-btn icon @click="addSymbol('√')">√</v-btn>
-                            <v-btn icon @click="addSymbol('^')">^</v-btn>
-                            <v-btn icon @click="addSymbol('.')">.</v-btn>
-
-                            <v-btn icon @click="del()">del</v-btn>
-                        </v-toolbar>
-
-                        <v-textarea class="basis_textarea" v-model="formula" label="Базис" variant="underlined"
-                            clearable rows="4" :no-resize="true" />
-                    </v-card>
-                </v-col>
-
-                <v-col cols="2" class="d-flex flex-column px-0">
-
-                    <div class="num_grid">
-                        <div v-for="i in 3" class="d-flex flex-row sf">
-                            <div cols="3" v-for="j in 3">
-                                <v-btn class="num_btn def_btn" @click="addSymbol(j + 3 * (i - 1))">{{ j + 3 * (i - 1)
-                                    }}</v-btn>
-                            </div>
-                        </div>
-
-
-                        <div class="add_div">
-                            <v-btn class="def_btn">
-                                Добавить
-                            </v-btn>
-                        </div>
-                    </div>
-
-
-
-                </v-col>
-
-
-                <v-col cols="5">
-
-                </v-col>
-            </v-row>
-        </div>
 
         <div class="w-100 pa-2">
             <v-row>
                 <v-col cols="1">
-                    <v-text-field label="L1" v-model="L1" />
+                    <v-text-field title="L1 регуляризация" label="L1" v-model="L1" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field label="L2" v-model="L1" />
+                    <v-text-field title="L2 регуляризация" label="L2" v-model="L1" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field label="Step" v-model="step" />
+                    <v-text-field title="Шаг построения базисов" label="Step" v-model="step" />
+                </v-col>
+                <v-col cols="1">
+                    <v-text-field title="Нормализация входных значений *k" label="k" v-model="k" />
+                </v-col>
+                <v-col cols="1">
+                    <v-checkbox hint="Наличие константы" v-model="constant" label="Constant" />
+                </v-col>
+                <v-col cols="1">
+                    <v-checkbox hint="Замена слишком входных значений приемлимыми" v-model="normSV" label="normSV" />
                 </v-col>
             </v-row>
 
-
-        </div>
-
-        <div class="w-100 pa-2">
 
             <v-row>
-                <v-col cols="2">
-                    <v-autocomplete v-model="selectedFunction" :items="functions"
-                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                        label="Выберите функцию"></v-autocomplete>
+                <v-col class="d-flex flex-row" cols="6">
+                    <v-col cols="3">
+                        <v-autocomplete v-model="selectedFunction" :items="functions"
+                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                            label="Выберите функцию"></v-autocomplete>
+                    </v-col>
+                    <v-col cols="2">
+                        <v-text-field type="number" v-model="degree" label="Степень"></v-text-field>
+                    </v-col>
+                    <v-col cols="2">
+                        <v-select v-model="depth" :items="depths" item-title="val" item-value="val"
+                            label="Глубина"></v-select>
+                    </v-col>
+                    <v-col cols="2">
+                        <v-select v-model="selectedVariable" :items="fields.slice(1).map((field, index) => ({
+                            name: field,
+                            index: index + 1
+                        }))" item-title="name" item-value="index" label="Переменная"></v-select>
+                    </v-col>
+                    <v-col cols="3">
+                        <v-btn class="mb-2" @click="addSimplifiedBasis">
+                            Расш. базис
+                        </v-btn>
+                    </v-col>
                 </v-col>
-                <v-col cols="1">
-                    <v-text-field type="number" v-model="degree" label="Степень"></v-text-field>
-                </v-col>
-                <v-col cols="1">
-                    <v-select v-model="depth" :items="depths" item-title="val" item-value="val"
-                        label="Глубина"></v-select>
-                </v-col>
-                <v-col>
-                    <v-btn @click="addSimplifiedBasis">
-                        Добавить
-                    </v-btn>
+
+                <v-col class="d-flex flex-row" cols="6">
+                    <v-col cols="4">
+                        <v-btn @click="addVariables">
+                            Добавить переменную
+                        </v-btn>
+
+                        <v-btn @click="addCustomBasis">
+                            Добавить базис
+                        </v-btn>
+
+                        <v-btn @click="clearCustomBasis">
+                            Обнулить базис
+                        </v-btn>
+                    </v-col>
                 </v-col>
             </v-row>
+
 
             <v-row>
                 <v-col cols="4">
-                    <v-list density="compact">
+                    <v-list density="compact" style="height: 200px;">
                         <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index" :title="basis">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
@@ -120,12 +89,22 @@
                         </v-list-item>
                     </v-list>
                 </v-col>
+
+                <v-col cols="8">
+                    <v-list density="compact" style="height: 200px;">
+                        <v-list-item v-for="(basisKey, index) in Object.keys(customBases)" :key="index" :title="basisKey">
+                            <template v-slot:append>
+                                <v-btn icon="mdi-close" density="compact" variant="text"
+                                    @click="customBases.splice(index, 1)"></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-col>
             </v-row>
 
-
-
-
         </div>
+
+
 
         <div class="w-100">
             <v-btn class="mr-6" @click="makeApproximation">
@@ -134,9 +113,6 @@
             <v-btn @click="getSimplifiedBasis">
                 Получить расширенные базисы
             </v-btn>
-            <!-- <v-btn @click="predict">
-                Predict
-            </v-btn> -->
         </div>
 
 
@@ -146,7 +122,7 @@
 <script>
 import { read, utils } from 'xlsx';
 import { dataProcessing } from '@/app_lib/index';
-import { getBasis } from '@/app_lib/basis';
+import { getBasis, getBasisName } from '@/app_lib/basis';
 
 
 
@@ -155,7 +131,7 @@ export default {
         return {
             file: null,
             functions: [
-                { id: 1, val: 'x', label: 'Идентичность' },
+                { id: 1, val: '', label: 'Идентичность' },
                 { id: 2, val: 'sqrt', label: 'Квадратный корень' },
                 { id: 3, val: 'sin', label: 'Синус' },
                 { id: 4, val: 'cos', label: 'Косинус' },
@@ -165,7 +141,7 @@ export default {
                 { id: 8, val: 'abs', label: 'Модуль' },
                 { id: 9, val: 'tanh', label: 'Гиперболический тангенс' }
             ],
-            selectedFunction: 'x',
+            selectedFunction: '',
             degree: 1,
             depth: 1,
             depths: [
@@ -185,7 +161,8 @@ export default {
                 { z: 81, y: 9, x: 9, t: 2 },
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
-            simplifiedBasis: ['3x^3', '2x^2', '1x', '3sin^3', '2sin^2'],
+            selectedVariable: 1,
+            simplifiedBasis: ['3^3', '2^2', '1', '3sin^3', '2sin^2'],
             basis: {},
             L1: 1,
             L2: 1,
@@ -194,15 +171,25 @@ export default {
             k: 1,
             constant: true,
             result: null,
+            defaultCustomBasis: {
+                b: [],
+                p: [],
+                v: []
+            },
+            customBasis: {
+                b: [],
+                p: [],
+                v: []
+            },
+            customBases: {},
+            fields: ['z', 'y', 'x']
         }
     },
     mounted() {
-
-
     },
     methods: {
         async makeApproximation() {
-            this.result = await dataProcessing(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
+            this.result = await dataProcessing(this.data, { ...this.basis, ...this.customBases }, this.L1, this.L2, this.normSV, this.k)
 
             console.log('Готовый результат:', this.result);
 
@@ -212,10 +199,29 @@ export default {
         addSimplifiedBasis() {
             this.simplifiedBasis.push(`${this.depth}${this.selectedFunction}^${this.degree}`)
         },
+        addCustomBasis() {
+
+            this.customBases[getBasisName(this.customBasis, this.fields)]
+                = ({ b: this.customBasis.b, v: this.customBasis.v, p: this.customBasis.p });
+            console.log('this.customBases', this.customBases)
+        },
+        addVariables() {
+            this.customBasis.b.push(this.selectedFunction);
+            this.customBasis.p.push(Number(this.degree));
+            this.customBasis.v.push(this.selectedVariable);
+
+            console.log('this.customBasis', this.customBasis)
+        },
+        clearCustomBasis() {
+            this.customBasis = this.defaultCustomBasis;
+            this.customBases = {};
+        },
+        getBasisName(basis, names) {
+            return getBasisName(basis, names);
+        },
         getSimplifiedBasis() {
             if (this.data.length > 0) {
-                const fields = Object.keys(this.data[0]);
-                this.basis = getBasis(fields.length, this.simplifiedBasis, this.basis, this.constant, this.step);
+                this.basis = getBasis(this.fields.length, this.simplifiedBasis, this.basis, this.constant, this.step, this.fields);
                 console.log('this.basis_', this.basis)
 
             } else {
@@ -230,6 +236,7 @@ export default {
             if (file && file.name.endsWith('.xlsx')) {
                 this.file = file;
                 this.data = await this.readExcelFile(file);
+                this.fields = Object.keys(this.data[0]);
             } else {
                 this.$store.dispatch('notify', {
                     text: 'Пожалуйста, выберите файл формата .xlsx',

@@ -59,59 +59,62 @@ async function computeA(data, fullBasis, fields) {
   });
 
   const A = new Array(fullBasis.length);
-    
-    // Создаем пул с оптимальным количеством воркеров
-    const pool = new WorkerPool();
-    
-    // Разбиваем задачу на части в зависимости от количества воркеров
-    const chunkSize = Math.ceil(fullBasis.length / pool.workers.length);
-    const chunks = [];
-    
-    for (let i = 0; i < fullBasis.length; i += chunkSize) {
-        chunks.push({
-            start: i,
-            end: Math.min(i + chunkSize, fullBasis.length)
-        });
-    }
-    
-    // Периодически проверяем возможность добавления воркеров
-    const checkInterval = setInterval(() => pool.checkAndAdjustPool(), 5000);
-    
-    try {
-        // Запускаем обработку чанков параллельно
-        const results = await Promise.all(chunks.map(chunk => 
-            pool.processChunk(
-                precomputedValues,
-                chunk.start,
-                chunk.end,
-                fullBasis.length,
-                data.length
-            )
-        ));
-        
-        // Собираем результаты
-        results.forEach((result, index) => {
-            const startIndex = chunks[index].start;
-            result.forEach((row, rowIndex) => {
-                A[startIndex + rowIndex] = row;
-            });
-        });
-        
-        return A;
-    } finally {
-        clearInterval(checkInterval);
-        pool.terminate();
-    }
+
+  // Создаем пул с оптимальным количеством воркеров
+  const pool = new WorkerPool();
+
+  // Разбиваем задачу на части в зависимости от количества воркеров
+  const chunkSize = Math.ceil(fullBasis.length / pool.workers.length);
+  const chunks = [];
+
+  for (let i = 0; i < fullBasis.length; i += chunkSize) {
+    chunks.push({
+      start: i,
+      end: Math.min(i + chunkSize, fullBasis.length)
+    });
+  }
+
+  // Периодически проверяем возможность добавления воркеров
+  const checkInterval = setInterval(() => pool.checkAndAdjustPool(), 5000);
+
+  try {
+    // Запускаем обработку чанков параллельно
+    const results = await Promise.all(chunks.map(chunk =>
+      pool.processChunk(
+        precomputedValues,
+        chunk.start,
+        chunk.end,
+        fullBasis.length,
+        data.length
+      )
+    ));
+
+    // Собираем результаты
+    results.forEach((result, index) => {
+      const startIndex = chunks[index].start;
+      result.forEach((row, rowIndex) => {
+        A[startIndex + rowIndex] = row;
+      });
+    });
+
+    return A;
+  } finally {
+    clearInterval(checkInterval);
+    pool.terminate();
+  }
 }
 
 async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
 
   const fields = Object.keys(data[0]);
-    console.log('k', k)
-    dataNormalization(data, fields, normSV, k);
-    
-    const fullBasis = Object.values(basis);
-    const A = await computeA(data, fullBasis, fields);  // 
+  console.log('k', k)
+  dataNormalization(data, fields, normSV, k);
+
+  console.log('basisD_', basis)
+
+  const fullBasis = Object.values(basis);
+  
+  const A = await computeA(data, fullBasis, fields); 
 
   console.log('матрица A сформирована')
 

@@ -3,7 +3,7 @@ const basisFunctions = {
         switch (basis) {
             case '1':
                 return () => 1;
-            case 'x':
+            case '':
                 return x => x;
             case 'sqrt':
                 return x => Math.sqrt(x);
@@ -61,8 +61,14 @@ function parsePower(powerStr) {
     return { val: power, sign: sign };
 }
 
+function getBasisName(basis, vars = []) {
+    let name = '';
+    for (let i = 0; i < basis.b.length; i++) 
+        name += `*${basis.b[i]}(${vars.length < 1 ? basis.v[i] : vars[basis.v[i]]})^${basis.p[i]}`;
+    return name.substring(1);
+}
 
-function getBasis(n, b, basis, constant = true, step) {
+function getBasis(n, b, basis, constant = true, step, map = null) {
 
     const [pairs, threes] = b.length > 0 ? getPairsThrees(n) : [];
 
@@ -79,7 +85,7 @@ function getBasis(n, b, basis, constant = true, step) {
                 p: [p.val * p.sign],
             }
 
-            basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
+            basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
         }
 
         for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
@@ -90,7 +96,7 @@ function getBasis(n, b, basis, constant = true, step) {
                     v: pairs[k],
                     p: [(p.val - j) * p.sign, j * p.sign],
                 }
-                basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
+                basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
 
             }
         }
@@ -104,7 +110,7 @@ function getBasis(n, b, basis, constant = true, step) {
                         v: threes[k],
                         p: [(p.val - j - t) * p.sign, j * p.sign, t * p.sign],
                     }
-                    basis[r.b.join('') + r.v.join('') + r.p.join('')] = ({ b: r.b, v: r.v, p: r.p });
+                    basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
                 }
             }
 
@@ -113,7 +119,7 @@ function getBasis(n, b, basis, constant = true, step) {
     }
 
     if (constant) {
-        basis['111'] = (
+        basis['1'] = (
             {
                 b: Array(1).fill('1'),
                 v: [1],
@@ -125,4 +131,4 @@ function getBasis(n, b, basis, constant = true, step) {
     return basis;
 }
 
-export { basisFunctions, getBasis };
+export { basisFunctions, getBasis, getBasisName };
