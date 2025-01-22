@@ -84,7 +84,7 @@
                 </v-col>
             </v-row>
 
-           
+
         </div>
 
         <div class="w-100 pa-2">
@@ -122,7 +122,7 @@
                 </v-col>
             </v-row>
 
-            
+
 
 
         </div>
@@ -198,7 +198,7 @@ export default {
     },
     mounted() {
 
-        // console.log('pow', Math.pow(4, eval('1/2')))
+
     },
     methods: {
         makeApproximation() {

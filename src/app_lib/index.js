@@ -2,10 +2,26 @@
 import { solveMatrix } from '@/app_lib/matrixOperations';
 import { Array } from 'core-js';
 import { R2, calculateAIC, calculateMSE } from './metrics';
-import { basisFunctions, getBasis } from './basis';
+import { basisFunctions } from './basis';
 
 
-console.log('basisFunctions', basisFunctions)
+const workerURL = new URL('./worker.js', import.meta.url);   
+const worker = new Worker(workerURL, { type: 'module' });
+
+// Добавим обработку ошибок
+worker.onerror = function (error) {
+    console.error('Ошибка в воркере:', error);
+};
+
+worker.postMessage('Привет, воркер!');
+
+worker.onmessage = function (event) {
+    console.log('Основной поток получил:', event.data);
+};
+
+// worker.terminate();
+// worker.postMessage('terminate!_');
+
 
 
 function dataNormalization (data, fields, normSV = false, k = 1) {
