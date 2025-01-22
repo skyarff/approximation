@@ -61,7 +61,7 @@ export default class WorkerPool {
             console.log('Использование памяти:', Math.round(memoryUsage * 100) + '%');
             
             // Если памяти достаточно, можно попробовать добавить воркер
-            if (memoryUsage < 0.7 && this.workers.length < this.maxWorkers) {
+            if (memoryUsage < 0.5 && this.workers.length < this.maxWorkers) {
                 if (this.createWorker()) {
                     console.log('Добавлен новый воркер. Всего:', this.workers.length);
                 }
