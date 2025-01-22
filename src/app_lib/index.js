@@ -5,26 +5,68 @@ import { R2, calculateAIC, calculateMSE } from './metrics';
 import { basisFunctions } from './basis';
 
 
-const workerURL = new URL('./worker.js', import.meta.url);   
-const worker = new Worker(workerURL, { type: 'module' });
 
-// Добавим обработку ошибок
-worker.onerror = function (error) {
-    console.error('Ошибка в воркере:', error);
-};
+class WorkerPool {
+  constructor(size) {
+    this.workers = [];
+    this.tasks = [];
 
-worker.postMessage('Привет, воркер!');
+    for (let i = 0; i < size; i++) {
+      const workerCode = `
+              self.onmessage = function(e) {
+                  const { precomputedValues, start, end, fullBasisLength, dataLength } = e.data;
+                  
+                  const result = [];
+                  for (let i = start; i < end; i++) {
+                      const row = new Array(fullBasisLength);
+                      for (let j = 0; j < fullBasisLength; j++) {
+                          let sum = 0;
+                          for (let k = 0; k < dataLength; k++) {
+                              sum += precomputedValues[i][k] * precomputedValues[j][k];
+                          }
+                          row[j] = sum;
+                      }
+                      result.push(row);
+                  }
+                  
+                  self.postMessage({ result, start, end });
+              }
+          `;
 
-worker.onmessage = function (event) {
-    console.log('Основной поток получил:', event.data);
-};
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      const worker = new Worker(URL.createObjectURL(blob));
+      this.workers.push(worker);
+    }
+  }
 
-// worker.terminate();
-// worker.postMessage('terminate!_');
+  async processChunk(precomputedValues, start, end, fullBasisLength, dataLength) {
+    return new Promise((resolve) => {
+      const worker = this.workers.find(w => !w.busy);
+      if (worker) {
+        worker.busy = true;
+        worker.onmessage = (e) => {
+          worker.busy = false;
+          resolve(e.data.result);
+        };
+        worker.postMessage({
+          precomputedValues,
+          start,
+          end,
+          fullBasisLength,
+          dataLength
+        });
+      }
+    });
+  }
+
+  terminate() {
+    this.workers.forEach(worker => worker.terminate());
+  }
+}
 
 
 
-function dataNormalization (data, fields, normSV = false, k = 1) {
+function dataNormalization(data, fields, normSV = false, k = 1) {
 
   if (!normSV && k === 1) return;
 
@@ -42,19 +84,19 @@ function dataNormalization (data, fields, normSV = false, k = 1) {
 
 };
 
-function computeA(data, fullBasis, fields) {
+async function computeA(data, fullBasis, fields) {
   const functionCache = new Map();
-  
+
   const precomputedValues = fullBasis.map((basisElement, basisIndex) => {
-    
+
     const key = `${basisElement.b.join()}_${basisIndex}`;
-    
+
     return data.map((dataPoint, dataIndex) => {
       let val = 1;
       for (let t = 0; t < basisElement.v.length; t++) {
         const cacheKey = `${key}_${dataIndex}_${t}`;
 
-        
+
         let funcResult;
         if (functionCache.has(cacheKey)) {
           funcResult = functionCache.get(cacheKey);
@@ -65,7 +107,7 @@ function computeA(data, fullBasis, fields) {
           funcResult = Math.pow(func(fieldValue), basisElement.p[t]);
           functionCache.set(cacheKey, funcResult);
         }
-        
+
         val *= funcResult;
       }
 
@@ -74,41 +116,65 @@ function computeA(data, fullBasis, fields) {
   });
 
   const A = new Array(fullBasis.length);
-  
-  /////////////////
-  for (let i = 0; i < fullBasis.length; i++) {
-    A[i] = new Array(fullBasis.length);
-    for (let j = 0; j < fullBasis.length; j++) {
-      let sum = 0;
-      for (let k = 0; k < data.length; k++)
-        sum += precomputedValues[i][k] * precomputedValues[j][k];
-      A[i][j] = sum;
-    }
+
+  // Создаем пул воркеров (например, 4 воркера)
+  const poolSize = 4;
+  const pool = new WorkerPool(poolSize);
+
+  // Разбиваем задачу на части
+  const chunkSize = Math.ceil(fullBasis.length / poolSize);
+  const chunks = [];
+
+  for (let i = 0; i < fullBasis.length; i += chunkSize) {
+    chunks.push({
+      start: i,
+      end: Math.min(i + chunkSize, fullBasis.length)
+    });
   }
-  /////////////////
-  
+
+  // Запускаем обработку чанков параллельно
+  const results = await Promise.all(chunks.map(chunk =>
+    pool.processChunk(
+      precomputedValues,
+      chunk.start,
+      chunk.end,
+      fullBasis.length,
+      data.length
+    )
+  ));
+
+  // Собираем результаты
+  results.forEach((result, index) => {
+    const startIndex = chunks[index].start;
+    result.forEach((row, rowIndex) => {
+      A[startIndex + rowIndex] = row;
+    });
+  });
+
+  // Завершаем работу пула
+  pool.terminate();
+
   return A;
 }
 
-function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
+async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
 
   const fields = Object.keys(data[0]);
-
-  console.log('k', k)
-  dataNormalization(data, fields, normSV, k);
-
-  const fullBasis  = Object.values(basis);
-  const A = computeA(data, fullBasis, fields);
+    console.log('k', k)
+    dataNormalization(data, fields, normSV, k);
+    
+    const fullBasis = Object.values(basis);
+    const A = await computeA(data, fullBasis, fields);  // 
 
   console.log('матрица A сформирована')
 
   for (let i = 0; i < A.length; i++) {
     A[i][i] += 2 * L2;
   }
-  
-  
+
+
   const B = fullBasis.map((b, index) => {
-    
+
     let sum = 0;
 
     for (let i = 0; i < data.length; i++) {
@@ -118,7 +184,7 @@ function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1)
         const func = basisFunctions.getFunction(b.b[t]);
         val *= Math.pow(func(data[i][fields[fullBasis[index].v[t]]]), fullBasis[index].p[t]);
       }
-        
+
       sum += data[i][fields[0]] * val;
     }
 
