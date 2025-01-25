@@ -61,14 +61,14 @@ function parsePower(powerStr) {
     return { val: power, sign: sign };
 }
 
-function getBasisName(basis, vars = []) {
+function getBasisName(basis) {
     let name = '';
     for (let i = 0; i < basis.b.length; i++) 
-        name += `*${basis.b[i]}(${vars.length < 1 ? basis.v[i] : vars[basis.v[i]]})^${basis.p[i]}`;
+        name += `*${basis.b[i]}(${basis.v[i]})^${basis.p[i]}`;
     return name.substring(1);
 }
 
-function getBasis(n, b, basis, constant = true, step, map = null) {
+function getBasis(n, b, basis, constant = true, step, map) {
 
     const [pairs, threes] = b.length > 0 ? getPairsThrees(n) : [];
 
@@ -82,11 +82,11 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
             const r = {
                 w: 1,
                 b: Array(1).fill(base[0].substring(1)),
-                v: [t],
+                v: [t].map((i) => map[i]),
                 p: [p.val * p.sign],
             }
 
-            basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
+            basis[getBasisName(r)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
         }
 
         for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
@@ -95,10 +95,10 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
                 const r = {
                     w: 1,
                     b: Array(2).fill(base[0].substring(1)),
-                    v: pairs[k],
+                    v: pairs[k].map((i) => map[i]),
                     p: [(p.val - j) * p.sign, j * p.sign],
                 }
-                basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
+                basis[getBasisName(r, map)] = ({  w: r.w, b: r.b, v: r.v, p: r.p });
 
             }
         }
@@ -110,10 +110,10 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
                     const r = {
                         w: 1,
                         b: Array(3).fill(base[0].substring(1)),
-                        v: threes[k],
+                        v: threes[k].map((i) => map[i]),
                         p: [(p.val - j - t) * p.sign, j * p.sign, t * p.sign],
                     }
-                    basis[getBasisName(r, map)] = ({ b: r.b, v: r.v, p: r.p });
+                    basis[getBasisName(r, map)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
                 }
             }
 
@@ -126,7 +126,7 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
             {
                 w: 1,
                 b: Array(1).fill('1'),
-                v: [1],
+                v: [1].map((i) => map[i]),
                 p: [1]
             }
         );

@@ -48,10 +48,7 @@
                             label="Глубина"></v-select>
                     </v-col>
                     <v-col cols="2">
-                        <v-select v-model="selectedVariable" :items="fields.slice(1).map((field, index) => ({
-                            name: field,
-                            index: index + 1
-                        }))" item-title="name" item-value="index" label="Переменная"></v-select>
+                        <v-select v-model="selectedVariable" :items="fields" item-title="field" item-value="field" label="Переменная"></v-select>
                     </v-col>
                     <v-col cols="3">
                         <v-btn class="mb-2" @click="addSimplifiedBasis">
@@ -185,7 +182,7 @@ export default {
                 { z: 81, y: 9, x: 9, t: 2 },
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
-            selectedVariable: 1,
+            selectedVariable: '',
             simplifiedBasis: ['3^3', '2^2', '1', '3sin^3', '2sin^2'],
             basis: {},
             L1: 1,
@@ -230,7 +227,7 @@ export default {
         },
         addCustomBasis() {
 
-            this.customBases[getBasisName(this.customBasis, this.fields)]
+            this.customBases[getBasisName(this.customBasis)]
                 = ({ b: this.customBasis.b, v: this.customBasis.v, p: this.customBasis.p });
             console.log('this.customBases', this.customBases)
         },

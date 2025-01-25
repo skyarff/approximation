@@ -1,7 +1,6 @@
 import { basisFunctions } from './basis';
 
 function calculatePredicted(fullBasis, weights, data) {
-    const fields = Object.keys(data[0]);
 
     return data.map((_, k) => {
         return fullBasis.reduce((sum, b, index) => {
@@ -9,7 +8,7 @@ function calculatePredicted(fullBasis, weights, data) {
             let val = 1;
             for (let t = 0; t < b.v.length; t++) {
                 const func = basisFunctions.getFunction(b.b[t]);
-                val *= Math.pow(func(data[k][fields[b.v[t]]]), b.p[t]);
+                val *= Math.pow(func(data[k][b.v[t]]), b.p[t]);
             }
 
             return sum + weights[index] * basisFunctions.getFunction(b.outputFunc)(val);
@@ -48,7 +47,9 @@ function calculateAIC(fullBasis, weights, data, success) {
 }
 
 // MSE (Mean Squared Error) - среднеквадратическая ошибка
-function calculateMSE(fullBasis, weights, data) {
+function calculateMSE(fullBasis, weights, data, success) {
+    if (!success) return null;
+
     const predicted = calculatePredicted(fullBasis, weights, data);
     const fields = Object.keys(data[0]);
     const n = data.length;
