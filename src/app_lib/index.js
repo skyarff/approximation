@@ -145,11 +145,17 @@ async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, 
   console.log('матрица сформирована')
   const weights = solveMatrix(A, B);
   const success = weights.some(w => Number.isFinite(w));
-  const r2 = R2(fullBasis, weights, data, success);
-  const aic = calculateAIC(fullBasis, weights, data, success);
-  const mse = calculateMSE(fullBasis, weights, data);
 
-  return { A, B, R2: r2, weights, success, AIC: aic, MSE: mse };
+
+  const metrics = {
+    R2: R2(fullBasis, weights, data, success),
+    AIC: calculateAIC(fullBasis, weights, data, success),
+    MSE: calculateMSE(fullBasis, weights, data),
+
+  }
+
+
+  return { A, B, weights, success, metrics };
 }
 
 

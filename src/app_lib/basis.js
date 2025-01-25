@@ -80,6 +80,7 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
         for (let t = 1; t < n; t++) {
 
             const r = {
+                w: 1,
                 b: Array(1).fill(base[0].substring(1)),
                 v: [t],
                 p: [p.val * p.sign],
@@ -92,6 +93,7 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
             for (let j = step; j < p.val; j += step) {
 
                 const r = {
+                    w: 1,
                     b: Array(2).fill(base[0].substring(1)),
                     v: pairs[k],
                     p: [(p.val - j) * p.sign, j * p.sign],
@@ -106,6 +108,7 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
                 for (let t = step; t < p.val - j; t += step) {
 
                     const r = {
+                        w: 1,
                         b: Array(3).fill(base[0].substring(1)),
                         v: threes[k],
                         p: [(p.val - j - t) * p.sign, j * p.sign, t * p.sign],
@@ -121,6 +124,7 @@ function getBasis(n, b, basis, constant = true, step, map = null) {
     if (constant) {
         basis['1'] = (
             {
+                w: 1,
                 b: Array(1).fill('1'),
                 v: [1],
                 p: [1]

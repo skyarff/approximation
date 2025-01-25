@@ -81,7 +81,8 @@
             <v-row>
                 <v-col cols="4">
                     <v-list density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index" :title="getSimplifiedBasisName(basis)">
+                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index"
+                            :title="getSimplifiedBasisName(basis)">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
                                     @click="simplifiedBasis.splice(index, 1)"></v-btn>
@@ -92,31 +93,51 @@
 
                 <div style="height: fit-content; width: 50%; background: #CC0000CC;">
                     <v-col cols="8">
-                    <v-list  density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basisKey, index) in Object.keys(customBases)" :key="index" :title="basisKey">
-                            <template v-slot:append>
-                                <v-btn icon="mdi-close" density="compact" variant="text"
-                                @click="delete customBases[basisKey]"></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
-                </v-col>
+                        <v-list density="compact" style="height: 200px;">
+                            <v-list-item v-for="(basisKey, index) in Object.keys(customBases)" :key="index"
+                                :title="basisKey">
+                                <template v-slot:append>
+                                    <v-btn icon="mdi-close" density="compact" variant="text"
+                                        @click="delete customBases[basisKey]"></v-btn>
+                                </template>
+                            </v-list-item>
+                        </v-list>
+                    </v-col>
                 </div>
-                
+
             </v-row>
 
+            <v-row>
+                <v-btn class="mr-6" @click="makeApproximation">
+                    Аппроксимировать
+                </v-btn>
+                <v-btn @click="getSimplifiedBasis">
+                    Получить расширенные базисы
+                </v-btn>
+            </v-row>
+
+            <v-row>
+                <v-col cols="1">
+                        <div class="truncate">
+                            R2: {{ metrics.R2 }}
+                        </div>
+                    </v-col>
+                    <v-col cols="1">
+                        <div class="truncate">
+                            AIC: {{ metrics.AIC }}
+                        </div>
+                    </v-col>
+                    <v-col cols="1">
+                        <div class="truncate">
+                            MSE: {{ metrics.MSE }}
+                        </div>
+                    </v-col>
+            </v-row>
         </div>
 
 
 
-        <div class="w-100">
-            <v-btn class="mr-6" @click="makeApproximation">
-                Аппроксимировать
-            </v-btn>
-            <v-btn @click="getSimplifiedBasis">
-                Получить расширенные базисы
-            </v-btn>
-        </div>
+
 
 
     </div>
@@ -185,7 +206,13 @@ export default {
                 v: []
             },
             customBases: {},
-            fields: ['z', 'y', 'x']
+            fields: ['z', 'y', 'x'],
+            metrics: {
+                R2: '',
+                AIC: '',
+                MSE: '',
+            }
+
         }
     },
     mounted() {
@@ -194,10 +221,9 @@ export default {
         async makeApproximation() {
             this.result = await dataProcessing(this.data, { ...this.basis, ...this.customBases }, this.L1, this.L2, this.normSV, this.k)
 
-            console.log('Готовый результат:', this.result);
+            this.metrics = this.result.metrics;
 
-            console.log('R2:', this.result.R2);
-            console.log('Веса:', this.result.weights);
+            console.log('Result:', this.result);
         },
         addSimplifiedBasis() {
             this.simplifiedBasis.push(`${this.depth}${this.selectedFunction}^${this.degree}`)
@@ -317,5 +343,11 @@ export default {
     bottom: 0;
     left: auto;
     right: auto;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
