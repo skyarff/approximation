@@ -16,7 +16,7 @@
                     <v-text-field title="L1 регуляризация" label="L1" v-model="L1" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="L2 регуляризация" label="L2" v-model="L1" />
+                    <v-text-field title="L2 регуляризация" label="L2" v-model="L2" />
                 </v-col>
                 <v-col cols="1">
                     <v-text-field title="Шаг построения степеней базисов" label="Step" v-model="step" />
