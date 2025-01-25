@@ -80,7 +80,7 @@
 
             <v-row>
                 <v-col cols="4">
-                    <v-list class="nScroll" density="compact" style="height: 200px;">
+                    <v-list density="compact" style="height: 200px;">
                         <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index"
                             :title="getSimplifiedBasisName(basis)">
                             <template v-slot:append>
@@ -91,17 +91,22 @@
                     </v-list>
                 </v-col>
 
-                <div style="height: fit-content; width: 50%; background: #CC0000CC;">
-                    <v-col cols="8">
-                        <v-list class="nScroll" density="compact" style="height: 200px;">
-                            <v-list-item v-for="(basisKey, index) in Object.keys(customBases)" :key="index"
-                                :title="basisKey">
+                <div style="display: flex; height: fit-content; width: 40%; background: #CC0000CC;">
+                    <v-col cols="9">
+                        <v-list density="compact" style="height: 200px;">
+                            <v-list-item v-for="(basisKey, index) in Object.keys(basis) " :key="index"
+                                :title="`${basis[basisKey].w} * ${basisKey}`">
                                 <template v-slot:append>
                                     <v-btn icon="mdi-close" density="compact" variant="text"
-                                        @click="delete customBases[basisKey]"></v-btn>
+                                        @click="delete basis[basisKey]"></v-btn>
                                 </template>
                             </v-list-item>
                         </v-list>
+                    </v-col>
+                    <v-col cols="3">
+                        <v-btn @click="copyBasisRepresentation">
+                            Скопировать
+                        </v-btn>
                     </v-col>
                 </div>
 
@@ -141,34 +146,10 @@
             </v-row>
 
             <v-row>
-                <div style="display: flex; height: fit-content; width: 40%; background: #CC0000CC;">
-                    <v-col cols="9">
-                        <v-list class="nScroll" density="compact" style="height: 200px;">
-                            <v-list-item v-for="(basisKey, index) in Object.keys(basis) " :key="index"
-                                :title="`${basis[basisKey].w} * ${basisKey}`">
-                                <template v-slot:append>
-                                    <v-btn icon="mdi-close" density="compact" variant="text"
-                                        @click="delete basis[basisKey]"></v-btn>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </v-col>
-                    <v-col cols="3">
-                        <v-btn @click="copyBasisRepresentation">
-                            Скопировать
-                        </v-btn>
-                    </v-col>
-                </div>
 
                 <div style="display: flex; height: fit-content; width: 30%; background: #AAFFFF;">
                     <v-col cols="4">
-
-                        <!-- <v-col cols="2">
-                            <v-select :disabled="!selectedVariable" v-model="selectedVariable" :items="fields.slice(1)"
-                                item-title="field" item-value="field" label="Переменная"></v-select>
-                        </v-col> -->
-
-                        <v-list class="nScroll" density="compact" style="height: 200px; ">
+                        <v-list density="compact" style="height: 200px; ">
                             <v-form ref="form1">
                                 <v-list-item v-for="(variable, index) in fields.slice(1)" :key="index">
                                     <v-text-field :rules="[v => (v === 0 || !!v) || 'Поле обязательно']"
@@ -213,10 +194,16 @@ export default {
                 { id: 3, val: 'sin', label: 'Синус' },
                 { id: 4, val: 'cos', label: 'Косинус' },
                 { id: 5, val: 'tan', label: 'Тангенс' },
-                { id: 6, val: 'ln', label: 'Натуральный логарифм' },
-                { id: 7, val: 'exp', label: 'Экспонента' },
-                { id: 8, val: 'abs', label: 'Модуль' },
-                { id: 9, val: 'tanh', label: 'Гиперболический тангенс' }
+                { id: 6, val: 'atan', label: 'Арктангенс' },
+                { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
+                { id: 8, val: 'asinh', label: 'Гиперболический арккосинус от модуля' },
+                { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
+                { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
+                { id: 11, val: 'exp', label: 'Экспонента' },
+                { id: 12, val: 'abs', label: 'Модуль' },
+                { id: 13, val: 'sinh', label: 'Гиперболический синус' },
+                { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
+                { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
             ],
             selectedFunction: '',
             degree: 1,
@@ -239,7 +226,7 @@ export default {
                 { z: 100, y: 10, x: 2, t: 2 }
             ],
             selectedVariable: '',
-            simplifiedBasis: ['3^3', '2^2', '1', '3sin^3', '2sin^2'],
+            simplifiedBasis: ['3ln^4', '3^6', '3cos^4','3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
             basis: {},
             L1: 1,
             L2: 1,

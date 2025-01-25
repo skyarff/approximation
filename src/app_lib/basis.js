@@ -14,13 +14,24 @@ const basisFunctions = {
             case 'tan':
                 return x => Math.tan(x);
             case 'ln':
-                return x => Math.log(Math.abs(x));
-            case 'exp':
-                return x => Math.exp(x);
+                return x => Math.log(Math.max(Math.abs(x), 1e-20));
+            case 'lg':
+                return x => Math.log10(Math.max(Math.abs(x), 1e-20));
+            case 'atan':
+                return x => Math.atan(x);
+            case 'asinh':
+                return x => Math.asinh(x);
+            case 'arcosh': 
+                return x => Math.cosh(Math.abs(x));
             case 'abs':
                 return x => Math.abs(x);
             case 'tanh':
                 return x => Math.tanh(x);
+            case 'sinh':
+                return x => Math.sinh(x);
+            case 'cosh':
+                return x => Math.cosh(x);
+
             default:
                 return x => x;
         }
@@ -63,7 +74,7 @@ function parsePower(powerStr) {
 
 function getBasisName(basis) {
     let name = '';
-    for (let i = 0; i < basis.b.length; i++) 
+    for (let i = 0; i < basis.b.length; i++)
         name += `*${basis.b[i]}(${basis.v[i]})^${basis.p[i]}`;
     return name.substring(1);
 }
@@ -98,7 +109,7 @@ function getBasis(n, b, basis, constant = true, step, map) {
                     v: pairs[k].map((i) => map[i]),
                     p: [(p.val - j) * p.sign, j * p.sign],
                 }
-                basis[getBasisName(r, map)] = ({  w: r.w, b: r.b, v: r.v, p: r.p });
+                basis[getBasisName(r, map)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
 
             }
         }
