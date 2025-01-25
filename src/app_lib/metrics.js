@@ -1,9 +1,10 @@
 import { basisFunctions } from './basis';
 
-function calculatePredicted(fullBasis, weights, data) {
+function calculatePredicted(basis, data) {
+    const fullBasis = Object.values(basis);
 
     return data.map((_, k) => {
-        return fullBasis.reduce((sum, b, index) => {
+        return fullBasis.reduce((sum, b) => {
 
             let val = 1;
             for (let t = 0; t < b.v.length; t++) {
@@ -11,18 +12,18 @@ function calculatePredicted(fullBasis, weights, data) {
                 val *= Math.pow(func(data[k][b.v[t]]), b.p[t]);
             }
 
-            return sum + weights[index] * basisFunctions.getFunction(b.outputFunc)(val);
+            return sum + b.w * basisFunctions.getFunction(b.outputFunc)(val);
 
         }, 0);
     });
 }
 
-function R2(fullBasis, weights, data, success) {
+function R2(basis, data, success = true) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
 
-    const predicted = calculatePredicted(fullBasis, weights, data);
+    const predicted = calculatePredicted(basis, data);
 
     const mean = data.reduce((sum, val) => sum + val[fields[0]], 0) / data.length;
     const tss = data.reduce((sum, val) => sum + Math.pow(val[fields[0]] - mean, 2), 0);
@@ -31,14 +32,14 @@ function R2(fullBasis, weights, data, success) {
     return 1 - (rss / tss);
 }
 
-function calculateAIC(fullBasis, weights, data, success) {
+function calculateAIC(basis, data, success = true) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
     const n = data.length;
-    const k = fullBasis.length;
+    const k = Object.keys(basis).length;
 
-    const predicted = calculatePredicted(fullBasis, weights, data);
+    const predicted = calculatePredicted(basis, data);
     const rss = data.reduce((sum, val, i) => sum + Math.pow(val[fields[0]] - predicted[i], 2), 0);
 
     const aic = n * Math.log(rss / n) + 2 * k;
@@ -47,10 +48,10 @@ function calculateAIC(fullBasis, weights, data, success) {
 }
 
 // MSE (Mean Squared Error) - среднеквадратическая ошибка
-function calculateMSE(fullBasis, weights, data, success) {
+function calculateMSE(basis, data, success = true) {
     if (!success) return null;
 
-    const predicted = calculatePredicted(fullBasis, weights, data);
+    const predicted = calculatePredicted(basis, data);
     const fields = Object.keys(data[0]);
     const n = data.length;
 
@@ -62,4 +63,4 @@ function calculateMSE(fullBasis, weights, data, success) {
 }
 
 
-export { R2, calculateAIC, calculateMSE };
+export { R2, calculateAIC, calculateMSE, calculatePredicted };

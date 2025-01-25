@@ -152,20 +152,20 @@ async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, 
   if (success)
     Object.keys(basis).forEach((key, index) => basis[key].w = weights[index]);
     
-  console.log('basisFinal', basis)
+
 
 
 
 
   const metrics = {
-    R2: R2(fullBasis, weights, data, success),
-    AIC: calculateAIC(fullBasis, weights, data, success),
-    MSE: calculateMSE(fullBasis, weights, data, success),
+    R2: R2(basis, data, success),
+    AIC: calculateAIC(basis, data, success),
+    MSE: calculateMSE(basis, data, success),
 
   }
 
 
-  return { A, B, weights, success, metrics };
+  return { A, B, weights, success, metrics, basis };
 }
 
 
