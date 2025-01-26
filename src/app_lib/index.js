@@ -1,43 +1,35 @@
 
 import { solveMatrix } from '@/app_lib/matrixOperations';
 import { Array } from 'core-js';
-import { R2, calculateAIC, calculateMSE } from './metrics';
+import { calculateR2, calculateAIC, calculateMSE } from './metrics';
 import { basisFunctions } from './basis';
 import WorkerPool from './workerPool';
 
 
 
-
-
-function dataNormalization(data, normSV = false, k = 1) {
-
-  if (!normSV && k === 1) return;
+function dataNormalization(data, normSmallValues = false, multiplicationFactor = 1) {
+  if (!normSmallValues && multiplicationFactor === 1) return;
 
   for (let i = 0; i < data.length; i++) {
-
-
     for (let field in data[0]) {
-
-      if (k !== 1) data[i][field] *= k
-      if (normSV && Math.abs(data[i][field]) < 1e-20) {
+      if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor
+      if (normSmallValues && Math.abs(data[i][field]) < 1e-20) {
         data[i][field] = 1e-20;
       }
-
     }
   }
-
 };
 
-async function computeA(data, fullBasis) {
+async function computeA(data, allBasesArr) {
   const functionCache = new Map();
 
-  const precomputedValues = fullBasis.map((basisElement, basisIndex) => {
+  const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
 
-    const key = `${basisElement.b.join()}_${basisIndex}`;
+    const key = `${basisElement.functions.join()}_${basisIndex}`;
 
     return data.map((dataPoint, dataIndex) => {
       let val = 1;
-      for (let t = 0; t < basisElement.v.length; t++) {
+      for (let t = 0; t < basisElement.variables.length; t++) {
         const cacheKey = `${key}_${dataIndex}_${t}`;
 
 
@@ -45,10 +37,10 @@ async function computeA(data, fullBasis) {
         if (functionCache.has(cacheKey)) {
           funcResult = functionCache.get(cacheKey);
         } else {
-          const func = basisFunctions.getFunction(basisElement.b[t]);
-          const fieldValue = dataPoint[basisElement.v[t]];
+          const func = basisFunctions.getFunction(basisElement.functions[t]);
+          const fieldValue = dataPoint[basisElement.variables[t]];
 
-          funcResult = Math.pow(func(fieldValue), basisElement.p[t]);
+          funcResult = Math.pow(func(fieldValue), basisElement.powers[t]);
           functionCache.set(cacheKey, funcResult);
         }
 
@@ -59,19 +51,19 @@ async function computeA(data, fullBasis) {
     });
   });
 
-  const A = new Array(fullBasis.length);
+  const A = new Array(allBasesArr.length);
 
   // Создаем пул с оптимальным количеством воркеров
   const pool = new WorkerPool();
 
   // Разбиваем задачу на части в зависимости от количества воркеров
-  const chunkSize = Math.ceil(fullBasis.length / pool.workers.length);
+  const chunkSize = Math.ceil(allBasesArr.length / pool.workers.length);
   const chunks = [];
 
-  for (let i = 0; i < fullBasis.length; i += chunkSize) {
+  for (let i = 0; i < allBasesArr.length; i += chunkSize) {
     chunks.push({
       start: i,
-      end: Math.min(i + chunkSize, fullBasis.length)
+      end: Math.min(i + chunkSize, allBasesArr.length)
     });
   }
 
@@ -85,7 +77,7 @@ async function computeA(data, fullBasis) {
         precomputedValues,
         chunk.start,
         chunk.end,
-        fullBasis.length,
+        allBasesArr.length,
         data.length
       )
     ));
@@ -105,36 +97,31 @@ async function computeA(data, fullBasis) {
   }
 }
 
-async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, k = 1) {
+async function getApproximation(data, allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1) {
 
+  dataNormalization(data, normSmallValues, multiplicationFactor);
 
-  console.log('k', k)
-  dataNormalization(data, normSV, k);
+  const allBasesArr = Object.values(allBases);
 
-
-  const fullBasis = Object.values(basis);
-
-  
-  const A = await computeA(data, fullBasis); 
+  const A = await computeA(data, allBasesArr);
   console.log('матрица A сформирована')
 
-  for (let i = 0; i < A.length; i++) 
+  for (let i = 0; i < A.length; i++)
     A[i][i] += 2 * L2;
-  
 
-  const fields = Object.keys(data[0]);
-  const B = fullBasis.map((b, index) => {
+  const dataFields = Object.keys(data[0]);
 
+  const B = allBasesArr.map((b, index) => {
     let sum = 0;
     for (let i = 0; i < data.length; i++) {
 
       let val = 1;
-      for (let t = 0; t < fullBasis[index].v.length; t++) {
-        const func = basisFunctions.getFunction(b.b[t]);
-        val *= Math.pow(func(data[i][fullBasis[index].v[t]]), fullBasis[index].p[t]);
+      for (let t = 0; t < allBasesArr[index].variables.length; t++) {
+        const func = basisFunctions.getFunction(b.functions[t]);
+        val *= Math.pow(func(data[i][allBasesArr[index].variables[t]]), allBasesArr[index].powers[t]);
       }
 
-      sum += data[i][fields[0]] * val;
+      sum += data[i][dataFields[0]] * val;
     }
 
     return basisFunctions.getFunction(b.outputFunc)(sum) - L1;
@@ -142,32 +129,26 @@ async function dataProcessing(data, basis = {}, L1 = 0, L2 = 0, normSV = false, 
   });
 
 
-  console.log('матрица сформирована', B)
+  console.log('матрица B сформирована')
 
-
-  
 
   const weights = solveMatrix(A, B);
-  const success = weights.some(w => Number.isFinite(w));
-  if (success)
-    Object.keys(basis).forEach((key, index) => basis[key].w = weights[index]);
+  const success = weights.every(w => Number.isFinite(w));
+
+  const approximatedBases = structuredClone(allBases);
+  if (success) 
+    Object.values(approximatedBases).forEach((basis, index) => basis.weight = weights[index]);
     
-
-
-
-
-
+    
   const metrics = {
-    R2: R2(basis, data, success),
-    AIC: calculateAIC(basis, data, success),
-    MSE: calculateMSE(basis, data, success),
-
+    R2: calculateR2(approximatedBases, data, success),
+    AIC: calculateAIC(approximatedBases, data, success),
+    MSE: calculateMSE(approximatedBases, data, success),
   }
 
-
-  return { A, B, weights, success, metrics, basis };
+  return { A, B, weights, success, metrics, approximatedBases };
 }
 
 
 
-export { dataProcessing }
+export { getApproximation }

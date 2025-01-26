@@ -1,6 +1,6 @@
 const basisFunctions = {
-    getFunction: (basis) => {
-        switch (basis) {
+    getFunction: (funcKey) => {
+        switch (funcKey) {
             case '1':
                 return () => 1;
             case '':
@@ -21,7 +21,7 @@ const basisFunctions = {
                 return x => Math.atan(x);
             case 'asinh':
                 return x => Math.asinh(x);
-            case 'arcosh': 
+            case 'arcosh':
                 return x => Math.cosh(Math.abs(x));
             case 'abs':
                 return x => Math.abs(x);
@@ -31,7 +31,6 @@ const basisFunctions = {
                 return x => Math.sinh(x);
             case 'cosh':
                 return x => Math.cosh(x);
-
             default:
                 return x => x;
         }
@@ -39,92 +38,97 @@ const basisFunctions = {
 };
 
 
-function getPairsThrees(n) {
-    const ans = [[], []];
-    for (let i = 1; i < n; i++) {
+function getPairsThrees(length) {
+    const pairsThrees = [[], []];
+    for (let i = 1; i < length; i++) {
         let j = i + 1;
-        for (; j < n; j++) {
-            ans[0].push([i, j])
+        for (; j < length; j++) {
+            pairsThrees[0].push([i, j])
             let k = j + 1;
-            for (; k < n; k++) {
-                ans[1].push([i, j, k])
+            for (; k < length; k++) {
+                pairsThrees[1].push([i, j, k])
             }
         }
     }
-    return ans;
+    return pairsThrees;
 }
 
 function parsePower(powerStr) {
     if (!powerStr) return { val: 1, sign: 1 };
 
-    let power = powerStr;
-    let sign = power[0] === '-' ? -1 : 1;
+    let sign = powerStr[0] === '-' ? -1 : 1;
+    if (sign === -1) powerStr = powerStr.substring(1);
 
-    if (sign === -1) power = power.substring(1);
-
-    if (power.includes('/')) {
-        const [num, den] = power.split('/');
-        power = Number(num) / Number(den);
+    if (powerStr.includes('/')) {
+        const [num, den] = powerStr.split('/');
+        powerStr = Number(num) / Number(den);
     } else {
-        power = Number(power);
+        powerStr = Number(powerStr);
     }
 
-    return { val: power, sign: sign };
+    return { val: powerStr, sign: sign };
 }
 
 function getBasisName(basis) {
     let name = '';
-    for (let i = 0; i < basis.b.length; i++)
-        name += `*${basis.b[i]}(${basis.v[i]})^${basis.p[i]}`;
+    for (let i = 0; i < basis.functions.length; i++)
+        name += `*${basis.functions[i]}(${basis.variables[i]})^${basis.powers[i]}`;
     return name.substring(1);
 }
 
-function getBasis(n, b, basis, constant = true, step, map) {
+function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = true, stepPower) {
 
-    const [pairs, threes] = b.length > 0 ? getPairsThrees(n) : [];
+    const [pairs, threes] = simplifiedBases.length > 0 ? getPairsThrees(variablesInfo.length) : [];
 
-    for (let i = 0; i < b.length; i++) {
+    for (let i = 0; i < simplifiedBases.length; i++) {
 
-        const base = b[i].split('^');
-        const p = parsePower(base[1]);
-
-        for (let t = 1; t < n; t++) {
-
-            const r = {
-                w: 1,
-                b: Array(1).fill(base[0].substring(1)),
-                v: [t].map((i) => map[i]),
-                p: [p.val * p.sign],
-            }
-
-            basis[getBasisName(r)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
+        const splitedBasis = simplifiedBases[i].split('^')
+        const basisInfo = {
+            depth: splitedBasis[0][0],
+            func: splitedBasis[0].substring(1),
+            power: splitedBasis[1],
         }
 
-        for (let k = 0; k < pairs.length && base[0][0] > 1; k++) {
-            for (let j = step; j < p.val; j += step) {
+        const powerObj = parsePower(basisInfo.power);
 
-                const r = {
-                    w: 1,
-                    b: Array(2).fill(base[0].substring(1)),
-                    v: pairs[k].map((i) => map[i]),
-                    p: [(p.val - j) * p.sign, j * p.sign],
+        for (let t = 1; t < variablesInfo.length; t++) {
+
+            const basis = {
+                weight: 1,
+                functions: Array(1).fill(basisInfo.func),
+                variables: [t].map((i) => variablesInfo.keys[i]),
+                powers: [powerObj.val * powerObj.sign],
+            }
+
+            allBases[getBasisName(basis)] = basis;
+        }
+
+        for (let k = 0; k < pairs.length && basisInfo.depth > 1; k++) {
+            for (let j = stepPower; j < powerObj.val; j += stepPower) {
+
+                const basis = {
+                    weight: 1,
+                    functions: Array(2).fill(basisInfo.func),
+                    variables: pairs[k].map((i) => variablesInfo.keys[i]),
+                    powers: [(powerObj.val - j) * powerObj.sign, j * powerObj.sign],
                 }
-                basis[getBasisName(r, map)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
 
+                allBases[getBasisName(basis)] = basis;
             }
         }
 
-        for (let k = 0; k < threes.length && base[0][0] > 2; k++) {
-            for (let j = step; j < p.val - 1; j += step) {
-                for (let t = step; t < p.val - j; t += step) {
+        for (let k = 0; k < threes.length && basisInfo.depth > 2; k++) {
+            for (let j = stepPower; j < powerObj.val - 1; j += stepPower) {
+                for (let t = stepPower; t < powerObj.val - j; t += stepPower) {
 
-                    const r = {
-                        w: 1,
-                        b: Array(3).fill(base[0].substring(1)),
-                        v: threes[k].map((i) => map[i]),
-                        p: [(p.val - j - t) * p.sign, j * p.sign, t * p.sign],
+                    const basis = {
+                        weight: 1,
+                        functions: Array(3).fill(basisInfo.func),
+                        variables: threes[k].map((i) => variablesInfo.keys[i]),
+                        powers: [(powerObj.val - j - t) * powerObj.sign, j * powerObj.sign, t * powerObj.sign],
                     }
-                    basis[getBasisName(r, map)] = ({ w: r.w, b: r.b, v: r.v, p: r.p });
+
+                    allBases[getBasisName(basis)] = basis;
                 }
             }
 
@@ -133,17 +137,17 @@ function getBasis(n, b, basis, constant = true, step, map) {
     }
 
     if (constant) {
-        basis['1'] = (
+        allBases['1'] = (
             {
-                w: 1,
-                b: Array(1).fill('1'),
-                v: [1].map((i) => map[i]),
-                p: [1]
+                weight: 1,
+                functions: Array(1).fill('1'),
+                variables: [1].map((i) => variablesInfo.keys[i]),
+                powers: [1]
             }
         );
     }
 
-    return basis;
+    return allBases;
 }
 
-export { basisFunctions, getBasis, getBasisName };
+export { basisFunctions, getExtendedBases, getBasisName };

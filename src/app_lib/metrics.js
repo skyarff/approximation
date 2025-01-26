@@ -1,24 +1,24 @@
 import { basisFunctions } from './basis';
 
 function calculatePredicted(basis, data) {
-    const fullBasis = Object.values(basis);
+    const allBasesArr = Object.values(basis);
 
     return data.map((_, k) => {
-        return fullBasis.reduce((sum, b) => {
+        return allBasesArr.reduce((sum, b) => {
 
             let val = 1;
-            for (let t = 0; t < b.v.length; t++) {
-                const func = basisFunctions.getFunction(b.b[t]);
-                val *= Math.pow(func(data[k][b.v[t]]), b.p[t]);
+            for (let t = 0; t < b.variables.length; t++) {
+                const func = basisFunctions.getFunction(b.functions[t]);
+                val *= Math.pow(func(data[k][b.variables[t]]), b.powers[t]);
             }
 
-            return sum + b.w * basisFunctions.getFunction(b.outputFunc)(val);
+            return sum + b.weight * basisFunctions.getFunction(b.outputFunc)(val);
 
         }, 0);
     });
 }
 
-function R2(basis, data, success = true) {
+function calculateR2(basis, data, success = true) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
@@ -63,4 +63,4 @@ function calculateMSE(basis, data, success = true) {
 }
 
 
-export { R2, calculateAIC, calculateMSE, calculatePredicted };
+export { calculateR2, calculateAIC, calculateMSE, calculatePredicted };

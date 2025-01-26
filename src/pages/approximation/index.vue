@@ -95,7 +95,7 @@
                     <v-col cols="9">
                         <v-list density="compact" style="height: 200px;">
                             <v-list-item v-for="(basisKey, index) in Object.keys(basis) " :key="index"
-                                :title="`${basis[basisKey].w} * ${basisKey}`">
+                                :title="`${basis[basisKey].weight} * ${basisKey}`">
                                 <template v-slot:append>
                                     <v-btn icon="mdi-close" density="compact" variant="text"
                                         @click="delete basis[basisKey]"></v-btn>
@@ -104,7 +104,7 @@
                         </v-list>
                     </v-col>
                     <v-col cols="3">
-                        <v-btn @click="copyBasisRepresentation">
+                        <v-btn @click="copyBasesRepresentation">
                             Скопировать
                         </v-btn>
                     </v-col>
@@ -121,9 +121,6 @@
                 </v-btn>
                 <v-btn class="mr-6" @click="basis = {}">
                     Очистить базисы
-                </v-btn>
-                <v-btn @click="showBasis">
-                    Посмотреть базисы
                 </v-btn>
             </v-row>
 
@@ -178,8 +175,8 @@
 
 <script>
 import { read, utils } from 'xlsx';
-import { dataProcessing } from '@/app_lib/index';
-import { getBasis, getBasisName } from '@/app_lib/basis';
+import { getApproximation } from '@/app_lib/index';
+import { getExtendedBases, getBasisName } from '@/app_lib/basis';
 import { calculatePredicted } from '@/app_lib/metrics';
 
 
@@ -196,7 +193,7 @@ export default {
                 { id: 5, val: 'tan', label: 'Тангенс' },
                 { id: 6, val: 'atan', label: 'Арктангенс' },
                 { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
-                { id: 8, val: 'asinh', label: 'Гиперболический арккосинус от модуля' },
+                { id: 8, val: 'acosh', label: 'Гиперболический арккосинус от модуля' },
                 { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
                 { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
                 { id: 11, val: 'exp', label: 'Экспонента' },
@@ -236,14 +233,16 @@ export default {
             constant: true,
             result: null,
             defaultCustomBasis: {
-                b: [],
-                p: [],
-                v: []
+                functions: [],
+                powers: [],
+                variables: [],
+                weight: 1
             },
             customBasis: {
-                b: [],
-                p: [],
-                v: []
+                functions: [],
+                powers: [],
+                variables: [],
+                weight: 1
             },
             customBases: {},
             fields: ['z', 'y', 'x'],
@@ -261,9 +260,11 @@ export default {
     },
     methods: {
         async makeApproximation() {
-            this.result = await dataProcessing(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
+            this.result = await getApproximation(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
 
             this.metrics = this.result.metrics;
+
+            this.basis = this.result.approximatedBases;
 
             console.log('Result:', this.result);
         },
@@ -273,25 +274,31 @@ export default {
         addCustomBasis() {
 
             this.basis[getBasisName(this.customBasis)]
-                = ({ w: 1, b: this.customBasis.b, v: this.customBasis.v, p: this.customBasis.p });
+                = ({ weight: 1, functions: this.customBasis.functions, variables: this.customBasis.variables, powers: this.customBasis.powers });
         },
         addVariables() {
-            this.customBasis.b.push(this.selectedFunction);
-            this.customBasis.p.push(Number(this.degree));
-            this.customBasis.v.push(this.selectedVariable);
+            this.customBasis.functions.push(this.selectedFunction);
+            this.customBasis.powers.push(Number(this.degree));
+            this.customBasis.variables.push(this.selectedVariable);
+            this.customBasis.weight = 1;
 
             console.log('this.customBasis', this.customBasis)
         },
         clearCustomBasis() {
             this.customBasis = this.defaultCustomBasis;
-            this.customBases = {};
         },
         getBasisName(basis, names) {
             return getBasisName(basis, names);
         },
         getSimplifiedBasis() {
             if (this.data.length > 0) {
-                this.basis = { ...getBasis(this.fields.length, this.simplifiedBasis, this.basis, this.constant, this.step, this.fields) };
+
+                const variablesInfo = {
+                    length: this.fields.length,
+                    keys: this.fields,
+                }
+
+                this.basis = { ...getExtendedBases(variablesInfo, this.simplifiedBasis, this.basis, this.constant, this.step) };
                 console.log('this.basis_', this.basis)
 
             } else {
@@ -322,9 +329,6 @@ export default {
             }
             event.target.value = '';
         },
-        showBasis() {
-            console.log('showBasis', this.basis)
-        },
         async readExcelFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -347,10 +351,10 @@ export default {
                 reader.readAsArrayBuffer(file);
             });
         },
-        async copyBasisRepresentation() {
+        async copyBasesRepresentation() {
             let result = '';
             for (let key in this.basis) {
-                let weight = this.basis[key].w.toString();
+                let weight = this.basis[key].weight.toString();
                 const sign = weight[0] == '-' ? '-' : '+';
                 weight = sign === '+' ? weight : weight.substring(1);
 
@@ -384,7 +388,6 @@ export default {
     width: 64px !important;
 
 }
-
 
 .add_div {
     width: 100%;
