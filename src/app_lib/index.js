@@ -9,9 +9,9 @@ import WorkerPool from './workerPool';
 
 function dataNormalization(data, normSmallValues = false, multiplicationFactor = 1) {
   if (!normSmallValues && multiplicationFactor === 1) return;
-
+  const fields = Object.values(data[0]);
   for (let i = 0; i < data.length; i++) {
-    for (let field in data[0]) {
+    for (let field of fields) {
       if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor
       if (normSmallValues && Math.abs(data[i][field]) < 1e-20) {
         data[i][field] = 1e-20;
