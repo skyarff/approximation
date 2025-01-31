@@ -13,22 +13,23 @@
         <div class="w-100 pa-2">
             <v-row>
                 <v-col cols="1">
-                    <v-text-field title="L1 регуляризация" label="L1" v-model="L1" />
+                    <v-text-field title="L1 регуляризация" label="L1" v-model="numParams.L1" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="L2 регуляризация" label="L2" v-model="L2" />
+                    <v-text-field title="L2 регуляризация" label="L2" v-model="numParams.L2" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="Шаг построения степеней базисов" label="Step" v-model="step" />
+                    <v-text-field title="Шаг построения степеней базисов" label="Step" v-model="numParams.step" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="Нормализация входных значений *k" label="k" v-model="k" />
+                    <v-text-field title="Нормализация входных значений *multiplicationFactor"
+                        label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
                 </v-col>
                 <v-col cols="1">
-                    <v-checkbox hint="Наличие константы" v-model="constant" label="Constant" />
+                    <v-checkbox hint="Наличие константы" v-model="numParams.constant" label="Constant" />
                 </v-col>
                 <v-col cols="1">
-                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми" v-model="normSV"
+                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми" v-model="numParams.normSV"
                         label="normSV" />
                 </v-col>
             </v-row>
@@ -37,21 +38,22 @@
             <v-row>
                 <v-col class="d-flex flex-row" cols="6">
                     <v-col cols="3">
-                        <v-autocomplete title="Функция участник" v-model="selectedFunction" :items="functions"
-                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                            label="Выберите функцию"></v-autocomplete>
+                        <v-autocomplete title="Функция участник" v-model="funcSettings.selectedFunction"
+                            :items="funcSettings.functions" :item-title="item => `${item.val} (${item.label})`"
+                            item-value="val" label="Выберите функцию"></v-autocomplete>
                     </v-col>
                     <v-col cols="2">
-                        <v-text-field title="Степень базиса" type="number" v-model="degree"
+                        <v-text-field title="Степень базиса" type="number" v-model="numParams.degree"
                             label="Степень"></v-text-field>
                     </v-col>
                     <v-col cols="2">
-                        <v-select v-model="depth" :items="depths" item-title="val" item-value="val"
+                        <v-select v-model="numParams.depth" :items="numParams.depths" item-title="val" item-value="val"
                             label="Глубина"></v-select>
                     </v-col>
                     <v-col cols="2">
-                        <v-select :disabled="!selectedVariable" v-model="selectedVariable" :items="fields.slice(1)"
-                            item-title="field" item-value="field" label="Переменная"></v-select>
+                        <v-select :disabled="!customSettings.selectedVariable" v-model="customSettings.selectedVariable"
+                            :items="dataInfo.fields.slice(1)" item-title="field" item-value="field"
+                            label="Переменная"></v-select>
                     </v-col>
                     <v-col cols="3">
                         <v-btn class="mb-2" @click="addSimplifiedBasis">
@@ -62,7 +64,7 @@
 
                 <v-col class="d-flex flex-row" cols="6">
                     <v-col cols="4">
-                        <v-btn @click="addVariables">
+                        <v-btn @click="addVariable">
                             Добавить переменную
                         </v-btn>
 
@@ -81,11 +83,11 @@
             <v-row>
                 <v-col cols="4">
                     <v-list density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basis, index) in simplifiedBasis" :key="index"
+                        <v-list-item v-for="(basis, index) in simplifiedBases" :key="index"
                             :title="getSimplifiedBasisName(basis)">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
-                                    @click="simplifiedBasis.splice(index, 1)"></v-btn>
+                                    @click="simplifiedBases.splice(index, 1)"></v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
@@ -94,11 +96,11 @@
                 <div style="display: flex; height: fit-content; width: 40%; background: #CC0000CC;">
                     <v-col cols="9">
                         <v-list density="compact" style="height: 200px;">
-                            <v-list-item v-for="(basisKey, index) in Object.keys(basis) " :key="index"
-                                :title="`${basis[basisKey].weight} * ${basisKey}`">
+                            <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
+                                :title="`${allBases[basisKey].weight} * ${basisKey}`">
                                 <template v-slot:append>
                                     <v-btn icon="mdi-close" density="compact" variant="text"
-                                        @click="delete basis[basisKey]"></v-btn>
+                                        @click="delete allBases[basisKey]"></v-btn>
                                 </template>
                             </v-list-item>
                         </v-list>
@@ -116,10 +118,10 @@
                 <v-btn @click="makeApproximation">
                     Аппроксимировать
                 </v-btn>
-                <v-btn class="mx-6" @click="getSimplifiedBasis">
+                <v-btn class="mx-6" @click="getSimplifiedBases">
                     Получить расширенные базисы
                 </v-btn>
-                <v-btn class="mr-6" @click="basis = {}">
+                <v-btn class="mr-6" @click="allBases = {}">
                     Очистить базисы
                 </v-btn>
             </v-row>
@@ -148,9 +150,9 @@
                     <v-col cols="4">
                         <v-list density="compact" style="height: 200px; ">
                             <v-form ref="form1">
-                                <v-list-item v-for="(variable, index) in fields.slice(1)" :key="index">
+                                <v-list-item v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index">
                                     <v-text-field :rules="[v => (v === 0 || !!v) || 'Поле обязательно']"
-                                        v-model="forPredict[variable]" :label="variable" />
+                                        v-model="predictInfo.predictData[0][variable]" :label="variable" />
                                 </v-list-item>
                             </v-form>
                         </v-list>
@@ -159,16 +161,11 @@
                         <v-btn class="mb-3" @click="predict">
                             Предсказать
                         </v-btn>
-                        <v-text-field v-model="predictAns" label="Предсказание" readonly />
+                        <v-text-field v-model="predictInfo.predictAns" label="Предсказание" readonly />
                     </v-col>
                 </div>
             </v-row>
         </div>
-
-
-
-
-
 
     </div>
 </template>
@@ -176,7 +173,7 @@
 <script>
 import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
-import { getExtendedBases, getBasisName } from '@/app_lib/basis';
+import { getExtendedBases, getBasisKey } from '@/app_lib/basis';
 import { calculatePredicted } from '@/app_lib/metrics';
 
 
@@ -185,121 +182,134 @@ export default {
     data() {
         return {
             file: null,
-            functions: [
-                { id: 1, val: '', label: 'Идентичность' },
-                { id: 2, val: 'sqrt', label: 'Квадратный корень' },
-                { id: 3, val: 'sin', label: 'Синус' },
-                { id: 4, val: 'cos', label: 'Косинус' },
-                { id: 5, val: 'tan', label: 'Тангенс' },
-                { id: 6, val: 'atan', label: 'Арктангенс' },
-                { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
-                { id: 8, val: 'acosh', label: 'Гиперболический арккосинус от модуля' },
-                { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
-                { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
-                { id: 11, val: 'exp', label: 'Экспонента' },
-                { id: 12, val: 'abs', label: 'Модуль' },
-                { id: 13, val: 'sinh', label: 'Гиперболический синус' },
-                { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
-                { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
-            ],
-            selectedFunction: '',
-            degree: 1,
-            depth: 1,
-            depths: [
-                { id: 0, val: 1 },
-                { id: 1, val: 2 },
-                { id: 2, val: 3 }
-            ],
-            data: [
-                { z: 1, y: 1, x: 2, t: 2 },
-                { z: 4, y: 2, x: 5, t: 2 },
-                { z: 9, y: 3, x: 2, t: 2 },
-                { z: 16, y: 4, x: 9, t: 2 },
-                { z: 25, y: 5, x: 4, t: 2 },
-                { z: 36, y: 6, x: 42, t: 2 },
-                { z: 49, y: 7, x: 5, t: 2 },
-                { z: 64, y: 8, x: 1, t: 2 },
-                { z: 81, y: 9, x: 9, t: 2 },
-                { z: 100, y: 10, x: 2, t: 2 }
-            ],
-            selectedVariable: '',
-            simplifiedBasis: ['3ln^4', '3^6', '3cos^4','3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
-            basis: {},
-            L1: 1,
-            L2: 1,
-            step: 1,
-            normSV: true,
-            k: 1,
-            constant: true,
-            result: null,
-            defaultCustomBasis: {
-                functions: [],
-                powers: [],
-                variables: [],
-                weight: 1
+
+            dataInfo: {
+                data: [
+                    { z: 1, y: 1, x: 2, t: 2 },
+                    { z: 4, y: 2, x: 5, t: 2 },
+                    { z: 9, y: 3, x: 2, t: 2 },
+                    { z: 16, y: 4, x: 9, t: 2 },
+                    { z: 25, y: 5, x: 4, t: 2 },
+                    { z: 36, y: 6, x: 42, t: 2 },
+                    { z: 49, y: 7, x: 5, t: 2 },
+                    { z: 64, y: 8, x: 1, t: 2 },
+                    { z: 81, y: 9, x: 9, t: 2 },
+                    { z: 100, y: 10, x: 2, t: 2 }
+                ],
+                fields: ['z', 'y', 'x'],
             },
-            customBasis: {
-                functions: [],
-                powers: [],
-                variables: [],
-                weight: 1
+
+            numParams: {
+                constant: true,
+                normSV: true,
+                multiplicationFactor: 1,
+                L1: 1,
+                L2: 1,
+                degree: 1,
+                step: 1,
+                depth: 1,
+                depths: [
+                    { id: 0, val: 1 },
+                    { id: 1, val: 2 },
+                    { id: 2, val: 3 }
+                ],
             },
-            customBases: {},
-            fields: ['z', 'y', 'x'],
+
+            funcSettings: {
+                functions: [
+                    { id: 1, val: '', label: 'Идентичность' },
+                    { id: 2, val: 'sqrt', label: 'Квадратный корень' },
+                    { id: 3, val: 'sin', label: 'Синус' },
+                    { id: 4, val: 'cos', label: 'Косинус' },
+                    { id: 5, val: 'tan', label: 'Тангенс' },
+                    { id: 6, val: 'atan', label: 'Арктангенс' },
+                    { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
+                    { id: 8, val: 'acosh', label: 'Гиперболический арккосинус от модуля' },
+                    { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
+                    { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
+                    { id: 11, val: 'exp', label: 'Экспонента' },
+                    { id: 12, val: 'abs', label: 'Модуль' },
+                    { id: 13, val: 'sinh', label: 'Гиперболический синус' },
+                    { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
+                    { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
+                ],
+                selectedFunction: '',
+            },
+
+            customSettings: {
+                selectedVariable: '',
+                defaultCustomBasis: {
+                    functions: [],
+                    powers: [],
+                    variables: [],
+                    weight: 1
+                },
+                customBasis: {
+                    functions: [],
+                    powers: [],
+                    variables: [],
+                    weight: 1
+                },
+            },
+
+            simplifiedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
+            allBases: {},
+
             metrics: {
                 R2: '',
                 AIC: '',
                 MSE: '',
             },
-            forPredict: {},
-            predictAns: ''
 
+            result: null,
+
+            predictInfo: {
+                predictData: [{}],
+                predictAns: ''
+            }
         }
     },
     mounted() {
     },
     methods: {
         async makeApproximation() {
-            this.result = await getApproximation(this.data, this.basis, this.L1, this.L2, this.normSV, this.k)
+            this.result = await getApproximation(this.dataInfo.data, this.allBases, this.numParams.L1, this.numParams.L2, this.numParams.normSV, this.numParams.multiplicationFactor)
 
             this.metrics = this.result.metrics;
 
-            this.basis = this.result.approximatedBases;
+            this.allBases = this.result.approximatedBases;
 
             console.log('Result:', this.result);
         },
         addSimplifiedBasis() {
-            this.simplifiedBasis.push(`${this.depth}${this.selectedFunction}^${this.degree}`)
+            this.simplifiedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}`)
         },
         addCustomBasis() {
 
-            this.basis[getBasisName(this.customBasis)]
-                = ({ weight: 1, functions: this.customBasis.functions, variables: this.customBasis.variables, powers: this.customBasis.powers });
+            this.allBases[getBasisKey(this.customSettings.customBasis)]
+                = ({ weight: 1, functions: this.customSettings.customBasis.functions, variables: this.customSettings.customBasis.variables, powers: this.customSettings.customBasis.powers });
         },
-        addVariables() {
-            this.customBasis.functions.push(this.selectedFunction);
-            this.customBasis.powers.push(Number(this.degree));
-            this.customBasis.variables.push(this.selectedVariable);
-            this.customBasis.weight = 1;
+        addVariable() {
+            this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
+            this.customSettings.customBasis.powers.push(Number(this.numParams.degree));
+            this.customSettings.customBasis.variables.push(this.customSettings.selectedVariable);
+            this.customSettings.customBasis.weight = 1;
 
-            console.log('this.customBasis', this.customBasis)
+            console.log('this.customSettings.customBasis', this.customSettings.customBasis)
         },
         clearCustomBasis() {
-            this.customBasis = this.defaultCustomBasis;
+            this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
         },
-        getBasisName(basis, names) {
-            return getBasisName(basis, names);
-        },
-        getSimplifiedBasis() {
-            if (this.data.length > 0) {
+        getSimplifiedBases() {
+            if (this.dataInfo.data.length > 0) {
 
                 const variablesInfo = {
-                    length: this.fields.length,
-                    keys: this.fields,
+                    length: this.dataInfo.fields.length,
+                    keys: this.dataInfo.fields,
                 }
 
-                this.basis = { ...getExtendedBases(variablesInfo, this.simplifiedBasis, this.basis, this.constant, this.step) };
-                console.log('this.basis_', this.basis)
+                this.allBases = { ...getExtendedBases(variablesInfo, this.simplifiedBases, this.allBases, this.numParams.constant, this.numParams.step) };
+                console.log('this.basis_', this.allBases)
 
             } else {
                 this.$store.dispatch('notify', {
@@ -318,9 +328,9 @@ export default {
             const file = event.target.files[0];
             if (file && file.name.endsWith('.xlsx')) {
                 this.file = file;
-                this.data = await this.readExcelFile(file);
-                this.fields = Object.keys(this.data[0]);
-                this.selectedVariable = this.fields[1];
+                this.dataInfo.data = await this.readExcelFile(file);
+                this.dataInfo.fields = Object.keys(this.dataInfo.data[0]);
+                this.customSettings.selectedVariable = this.dataInfo.fields[1];
             } else {
                 this.$store.dispatch('notify', {
                     text: 'Пожалуйста, выберите файл формата .xlsx',
@@ -353,8 +363,8 @@ export default {
         },
         async copyBasesRepresentation() {
             let result = '';
-            for (let key in this.basis) {
-                let weight = this.basis[key].weight.toString();
+            for (let key in this.allBases) {
+                let weight = this.allBases[key].weight.toString();
                 const sign = weight[0] == '-' ? '-' : '+';
                 weight = sign === '+' ? weight : weight.substring(1);
 
@@ -365,10 +375,13 @@ export default {
         },
         async predict() {
             const isValid = await this.$refs.form1.validate();
-            console.log(isValid, this.forPredict)
+            console.log(isValid, this.predictInfo.predictData[0])
             if (isValid) {
-                this.predictAns = calculatePredicted(this.basis, [this.forPredict])
-            } else 
+                this.predictInfo.predictAns = 
+                    calculatePredicted(this.allBases, [this.predictInfo.predictData[0]])
+                    .map(ans => ans.toFixed(4))
+                    .join(', ');
+            } else
                 alert('Вы не заполнили форму?');
         }
     },

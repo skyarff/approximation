@@ -69,7 +69,7 @@ function parsePower(powerStr) {
     return { val: powerStr, sign: sign };
 }
 
-function getBasisName(basis) {
+function getBasisKey(basis) {
     let name = '';
     for (let i = 0; i < basis.functions.length; i++)
         name += `*${basis.functions[i]}(${basis.variables[i]})^${basis.powers[i]}`;
@@ -100,7 +100,7 @@ function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = t
                 powers: [powerObj.val * powerObj.sign],
             }
 
-            allBases[getBasisName(basis)] = basis;
+            allBases[getBasisKey(basis)] = basis;
         }
 
         for (let k = 0; k < pairs.length && basisInfo.depth > 1; k++) {
@@ -113,7 +113,7 @@ function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = t
                     powers: [(powerObj.val - j) * powerObj.sign, j * powerObj.sign],
                 }
 
-                allBases[getBasisName(basis)] = basis;
+                allBases[getBasisKey(basis)] = basis;
             }
         }
 
@@ -128,7 +128,7 @@ function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = t
                         powers: [(powerObj.val - j - t) * powerObj.sign, j * powerObj.sign, t * powerObj.sign],
                     }
 
-                    allBases[getBasisName(basis)] = basis;
+                    allBases[getBasisKey(basis)] = basis;
                 }
             }
 
@@ -150,4 +150,4 @@ function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = t
     return allBases;
 }
 
-export { basisFunctions, getExtendedBases, getBasisName };
+export { basisFunctions, getExtendedBases, getBasisKey };
