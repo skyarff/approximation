@@ -76,13 +76,13 @@ function getBasisKey(basis) {
     return name.substring(1);
 }
 
-function getExtendedBases(variablesInfo, simplifiedBases, allBases, constant = true, stepPower) {
+function getExtendedBases(variablesInfo, extendedBases, allBases, constant = true, stepPower) {
 
-    const [pairs, threes] = simplifiedBases.length > 0 ? getPairsThrees(variablesInfo.length) : [];
+    const [pairs, threes] = extendedBases.length > 0 ? getPairsThrees(variablesInfo.length) : [];
 
-    for (let i = 0; i < simplifiedBases.length; i++) {
+    for (let i = 0; i < extendedBases.length; i++) {
 
-        const splitedBasis = simplifiedBases[i].split('^')
+        const splitedBasis = extendedBases[i].split('^')
         const basisInfo = {
             depth: splitedBasis[0][0],
             func: splitedBasis[0].substring(1),

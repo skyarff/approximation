@@ -19,7 +19,7 @@
                     <v-text-field title="L2 регуляризация" label="L2" v-model="numParams.L2" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="Шаг построения степеней базисов" label="Step" v-model="numParams.step" />
+                    <v-text-field title="Шаг построения степеней базисов" label="stepPower" v-model="numParams.stepPower" />
                 </v-col>
                 <v-col cols="1">
                     <v-text-field title="Нормализация входных значений *multiplicationFactor"
@@ -29,8 +29,8 @@
                     <v-checkbox hint="Наличие константы" v-model="numParams.constant" label="Constant" />
                 </v-col>
                 <v-col cols="1">
-                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми" v-model="numParams.normSV"
-                        label="normSV" />
+                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми" v-model="numParams.normSmallValues"
+                        label="normSmallValues" />
                 </v-col>
             </v-row>
 
@@ -39,7 +39,7 @@
                 <v-col class="d-flex flex-row" cols="6">
                     <v-col cols="3">
                         <v-autocomplete title="Функция участник" v-model="funcSettings.selectedFunction"
-                            :items="funcSettings.functions" :item-title="item => `${item.val} (${item.label})`"
+                            :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
                             item-value="val" label="Выберите функцию"></v-autocomplete>
                     </v-col>
                     <v-col cols="2">
@@ -56,7 +56,7 @@
                             label="Переменная"></v-select>
                     </v-col>
                     <v-col cols="3">
-                        <v-btn class="mb-2" @click="addSimplifiedBasis">
+                        <v-btn class="mb-2" @click="addExtendedBasis">
                             Расш. базис
                         </v-btn>
                     </v-col>
@@ -83,11 +83,11 @@
             <v-row>
                 <v-col cols="4">
                     <v-list density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basis, index) in simplifiedBases" :key="index"
-                            :title="getSimplifiedBasisName(basis)">
+                        <v-list-item v-for="(basis, index) in extendedBases" :key="index"
+                            :title="getExtendedBasisName(basis)">
                             <template v-slot:append>
                                 <v-btn icon="mdi-close" density="compact" variant="text"
-                                    @click="simplifiedBases.splice(index, 1)"></v-btn>
+                                    @click="extendedBases.splice(index, 1)"></v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
@@ -118,7 +118,7 @@
                 <v-btn @click="makeApproximation">
                     Аппроксимировать
                 </v-btn>
-                <v-btn class="mx-6" @click="getSimplifiedBases">
+                <v-btn class="mx-6" @click="getExtendedBases">
                     Получить расширенные базисы
                 </v-btn>
                 <v-btn class="mr-6" @click="allBases = {}">
@@ -201,12 +201,12 @@ export default {
 
             numParams: {
                 constant: true,
-                normSV: true,
+                normSmallValues: true,
                 multiplicationFactor: 1,
                 L1: 1,
                 L2: 1,
                 degree: 1,
-                step: 1,
+                stepPower: 1,
                 depth: 1,
                 depths: [
                     { id: 0, val: 1 },
@@ -216,7 +216,7 @@ export default {
             },
 
             funcSettings: {
-                functions: [
+                basisFunctions: [
                     { id: 1, val: '', label: 'Идентичность' },
                     { id: 2, val: 'sqrt', label: 'Квадратный корень' },
                     { id: 3, val: 'sin', label: 'Синус' },
@@ -252,7 +252,7 @@ export default {
                 },
             },
 
-            simplifiedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
+            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
             allBases: {},
 
             metrics: {
@@ -273,7 +273,7 @@ export default {
     },
     methods: {
         async makeApproximation() {
-            this.result = await getApproximation(this.dataInfo.data, this.allBases, this.numParams.L1, this.numParams.L2, this.numParams.normSV, this.numParams.multiplicationFactor)
+            this.result = await getApproximation(this.dataInfo.data, this.allBases, this.numParams.L1, this.numParams.L2, this.numParams.normSmallValues, this.numParams.multiplicationFactor)
 
             this.metrics = this.result.metrics;
 
@@ -281,8 +281,8 @@ export default {
 
             console.log('Result:', this.result);
         },
-        addSimplifiedBasis() {
-            this.simplifiedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}`)
+        addExtendedBasis() {
+            this.extendedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}`)
         },
         addCustomBasis() {
 
@@ -300,7 +300,7 @@ export default {
         clearCustomBasis() {
             this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
         },
-        getSimplifiedBases() {
+        getExtendedBases() {
             if (this.dataInfo.data.length > 0) {
 
                 const variablesInfo = {
@@ -308,7 +308,7 @@ export default {
                     keys: this.dataInfo.fields,
                 }
 
-                this.allBases = { ...getExtendedBases(variablesInfo, this.simplifiedBases, this.allBases, this.numParams.constant, this.numParams.step) };
+                this.allBases = { ...getExtendedBases(variablesInfo, this.extendedBases, this.allBases, this.numParams.constant, this.numParams.stepPower) };
                 console.log('this.basis_', this.allBases)
 
             } else {
@@ -318,7 +318,7 @@ export default {
                 });
             }
         },
-        getSimplifiedBasisName(basis) {
+        getExtendedBasisName(basis) {
             const rows = basis.split('^');
             const depth = rows.length > 0 ? `${rows[0][0]}` : '1'
             const degree = rows.length > 1 ? `^${rows[1]}` : ''
