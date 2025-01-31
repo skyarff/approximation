@@ -1,7 +1,9 @@
-import { basisFunctions } from './basis';
+import { basisFunctions } from './bases';
 
-function calculatePredicted(basis, data) {
-    const allBasesArr = Object.values(basis);
+function calculatePredicted(data, allBases) {
+    const allBasesArr = Object.values(allBases);
+
+    console.log('???', data)
 
     return data.map((_, k) => {
         return allBasesArr.reduce((sum, b) => {
@@ -18,12 +20,12 @@ function calculatePredicted(basis, data) {
     });
 }
 
-function calculateR2(basis, data, success = true) {
+function calculateR2(data, allBases, success = true) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
 
-    const predicted = calculatePredicted(basis, data);
+    const predicted = calculatePredicted(data, allBases);
 
     const mean = data.reduce((sum, val) => sum + val[fields[0]], 0) / data.length;
     const tss = data.reduce((sum, val) => sum + Math.pow(val[fields[0]] - mean, 2), 0);
@@ -32,14 +34,14 @@ function calculateR2(basis, data, success = true) {
     return 1 - (rss / tss);
 }
 
-function calculateAIC(basis, data, success = true) {
+function calculateAIC(data, allBases, success = true) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
     const n = data.length;
-    const k = Object.keys(basis).length;
+    const k = Object.keys(allBases).length;
 
-    const predicted = calculatePredicted(basis, data);
+    const predicted = calculatePredicted(data, allBases);
     const rss = data.reduce((sum, val, i) => sum + Math.pow(val[fields[0]] - predicted[i], 2), 0);
 
     const aic = n * Math.log(rss / n) + 2 * k;
@@ -48,10 +50,10 @@ function calculateAIC(basis, data, success = true) {
 }
 
 // MSE (Mean Squared Error) - среднеквадратическая ошибка
-function calculateMSE(basis, data, success = true) {
+function calculateMSE(data, allBases, success = true) {
     if (!success) return null;
 
-    const predicted = calculatePredicted(basis, data);
+    const predicted = calculatePredicted(data, allBases);
     const fields = Object.keys(data[0]);
     const n = data.length;
 

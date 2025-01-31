@@ -173,7 +173,7 @@
 <script>
 import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
-import { getExtendedBases, getBasisKey } from '@/app_lib/basis';
+import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
 import { calculatePredicted } from '@/app_lib/metrics';
 
 
@@ -273,7 +273,17 @@ export default {
     },
     methods: {
         async makeApproximation() {
-            this.result = await getApproximation(this.dataInfo.data, this.allBases, this.numParams.L1, this.numParams.L2, this.numParams.normSmallValues, this.numParams.multiplicationFactor)
+
+            const options = {
+                data: this.dataInfo.data,
+                allBases: this.allBases,
+                L1: this.numParams.L1,
+                L2: this.numParams.L2,
+                normSmallValues: this.numParams.normSmallValues,
+                multiplicationFactor: this.numParams.multiplicationFactor
+            }
+
+            this.result = await getApproximation(options)
 
             this.metrics = this.result.metrics;
 
@@ -287,7 +297,14 @@ export default {
         addCustomBasis() {
 
             this.allBases[getBasisKey(this.customSettings.customBasis)]
-                = ({ weight: 1, functions: this.customSettings.customBasis.functions, variables: this.customSettings.customBasis.variables, powers: this.customSettings.customBasis.powers });
+                = (
+                    { 
+                        weight: 1, 
+                        functions: this.customSettings.customBasis.functions, 
+                        variables: this.customSettings.customBasis.variables, 
+                        powers: this.customSettings.customBasis.powers 
+                    }
+                );
         },
         addVariable() {
             this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
@@ -303,12 +320,15 @@ export default {
         getExtendedBases() {
             if (this.dataInfo.data.length > 0) {
 
-                const variablesInfo = {
-                    length: this.dataInfo.fields.length,
+                const options = {
+                    extendedBases: this.extendedBases,
+                    allBases: this.allBases,
+                    constant: this.numParams.constant, 
+                    stepPower: this.numParams.stepPower,
                     keys: this.dataInfo.fields,
                 }
 
-                this.allBases = { ...getExtendedBases(variablesInfo, this.extendedBases, this.allBases, this.numParams.constant, this.numParams.stepPower) };
+                this.allBases = { ...getExtendedBases(options) };
                 console.log('this.basis_', this.allBases)
 
             } else {
@@ -378,7 +398,7 @@ export default {
             console.log(isValid, this.predictInfo.predictData[0])
             if (isValid) {
                 this.predictInfo.predictAns = 
-                    calculatePredicted(this.allBases, [this.predictInfo.predictData[0]])
+                    calculatePredicted([this.predictInfo.predictData[0]], this.allBases)
                     .map(ans => ans.toFixed(4))
                     .join(', ');
             } else

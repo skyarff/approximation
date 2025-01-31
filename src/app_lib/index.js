@@ -2,7 +2,7 @@
 import { solveMatrix } from '@/app_lib/matrixOperations';
 import { Array } from 'core-js';
 import { calculateR2, calculateAIC, calculateMSE } from './metrics';
-import { basisFunctions } from './basis';
+import { basisFunctions } from './bases';
 import WorkerPool from './workerPool';
 
 
@@ -97,7 +97,7 @@ async function computeA(data, allBasesArr) {
   }
 }
 
-async function getApproximation(data, allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1) {
+async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1} = {}) {
 
   dataNormalization(data, normSmallValues, multiplicationFactor);
 
@@ -136,14 +136,15 @@ async function getApproximation(data, allBases = {}, L1 = 0, L2 = 0, normSmallVa
   const success = weights.every(w => Number.isFinite(w));
 
   const approximatedBases = structuredClone(allBases);
-  if (success) 
-    Object.values(approximatedBases).forEach((basis, index) => basis.weight = weights[index]);
+
+  if (success) Object.values(approximatedBases)
+    .forEach((basis, index) => basis.weight = weights[index]);
     
     
   const metrics = {
-    R2: calculateR2(approximatedBases, data, success),
-    AIC: calculateAIC(approximatedBases, data, success),
-    MSE: calculateMSE(approximatedBases, data, success),
+    R2: calculateR2(data, approximatedBases, success),
+    AIC: calculateAIC(data, approximatedBases, data, success),
+    MSE: calculateMSE(data, approximatedBases, data, success),
   }
 
   return { A, B, weights, success, metrics, approximatedBases };

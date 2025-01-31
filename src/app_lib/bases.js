@@ -76,9 +76,9 @@ function getBasisKey(basis) {
     return name.substring(1);
 }
 
-function getExtendedBases(variablesInfo, extendedBases, allBases, constant = true, stepPower) {
+function getExtendedBases({keys = ['x'], extendedBases = '1x^1', allBases = {}, constant = true, stepPower = 1} = {}) {
 
-    const [pairs, threes] = extendedBases.length > 0 ? getPairsThrees(variablesInfo.length) : [];
+    const [pairs, threes] = extendedBases.length > 0 ? getPairsThrees(keys.length) : [];
 
     for (let i = 0; i < extendedBases.length; i++) {
 
@@ -91,12 +91,12 @@ function getExtendedBases(variablesInfo, extendedBases, allBases, constant = tru
 
         const powerObj = parsePower(basisInfo.power);
 
-        for (let t = 1; t < variablesInfo.length; t++) {
+        for (let t = 1; t < keys.length; t++) {
 
             const basis = {
                 weight: 1,
                 functions: Array(1).fill(basisInfo.func),
-                variables: [t].map((i) => variablesInfo.keys[i]),
+                variables: [t].map((i) => keys[i]),
                 powers: [powerObj.val * powerObj.sign],
             }
 
@@ -109,7 +109,7 @@ function getExtendedBases(variablesInfo, extendedBases, allBases, constant = tru
                 const basis = {
                     weight: 1,
                     functions: Array(2).fill(basisInfo.func),
-                    variables: pairs[k].map((i) => variablesInfo.keys[i]),
+                    variables: pairs[k].map((i) => keys[i]),
                     powers: [(powerObj.val - j) * powerObj.sign, j * powerObj.sign],
                 }
 
@@ -124,7 +124,7 @@ function getExtendedBases(variablesInfo, extendedBases, allBases, constant = tru
                     const basis = {
                         weight: 1,
                         functions: Array(3).fill(basisInfo.func),
-                        variables: threes[k].map((i) => variablesInfo.keys[i]),
+                        variables: threes[k].map((i) => keys[i]),
                         powers: [(powerObj.val - j - t) * powerObj.sign, j * powerObj.sign, t * powerObj.sign],
                     }
 
@@ -141,7 +141,7 @@ function getExtendedBases(variablesInfo, extendedBases, allBases, constant = tru
             {
                 weight: 1,
                 functions: Array(1).fill('1'),
-                variables: [1].map((i) => variablesInfo.keys[i]),
+                variables: [1].map((i) => keys[i]),
                 powers: [1]
             }
         );
