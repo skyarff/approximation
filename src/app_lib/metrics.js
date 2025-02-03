@@ -3,8 +3,6 @@ import { basisFunctions } from './bases';
 function calculatePredicted(data, allBases) {
     const allBasesArr = Object.values(allBases);
 
-    console.log('???', data)
-
     return data.map((_, k) => {
         return allBasesArr.reduce((sum, b) => {
 
