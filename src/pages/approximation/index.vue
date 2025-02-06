@@ -64,6 +64,15 @@
 
                 <v-col class="d-flex flex-row" cols="6">
                     <v-col cols="4">
+
+                        <div style="width: 500px; background: #0000AA44;">
+                            Добавляемая переменная
+                        </div>
+                        <div style="height: 100px; width: 500px; background: #ff000044;">
+                            {{ getBasisName(customSettings.customBasis) }}
+                        </div>
+
+
                         <v-btn @click="addVariable">
                             Добавить переменную
                         </v-btn>
@@ -242,13 +251,13 @@ export default {
                     functions: [],
                     powers: [],
                     variables: [],
-                    weight: 1
+                    weight: 1,
                 },
                 customBasis: {
                     functions: [],
                     powers: [],
                     variables: [],
-                    weight: 1
+                    weight: '',
                 },
             },
 
@@ -296,7 +305,7 @@ export default {
         },
         addCustomBasis() {
 
-            this.allBases[getBasisKey(this.customSettings.customBasis)]
+            this.allBases[this.getBasisName(this.customSettings.customBasis)]
                 = (
                     { 
                         weight: 1, 
@@ -305,6 +314,9 @@ export default {
                         powers: this.customSettings.customBasis.powers 
                     }
                 );
+        },
+        getBasisName(basis) {
+            return getBasisKey(basis);
         },
         addVariable() {
             this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
