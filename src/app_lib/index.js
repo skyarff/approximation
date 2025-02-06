@@ -132,7 +132,7 @@ async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normS
   console.log('матрица B сформирована')
 
 
-  const weights = solveMatrix(A, B);
+  const weights = await solveMatrix(A, B);
   const success = weights.every(w => Number.isFinite(w));
 
   const approximatedBases = structuredClone(allBases);
