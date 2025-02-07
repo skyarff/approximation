@@ -271,7 +271,7 @@ export default {
                 },
             },
 
-            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '2^2', '1', '3sin^3', '2sin^2'],
+            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '1', '2^2/sin', '3sin^3', '2sin^2'],
             allBases: {},
 
             metrics: {
@@ -311,41 +311,7 @@ export default {
             console.log('Result:', this.result);
         },
         addExtendedBasis() {
-            this.extendedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}`)
-        },
-        addCustomBasis() {
-
-            this.allBases[this.getBasisName(this.customSettings.customBasis)]
-                = (
-                    {
-                        weight: 1,
-                        functions: this.customSettings.customBasis.functions,
-                        variables: this.customSettings.customBasis.variables,
-                        powers: this.customSettings.customBasis.powers,
-                        outputFunc: this.selectedOutputFunction
-                    }
-                );
-        },
-        getBasisName(basis) {
-            return getBasisKey(basis);
-        },
-        addVariable() {
-            this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
-            this.customSettings.customBasis.powers.push(Number(this.numParams.degree));
-            this.customSettings.customBasis.variables.push(this.customSettings.selectedVariable);
-            this.customSettings.customBasis.weight = 1;
-
-            console.log('this.customSettings.customBasis', this.customSettings.customBasis)
-        },
-        addOutputFunc() {
-            if (this.funcSettings.selectedOutputFunction) {
-                this.customSettings.customBasis.outputFunc = this.funcSettings.selectedOutputFunction;
-            } else if (this.customSettings.customBasis.outputFunc) 
-                delete this.customSettings.customBasis.outputFunc;
-                
-        },
-        clearCustomBasis() {
-            this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
+            this.extendedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}`)
         },
         getExtendedBases() {
             if (this.dataInfo.data.length > 0) {
@@ -369,10 +335,58 @@ export default {
             }
         },
         getExtendedBasisName(basis) {
-            const rows = basis.split('^');
-            const depth = rows.length > 0 ? `${rows[0][0]}` : '1'
-            const degree = rows.length > 1 ? `^${rows[1]}` : ''
-            return `${rows[0].substring(1)}(x)${degree} - глубина ${depth}`
+            const funcs = basis.split('/');
+            const rows = funcs[0].split('^');
+            const depth = rows.length > 0 ? `${rows[0][0]}` : '1';
+            const degree = rows.length > 1 ? `^${rows[1]}` : '';
+
+            const func0 = rows[0].substring(1) 
+                ? `${rows[0].substring(1)}(x)` 
+                : 'x';
+
+            if (funcs[1])
+                return `${funcs[1]}(${func0}${degree}) - глубина ${depth}`;
+            else if (func0)
+                return `${func0}${degree} - глубина ${depth}`;
+            else
+                return `${func0}${degree} - глубина ${depth}`;
+            
+        },
+        addCustomBasis() {
+
+            this.allBases[this.getBasisName(this.customSettings.customBasis)]
+                = (
+                    {
+                        weight: 1,
+                        functions: this.customSettings.customBasis.functions,
+                        variables: this.customSettings.customBasis.variables,
+                        powers: this.customSettings.customBasis.powers,
+                        outputFunc: this.funcSettings.selectedOutputFunction
+                    }
+                );
+
+                console.log('this.allBases', this.allBases)
+        },
+        getBasisName(basis) {
+            return getBasisKey(basis);
+        },
+        addVariable() {
+            this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
+            this.customSettings.customBasis.powers.push(Number(this.numParams.degree));
+            this.customSettings.customBasis.variables.push(this.customSettings.selectedVariable);
+            this.customSettings.customBasis.weight = 1;
+
+            console.log('this.customSettings.customBasis', this.customSettings.customBasis)
+        },
+        addOutputFunc() {
+            if (this.funcSettings.selectedOutputFunction) {
+                this.customSettings.customBasis.outputFunc = this.funcSettings.selectedOutputFunction;
+            } else if (this.customSettings.customBasis.outputFunc) 
+                delete this.customSettings.customBasis.outputFunc;
+                
+        },
+        clearCustomBasis() {
+            this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
         },
         async fileUpload(event) {
             const file = event.target.files[0];

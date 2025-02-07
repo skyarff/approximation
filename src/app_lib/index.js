@@ -28,6 +28,7 @@ async function computeA(data, allBasesArr) {
   const functionCache = new Map();
 
   const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
+    
 
     const key = `${basisElement.functions.join()}_${basisIndex}`;
 

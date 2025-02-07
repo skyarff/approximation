@@ -80,12 +80,12 @@ function getBasisKey(basis) {
         
 
 
-    if ('outputFunc' in basis) return `${basis.outputFunc}(${name.substring(3)})`;   
+    if (basis.outputFunc) return `${basis.outputFunc}(${name.substring(3)})`;   
     return name.substring(3);
 
 }
 
-function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, constant = true, stepPower = 1} = {}) {
+function getExtendedBases({keys = ['x'], extendedBases = ['1^1'], allBases = {}, constant = true, stepPower = 1} = {}) {
 
     stepPower = parseFloat(stepPower);
 
@@ -93,7 +93,13 @@ function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, c
 
     for (let i = 0; i < extendedBases.length; i++) {
 
-        const splitedBasis = extendedBases[i].split('^')
+        const funcs = extendedBases[i].split('/');
+
+
+        const outputFunc = funcs[1] ?? '';
+        console.log('outputFunc', outputFunc)
+
+        const splitedBasis = funcs[0].split('^')
         const basisInfo = {
             depth: splitedBasis[0][0],
             func: splitedBasis[0].substring(1),
@@ -109,6 +115,7 @@ function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, c
                 functions: Array(1).fill(basisInfo.func),
                 variables: [t].map((i) => keys[i]),
                 powers: [powerObj.val * powerObj.sign],
+                outputFunc: outputFunc
             }
 
             allBases[getBasisKey(basis)] = basis;
@@ -122,6 +129,7 @@ function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, c
                     functions: Array(2).fill(basisInfo.func),
                     variables: pairs[k].map((i) => keys[i]),
                     powers: [(powerObj.val - j) * powerObj.sign, j * powerObj.sign],
+                    outputFunc: outputFunc
                 }
 
                 allBases[getBasisKey(basis)] = basis;
@@ -137,6 +145,7 @@ function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, c
                         functions: Array(3).fill(basisInfo.func),
                         variables: threes[k].map((i) => keys[i]),
                         powers: [(powerObj.val - j - t) * powerObj.sign, j * powerObj.sign, t * powerObj.sign],
+                        outputFunc: outputFunc
                     }
 
                     allBases[getBasisKey(basis)] = basis;
@@ -153,7 +162,8 @@ function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, c
                 weight: 1,
                 functions: Array(1).fill('1'),
                 variables: [1].map((i) => keys[i]),
-                powers: [1]
+                powers: [1],
+                outputFunc: ''
             }
         );
     }
