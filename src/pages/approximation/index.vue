@@ -23,8 +23,8 @@
                         v-model="numParams.stepPower" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="Нормализация входных значений *multiplicationFactor"
-                    type="number" label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
+                    <v-text-field title="Нормализация входных значений *multiplicationFactor" type="number"
+                        label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
                 </v-col>
                 <v-col cols="1">
                     <v-checkbox hint="Наличие константы" v-model="numParams.constant" label="Constant" />
@@ -46,7 +46,11 @@
                         <v-autocomplete title="Выходная функция" v-model="funcSettings.selectedOutputFunction"
                             :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
                             item-value="val" label="Выберите выходную функцию"></v-autocomplete>
+
+                        <v-text-field title="Выходная степень" type="number" label="outputDegree"
+                            v-model="funcSettings.outputDegree" />
                     </v-col>
+
                     <v-col cols="2">
                         <v-text-field title="Степень базиса" type="number" v-model="numParams.degree"
                             label="Степень"></v-text-field>
@@ -85,6 +89,7 @@
                         <v-btn @click="addOutputFunc">
                             Добавить выходную функцию
                         </v-btn>
+
 
                         <v-btn @click="addCustomBasis">
                             Добавить базис
@@ -253,6 +258,7 @@ export default {
                 ],
                 selectedFunction: '',
                 selectedOutputFunction: '',
+                outputDegree: 1
             },
 
             customSettings: {
@@ -271,7 +277,7 @@ export default {
                 },
             },
 
-            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3', '1', '2^2/sin', '3sin^3', '2sin^2'],
+            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2'],
             allBases: {},
 
             metrics: {
@@ -311,7 +317,11 @@ export default {
             console.log('Result:', this.result);
         },
         addExtendedBasis() {
-            this.extendedBases.push(`${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}`)
+            if (this.funcSettings.outputDegree) {
+                this.extendedBases.push(
+                `${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}^${this.funcSettings.outputDegree}`)
+            }
+                
         },
         getExtendedBases() {
             if (this.dataInfo.data.length > 0) {
@@ -336,21 +346,36 @@ export default {
         },
         getExtendedBasisName(basis) {
             const funcs = basis.split('/');
-            const rows = funcs[0].split('^');
-            const depth = rows.length > 0 ? `${rows[0][0]}` : '1';
-            const degree = rows.length > 1 ? `^${rows[1]}` : '';
 
-            const func0 = rows[0].substring(1) 
-                ? `${rows[0].substring(1)}(x)` 
-                : 'x';
+            const rows1 = funcs[0].split('^');
 
-            if (funcs[1])
-                return `${funcs[1]}(${func0}${degree}) - глубина ${depth}`;
-            else if (func0)
-                return `${func0}${degree} - глубина ${depth}`;
-            else
-                return `${func0}${degree} - глубина ${depth}`;
-            
+            const depth1 = rows1.length > 0 ? `${rows1[0][0]}` : '1';
+            const degree1 = rows1.length > 1 ? `${rows1[1]}` : '';
+            const func1 = rows1[0].substring(1);
+
+
+            let name = `x`;
+            if (func1) name = `${func1}(x)`;
+            if (degree1 && degree1 != 1) name = `${name}^${degree1}`;
+
+
+            if (funcs[1]) {
+
+                const rows2 = funcs[1].split('^');
+                if (rows2[0]) {
+                    const func2 = rows2[0];
+                    name = `${func2}(${name})`
+                }
+
+                if (rows2[1] && rows2[1] != 1) {
+                    if (!rows2[0]) name = `(${name})`;
+                    name = `${name}^${rows2[1]}`
+                }
+            }
+
+            name = `${name} - глубина ${depth1}`
+
+            return name;
         },
         addCustomBasis() {
 
@@ -361,11 +386,12 @@ export default {
                         functions: this.customSettings.customBasis.functions,
                         variables: this.customSettings.customBasis.variables,
                         powers: this.customSettings.customBasis.powers,
-                        outputFunc: this.funcSettings.selectedOutputFunction
+                        outputFunc: this.funcSettings.selectedOutputFunction,
+                        outputDegree: this.funcSettings.outputDegree,
                     }
                 );
 
-                console.log('this.allBases', this.allBases)
+            console.log('this.allBases', this.allBases)
         },
         getBasisName(basis) {
             return getBasisKey(basis);
@@ -381,9 +407,14 @@ export default {
         addOutputFunc() {
             if (this.funcSettings.selectedOutputFunction) {
                 this.customSettings.customBasis.outputFunc = this.funcSettings.selectedOutputFunction;
-            } else if (this.customSettings.customBasis.outputFunc) 
+            } else if (this.customSettings.customBasis.outputFunc)
                 delete this.customSettings.customBasis.outputFunc;
-                
+
+        },
+        addOutputDegree() {
+            if (this.funcSettings.outputDegree) {
+                this.customSettings.customBasis.outputDegree = this.funcSettings.outputDegree;
+            }
         },
         clearCustomBasis() {
             this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);

@@ -12,7 +12,13 @@ function calculatePredicted(data, allBases) {
                 val *= Math.pow(func(data[k][b.variables[t]]), b.powers[t]);
             }
 
-            return sum + b.weight * basisFunctions.getFunction(b.outputFunc)(val);
+            val = basisFunctions.getFunction(b.outputFunc)(val)
+
+            if ('outputDegree' in b && b.outputDegree != 1)
+                val = Math.pow(val, b.outputDegree);
+                
+
+            return sum + b.weight * val;
 
         }, 0);
     });

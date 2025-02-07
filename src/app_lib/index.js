@@ -8,7 +8,7 @@ import WorkerPool from './workerPool';
 
 
 function dataNormalization(data, normSmallValues = false, multiplicationFactor = 1) {
-  
+
   if (!normSmallValues && multiplicationFactor == 1) return;
   multiplicationFactor = parseFloat(multiplicationFactor);
 
@@ -28,7 +28,7 @@ async function computeA(data, allBasesArr) {
   const functionCache = new Map();
 
   const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
-    
+
 
     const key = `${basisElement.functions.join()}_${basisIndex}`;
 
@@ -52,7 +52,12 @@ async function computeA(data, allBasesArr) {
         val *= funcResult;
       }
 
-      return basisFunctions.getFunction(basisElement.outputFunc)(val);
+      val = basisFunctions.getFunction(basisElement.outputFunc)(val);
+
+      if ('outputDegree' in basisElement && basisElement.outputDegree != 1)
+        val = Math.pow(val, basisElement.outputDegree);
+
+      return val;
     });
   });
 
@@ -102,7 +107,7 @@ async function computeA(data, allBasesArr) {
   }
 }
 
-async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1} = {}) {
+async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
 
   dataNormalization(data, normSmallValues, multiplicationFactor);
 
@@ -125,8 +130,12 @@ async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normS
         const func = basisFunctions.getFunction(b.functions[t]);
         val *= Math.pow(func(data[i][allBasesArr[index].variables[t]]), allBasesArr[index].powers[t]);
       }
-    
+
       val = basisFunctions.getFunction(b.outputFunc)(val);
+
+      if ('outputDegree' in b && b.outputDegree != 1)
+        val = Math.pow(val, b.outputDegree);
+
       sum += data[i][dataFields[0]] * val;
     }
 
@@ -144,8 +153,8 @@ async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normS
 
   if (success) Object.values(approximatedBases)
     .forEach((basis, index) => basis.weight = weights[index]);
-    
-    
+
+
   const metrics = {
     R2: calculateR2(data, approximatedBases, success),
     AIC: calculateAIC(data, approximatedBases, data, success),
