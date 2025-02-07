@@ -13,24 +13,25 @@
         <div class="w-100 pa-2">
             <v-row>
                 <v-col cols="1">
-                    <v-text-field title="L1 регуляризация" label="L1" v-model="numParams.L1" />
+                    <v-text-field title="L1 регуляризация" type="number" label="L1" v-model="numParams.L1" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="L2 регуляризация" label="L2" v-model="numParams.L2" />
+                    <v-text-field title="L2 регуляризация" type="number" label="L2" v-model="numParams.L2" />
                 </v-col>
                 <v-col cols="1">
-                    <v-text-field title="Шаг построения степеней базисов" label="stepPower" v-model="numParams.stepPower" />
+                    <v-text-field title="Шаг построения степеней базисов" type="number" label="stepPower"
+                        v-model="numParams.stepPower" />
                 </v-col>
                 <v-col cols="1">
                     <v-text-field title="Нормализация входных значений *multiplicationFactor"
-                        label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
+                    type="number" label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
                 </v-col>
                 <v-col cols="1">
                     <v-checkbox hint="Наличие константы" v-model="numParams.constant" label="Constant" />
                 </v-col>
                 <v-col cols="1">
-                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми" v-model="numParams.normSmallValues"
-                        label="normSmallValues" />
+                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми"
+                        v-model="numParams.normSmallValues" label="normSmallValues" />
                 </v-col>
             </v-row>
 
@@ -41,6 +42,10 @@
                         <v-autocomplete title="Функция участник" v-model="funcSettings.selectedFunction"
                             :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
                             item-value="val" label="Выберите функцию"></v-autocomplete>
+
+                        <v-autocomplete title="Выходная функция" v-model="funcSettings.selectedOutputFunction"
+                            :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
+                            item-value="val" label="Выберите выходную функцию"></v-autocomplete>
                     </v-col>
                     <v-col cols="2">
                         <v-text-field title="Степень базиса" type="number" v-model="numParams.degree"
@@ -75,6 +80,10 @@
 
                         <v-btn @click="addVariable">
                             Добавить переменную
+                        </v-btn>
+
+                        <v-btn @click="addOutputFunc">
+                            Добавить выходную функцию
                         </v-btn>
 
                         <v-btn @click="addCustomBasis">
@@ -243,6 +252,7 @@ export default {
                     { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
                 ],
                 selectedFunction: '',
+                selectedOutputFunction: '',
             },
 
             customSettings: {
@@ -307,11 +317,12 @@ export default {
 
             this.allBases[this.getBasisName(this.customSettings.customBasis)]
                 = (
-                    { 
-                        weight: 1, 
-                        functions: this.customSettings.customBasis.functions, 
-                        variables: this.customSettings.customBasis.variables, 
-                        powers: this.customSettings.customBasis.powers 
+                    {
+                        weight: 1,
+                        functions: this.customSettings.customBasis.functions,
+                        variables: this.customSettings.customBasis.variables,
+                        powers: this.customSettings.customBasis.powers,
+                        outputFunc: this.selectedOutputFunction
                     }
                 );
         },
@@ -326,6 +337,13 @@ export default {
 
             console.log('this.customSettings.customBasis', this.customSettings.customBasis)
         },
+        addOutputFunc() {
+            if (this.funcSettings.selectedOutputFunction) {
+                this.customSettings.customBasis.outputFunc = this.funcSettings.selectedOutputFunction;
+            } else if (this.customSettings.customBasis.outputFunc) 
+                delete this.customSettings.customBasis.outputFunc;
+                
+        },
         clearCustomBasis() {
             this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
         },
@@ -335,7 +353,7 @@ export default {
                 const options = {
                     extendedBases: this.extendedBases,
                     allBases: this.allBases,
-                    constant: this.numParams.constant, 
+                    constant: this.numParams.constant,
                     stepPower: this.numParams.stepPower,
                     keys: this.dataInfo.fields,
                 }
@@ -400,7 +418,7 @@ export default {
                 const sign = weight[0] == '-' ? '-' : '+';
                 weight = sign === '+' ? weight : weight.substring(1);
 
-                result += `${sign} ${weight} * ${key}\n`
+                result += `${sign}${weight} * ${key}\n`
             }
 
             await navigator.clipboard.writeText(result.slice(0, -1));
@@ -409,10 +427,10 @@ export default {
             const isValid = await this.$refs.form1.validate();
             console.log(isValid, this.predictInfo.predictData[0])
             if (isValid) {
-                this.predictInfo.predictAns = 
+                this.predictInfo.predictAns =
                     calculatePredicted([this.predictInfo.predictData[0]], this.allBases)
-                    .map(ans => ans.toFixed(4))
-                    .join(', ');
+                        .map(ans => ans.toFixed(4))
+                        .join(', ');
             } else
                 alert('Вы не заполнили форму?');
         }

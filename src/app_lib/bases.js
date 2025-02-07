@@ -71,12 +71,23 @@ function parsePower(powerStr) {
 
 function getBasisKey(basis) {
     let name = '';
-    for (let i = 0; i < basis.functions.length; i++)
-        name += `*${basis.functions[i]}(${basis.variables[i]})^${basis.powers[i]}`;
-    return name.substring(1);
+    for (let i = 0; i < basis.functions.length; i++) {
+        if (basis.functions[i])
+            name += ` * ${basis.functions[i]}(${basis.variables[i]})^${basis.powers[i]}`;
+        else
+            name += ` * ${basis.variables[i]}^${basis.powers[i]}`;   
+    }
+        
+
+
+    if ('outputFunc' in basis) return `${basis.outputFunc}(${name.substring(3)})`;   
+    return name.substring(3);
+
 }
 
-function getExtendedBases({keys = ['x'], extendedBases = '1x^1', allBases = {}, constant = true, stepPower = 1} = {}) {
+function getExtendedBases({keys = ['x'], extendedBases = '1^1', allBases = {}, constant = true, stepPower = 1} = {}) {
+
+    stepPower = parseFloat(stepPower);
 
     const [pairs, threes] = extendedBases.length > 0 ? getPairsThrees(keys.length) : [];
 
