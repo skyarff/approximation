@@ -125,12 +125,12 @@ async function getApproximation({data = [], allBases = {}, L1 = 0, L2 = 0, normS
         const func = basisFunctions.getFunction(b.functions[t]);
         val *= Math.pow(func(data[i][allBasesArr[index].variables[t]]), allBasesArr[index].powers[t]);
       }
-
+    
+      val = basisFunctions.getFunction(b.outputFunc)(val);
       sum += data[i][dataFields[0]] * val;
     }
 
-    return basisFunctions.getFunction(b.outputFunc)(sum) - L1;
-
+    return sum - L1;
   });
 
 
