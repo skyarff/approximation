@@ -16,7 +16,7 @@ export const routes = [
     },
     {
       path: '/modeling',
-      name: 'Моделирование',
+      name: 'Настройки',
       component: modeling
     },
   ]
