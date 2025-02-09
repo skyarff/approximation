@@ -55,16 +55,9 @@ export default {
         apply() {
 
             const xKey = this.xKeys[this.xVal].val;
-
-            console.log('xKeyxKey', xKey, this.xVal)
-
             this.$store.state.graphics.xKey = xKey;
-            setTimeout(() => {
-                console.log('this.$store.state.graphics.xKey', this.$store.state.graphics.xKey)
-                
-                this.chartData.sort((a, b) => a[xKey] - b[xKey]);
-                this.$refs.chart.setRange(this.min, this.max);
-            }, 0)
+            this.chartData.sort((a, b) => a[xKey] - b[xKey]);
+            this.$refs.chart.setRange(this.min, this.max);
         }
     },
     computed: {

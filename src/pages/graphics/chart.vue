@@ -18,6 +18,7 @@ export default {
             chartDivOn: true,
             usedColors: [],
             self: null,
+            seriesVisibility: {},
         }
     },
     mounted() {
@@ -124,10 +125,19 @@ export default {
                 })
             );
 
+            legend.itemContainers.template.events.on("click", function (e) {
+                let itemContainer = e.target;
+                let dataItem = itemContainer.dataItem;
+
+                const seriesName = dataItem.get('name');
+                if (seriesName) {
+                    const clickedSeries = chart.series.values.find(s => s.get("name") === seriesName);
+                    context.component.seriesVisibility[seriesName] = clickedSeries.isHidden();
+                }
+            });
+
+
             const { xKey, yKeys } = chartKeys;
-
-
-
 
             if (min === undefined && max === undefined) {
                 const values = data.flatMap(row =>
@@ -142,6 +152,7 @@ export default {
 
 
             const options = {
+                context,
                 root,
                 chart,
                 xAxis,
@@ -165,8 +176,7 @@ export default {
 
             context.component.root = root;
         },
-        createAxisAndSeries({ root, chart, xAxis, data, legend, min, max, yKey, xKey, index } = {}) {
-
+        createAxisAndSeries({ context, root, chart, xAxis, data, legend, min, max, yKey, xKey, index } = {}) {
             const color = this.getRandomColor();
 
             const yRenderer = am5xy.AxisRendererY.new(root, {
@@ -214,9 +224,19 @@ export default {
                     valueXField: xKey,
                     stroke: am5.color(color),
                     fill: am5.color(color),
-                    tooltip
+                    tooltip,
+                    visible: false
                 })
             );
+
+            if (context.component.seriesVisibility[yKey] === undefined)
+                context.component.seriesVisibility[yKey] = true;
+
+            if (!context.component.seriesVisibility[yKey]) {
+                setTimeout(() => {
+                    series.hide();
+                }, 0)
+            }
 
             // series.bullets.push(function () {
             //     return am5.Bullet.new(root, {
@@ -232,6 +252,8 @@ export default {
             series.data.setAll(data);
 
             legend.data.setAll(chart.series.values);
+
+
 
             series.appear(1000);
         },
