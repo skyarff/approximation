@@ -22,6 +22,7 @@ export default {
     },
     mounted() {
         this.self = { component: this };
+        console.log('chartData перед createChart:', this.chartData);
         this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys);
     },
     computed: {
@@ -37,8 +38,6 @@ export default {
     },
     methods: {
         createChart(context, ref, data, chartKeys, min, max) {
-
-            console.log(data, chartKeys)
 
             const root = am5.Root.new(this.$refs[ref]);
             root._logo.dispose();
@@ -101,9 +100,19 @@ export default {
                     renderer: xRenderer,
                     paddingTop: 18,
                     tooltip: tooltip,
-                    strictMinMax: true
+                    strictMinMax: true,
                 })
             );
+
+            // console.log('data???', data, chartKeys.xKey)
+
+            // data.forEach((item, idx) => {
+            //     if (item[chartKeys.xKey] !== undefined) {
+            //         item[chartKeys.xKey] = parseFloat(item[chartKeys.xKey]);
+            //         console.log(idx, item[chartKeys.xKey])
+            //     }
+            // });
+
 
             xAxis.data.setAll(data);
 
@@ -116,6 +125,7 @@ export default {
             );
 
             const { xKey, yKeys } = chartKeys;
+
 
 
 
@@ -163,15 +173,15 @@ export default {
                 minGridDistance: 30,
                 cellStartLocation: 0,
                 cellEndLocation: 1,
-                grid: {
-                    location: 0
-                }
+                // grid: {
+                //     location: 0
+                // }
             });
 
             const yAxis = chart.yAxes.push(
                 am5xy.ValueAxis.new(root, {
-                    min: parseFloat(min) - 20,
-                    max: parseFloat(max) + 20,
+                    min: parseFloat(min),
+                    max: parseFloat(max),
                     strictMinMax: true,
                     paddingRight: 20,
                     visible: index == 0,
@@ -193,6 +203,7 @@ export default {
                 fill: am5.color('#262525'),
                 fillOpacity: 1,
             });
+
 
             const series = chart.series.push(
                 am5xy.LineSeries.new(root, {
@@ -280,11 +291,11 @@ export default {
         },
         setRange(min, max) {
             this.disposeAndCall(
-                this.createChart, 
-                this.self, 
-                'chartDiv', 
-                this.chartData, 
-                this.chartKeys, 
+                this.createChart,
+                this.self,
+                'chartDiv',
+                this.chartData,
+                this.chartKeys,
                 min, max)
         }
     },

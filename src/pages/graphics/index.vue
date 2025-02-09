@@ -3,7 +3,8 @@
 
         <v-row class="mx-2">
             <v-col cols="2">
-                <v-autocomplete title="Переменная абсцисс" label="Переменная абсцисс"></v-autocomplete>
+                <v-autocomplete v-model="xVal" item-title="val" item-value="id" :items="xKeys"
+                    title="Переменная абсцисс" label="Переменная абсцисс"></v-autocomplete>
             </v-col>
             <v-col cols="1">
                 <v-switch />
@@ -15,7 +16,7 @@
                 <v-text-field label="max" v-model="max" />
             </v-col>
             <v-col cols="1">
-                <v-btn @click="$refs.chart.setRange(min, max)">Применить</v-btn>
+                <v-btn @click="apply()">Применить</v-btn>
             </v-col>
         </v-row>
 
@@ -43,12 +44,50 @@ export default {
     data() {
         return {
             min: 0,
-            max: 400
+            max: 400,
+            xVal: 0,
         }
     },
+    mounted() {
+        console.log('xKeys', this.xKeys)
+    },
     methods: {
-      
-    }
+        apply() {
+
+            const xKey = this.xKeys[this.xVal].val;
+
+            console.log('xKeyxKey', xKey, this.xVal)
+
+            this.$store.state.graphics.xKey = xKey;
+            setTimeout(() => {
+                console.log('this.$store.state.graphics.xKey', this.$store.state.graphics.xKey)
+                
+                this.chartData.sort((a, b) => a[xKey] - b[xKey]);
+                this.$refs.chart.setRange(this.min, this.max);
+            }, 0)
+        }
+    },
+    computed: {
+        chartData() {
+            return this.$store.state.graphics.chartData;
+        },
+        chartKeys() {
+            return {
+                xKey: this.$store.state.graphics.xKey,
+                yKeys: this.$store.state.graphics.yKeys,
+            }
+        },
+        xKeys() {
+            return Object.keys(this.chartData[0])
+                .filter(key => !this.chartKeys.yKeys.includes(key))
+                .map((key, index) => {
+                    return {
+                        id: index,
+                        val: key
+                    }
+                })
+        }
+    },
 
 }
 
