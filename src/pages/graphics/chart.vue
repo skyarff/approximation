@@ -269,17 +269,23 @@ export default {
                 attempts++;
             } while (true);
         },
-        setRange(min, max) {
+        disposeAndCall(func, ...args) {
             this.chartDivOn = false;
-            setTimeout(() => {
+            this.$nextTick(() => {
                 this.chartDivOn = true;
-                setTimeout(() => {
-                    this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys, min, max);
-                }, 0)
-            }, 0)
-
-
-
+                this.$nextTick(() => {
+                    func(...args);
+                })
+            })
+        },
+        setRange(min, max) {
+            this.disposeAndCall(
+                this.createChart, 
+                this.self, 
+                'chartDiv', 
+                this.chartData, 
+                this.chartKeys, 
+                min, max)
         }
     },
     beforeDestroy() {
