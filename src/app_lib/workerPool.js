@@ -3,7 +3,7 @@ export default class WorkerPool {
         // Получаем количество логических процессоров
         this.maxWorkers = navigator.hardwareConcurrency || 2;
         // Оставляем два потока для UI
-        this.optimalSize = Math.max(1, this.maxWorkers - 2);
+        this.optimalSize = Math.max(1, this.maxWorkers - 1);
         
         console.log('Доступно процессоров:', this.maxWorkers);
         console.log('Оптимальное количество воркеров:', this.optimalSize);
@@ -61,7 +61,7 @@ export default class WorkerPool {
             console.log('Использование памяти:', Math.round(memoryUsage * 100) + '%');
             
             // Если памяти достаточно, можно попробовать добавить воркер
-            if (memoryUsage < 0.5 && this.workers.length < this.maxWorkers) {
+            if (memoryUsage < 0.7 && this.workers.length < this.maxWorkers) {
                 if (this.createWorker()) {
                     console.log('Добавлен новый воркер. Всего:', this.workers.length);
                 }

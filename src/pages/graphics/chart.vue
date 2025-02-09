@@ -1,6 +1,6 @@
 <template>
     <div class="chart_wrapper">
-        <div class="trends" ref="chartDiv"></div>
+        <div v-if="chartDivOn" class="trends" ref="chartDiv"></div>
     </div>
 </template>
 
@@ -9,41 +9,37 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
+
 export default {
     name: 'chart',
     data() {
         return {
             root: null,
+            chartDivOn: true,
             usedColors: [],
-            data: [
-                { id: 1.5, value: 100, val: 200 },
-                { id: 1.7, value: 120, val: 240 },
-                { id: 3, value: 140, val: 280 },
-                { id: 4, value: 80, val: 160 },
-                { id: 5, value: 180, val: 360 },
-                { id: 6, value: 150, val: 300 },
-                { id: 7, value: 165, val: 330 },
-                { id: 8, value: 145, val: 290 },
-                { id: 9, value: 130, val: 260 },
-                { id: 10, value: 170, val: 340 },
-                { id: 11, value: 90, val: 180 },
-                { id: 12, value: 110, val: 220 },
-                { id: 13, value: 160, val: 320 },
-                { id: 14, value: 135, val: 270 },
-                { id: 15, value: 175, val: 350 },
-                { id: 16, value: 125, val: 250 },
-                { id: 17, value: 155, val: 310 },
-                { id: 18, value: 95, val: 190 },
-                { id: 19, value: 185, val: 370 },
-                { id: 20, value: 115, val: 230 }
-            ]
+            self: null,
         }
     },
     mounted() {
-        this.createChart(this.root, 'chartDiv', this.data, 'id');
+        this.self = { component: this };
+        this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys);
+    },
+    computed: {
+        chartData() {
+            return this.$store.state.graphics.chartData;
+        },
+        chartKeys() {
+            return {
+                xKey: this.$store.state.graphics.xKey,
+                yKeys: this.$store.state.graphics.yKeys,
+            }
+        }
     },
     methods: {
-        createChart(targetRoot, ref, data, xKey) {
+        createChart(context, ref, data, chartKeys, min, max) {
+
+            console.log(data, chartKeys)
+
             const root = am5.Root.new(this.$refs[ref]);
             root._logo.dispose();
             root.setThemes([am5themes_Dark.new(root)]);
@@ -62,17 +58,17 @@ export default {
                     background: am5.Rectangle.new(root, {
                         fill: am5.color("#262525"),
                         fillOpacity: 1
-                    })
+                    }),
                 })
             );
 
             const xRenderer = am5xy.AxisRendererX.new(root, {
-                minGridDistance: 20,
-                cellStartLocation: 0.1,
-                cellEndLocation: 0.9,
-                grid: {
-                    location: 0.5
-                }
+                minGridDistance: 40,
+                cellStartLocation: 0,
+                cellEndLocation: 1,
+                // grid: {
+                //     location: 0.5
+                // }
             });
 
             xRenderer.labels.template.setAll({
@@ -103,12 +99,11 @@ export default {
             const xAxis = chart.xAxes.push(
                 am5xy.ValueAxis.new(root, {
                     renderer: xRenderer,
+                    paddingTop: 18,
                     tooltip: tooltip,
                     strictMinMax: true
                 })
             );
-
-
 
             xAxis.data.setAll(data);
 
@@ -120,18 +115,35 @@ export default {
                 })
             );
 
-            const keys = Object.keys(data[0]).filter((key,) => key != xKey);
+            const { xKey, yKeys } = chartKeys;
+
+
+
+            if (min === undefined && max === undefined) {
+                const values = data.flatMap(row =>
+                    Object.entries(row)
+                        .filter(([yKey]) => yKey !== xKey)
+                        .map(([, val]) => val)
+                );
+
+                min = Math.min(...values);
+                max = Math.max(...values);
+            }
+
 
             const options = {
                 root,
                 chart,
                 xAxis,
                 data,
-                legend
+                legend,
+                min,
+                max
             }
 
-            keys.forEach((key, index) => {
-                this.createAxisAndSeries({ ...options, key, xKey, index })
+
+            yKeys.forEach((yKey, index) => {
+                this.createAxisAndSeries({ ...options, yKey, xKey, index })
             })
 
             chart.set("cursor", am5xy.XYCursor.new(root, {
@@ -141,17 +153,10 @@ export default {
 
             chart.appear(1000, 100);
 
-            targetRoot = root;
+            context.component.root = root;
         },
-        createAxisAndSeries({ root, chart, xAxis, legend, data, key, xKey, index } = {}) {
-            const values = data.flatMap(row =>
-                Object.entries(row)
-                    .filter(([key]) => key !== xKey)
-                    .map(([, val]) => val)
-            );
+        createAxisAndSeries({ root, chart, xAxis, data, legend, min, max, yKey, xKey, index } = {}) {
 
-            const min = Math.min(...values);
-            const max = Math.max(...values);
             const color = this.getRandomColor();
 
             const yRenderer = am5xy.AxisRendererY.new(root, {
@@ -165,10 +170,11 @@ export default {
 
             const yAxis = chart.yAxes.push(
                 am5xy.ValueAxis.new(root, {
-                    min: min - 20,
-                    max: max + 20,
+                    min: parseFloat(min) - 20,
+                    max: parseFloat(max) + 20,
                     strictMinMax: true,
-                    visible: index != 0,
+                    paddingRight: 20,
+                    visible: index == 0,
                     renderer: yRenderer
                 })
             );
@@ -190,10 +196,10 @@ export default {
 
             const series = chart.series.push(
                 am5xy.LineSeries.new(root, {
-                    name: key,
+                    name: yKey,
                     xAxis: xAxis,
                     yAxis: yAxis,
-                    valueYField: key,
+                    valueYField: yKey,
                     valueXField: xKey,
                     stroke: am5.color(color),
                     fill: am5.color(color),
@@ -201,16 +207,16 @@ export default {
                 })
             );
 
-            series.bullets.push(function () {
-                return am5.Bullet.new(root, {
-                    sprite: am5.Circle.new(root, {
-                        radius: 3,
-                        fill: series.get("fill"),
-                        stroke: root.interfaceColors.get("background"),
-                        strokeWidth: 2
-                    })
-                });
-            });
+            // series.bullets.push(function () {
+            //     return am5.Bullet.new(root, {
+            //         sprite: am5.Circle.new(root, {
+            //             radius: 3,
+            //             fill: series.get("fill"),
+            //             stroke: root.interfaceColors.get("background"),
+            //             strokeWidth: 2
+            //         })
+            //     });
+            // });
 
             series.data.setAll(data);
 
@@ -262,6 +268,18 @@ export default {
 
                 attempts++;
             } while (true);
+        },
+        setRange(min, max) {
+            this.chartDivOn = false;
+            setTimeout(() => {
+                this.chartDivOn = true;
+                setTimeout(() => {
+                    this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys, min, max);
+                }, 0)
+            }, 0)
+
+
+
         }
     },
     beforeDestroy() {

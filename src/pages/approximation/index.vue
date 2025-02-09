@@ -4,6 +4,9 @@
             @change="fileUpload" style="display: none" ref="fileInput" />
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
+            <v-btn class="def_btn" @click="setChartData">
+                УСТАНОВИТЬ ДАННЫЕ
+            </v-btn>
             <v-btn :style="{ color: file ? 'green' : '' }" class="def_btn" @click="$refs.fileInput.click()">
                 ЗАГРУЗИТЬ ДАННЫЕ
             </v-btn>
@@ -138,8 +141,13 @@
             </v-row>
 
             <v-row>
-                <v-btn @click="makeApproximation">
-                    Аппроксимировать
+                <v-btn @click="makeApproximation" class="d-flex justify-center align-center">
+                    <div>
+                        Аппроксимировать
+                    </div>
+                    <div v-if="aproximationLoading" class="ml-2">
+                        <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                    </div>
                 </v-btn>
                 <v-btn class="mx-6" @click="getExtendedBases">
                     Получить расширенные базисы
@@ -205,6 +213,8 @@ export default {
     data() {
         return {
             file: null,
+
+            aproximationLoading: false,
 
             dataInfo: {
                 data: [
@@ -299,29 +309,40 @@ export default {
     methods: {
         async makeApproximation() {
 
-            const options = {
-                data: this.dataInfo.data,
-                allBases: this.allBases,
-                L1: this.numParams.L1,
-                L2: this.numParams.L2,
-                normSmallValues: this.numParams.normSmallValues,
-                multiplicationFactor: this.numParams.multiplicationFactor
+
+            try {
+                this.aproximationLoading = true;
+
+                const options = {
+                    data: this.dataInfo.data,
+                    allBases: this.allBases,
+                    L1: this.numParams.L1,
+                    L2: this.numParams.L2,
+                    normSmallValues: this.numParams.normSmallValues,
+                    multiplicationFactor: this.numParams.multiplicationFactor
+                }
+
+                this.result = await getApproximation(options)
+
+                this.metrics = this.result.metrics;
+
+                this.allBases = this.result.approximatedBases;
+
+                console.log('Result:', this.result);
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.aproximationLoading = false;
             }
 
-            this.result = await getApproximation(options)
 
-            this.metrics = this.result.metrics;
-
-            this.allBases = this.result.approximatedBases;
-
-            console.log('Result:', this.result);
         },
         addExtendedBasis() {
             if (this.funcSettings.outputDegree) {
                 this.extendedBases.push(
-                `${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}^${this.funcSettings.outputDegree}`)
+                    `${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}^${this.funcSettings.outputDegree}`)
             }
-                
+
         },
         getExtendedBases() {
             if (this.dataInfo.data.length > 0) {
@@ -470,7 +491,6 @@ export default {
         },
         async predict() {
             const isValid = await this.$refs.form1.validate();
-            console.log(isValid, this.predictInfo.predictData[0])
             if (isValid) {
                 this.predictInfo.predictAns =
                     calculatePredicted([this.predictInfo.predictData[0]], this.allBases)
@@ -478,6 +498,30 @@ export default {
                         .join(', ');
             } else
                 alert('Вы не заполнили форму?');
+        },
+        setChartData() {
+            const { data, fields } = this.dataInfo;
+            const [yField, xField] = fields;
+
+            const approximated = calculatePredicted(data, this.allBases);
+            const approximatedKey = `${yField} (approximated)`;
+            const diffKey = `${yField} (difference)`;
+
+            data.forEach((row, i) => {
+                row[approximatedKey] = approximated[i];
+                row[diffKey] = row[yField] - approximated[i];
+            });
+
+            data.sort((a, b) => a[xField] - b[xField]);
+
+            
+
+            Object.assign(this.$store.state.graphics, {
+                chartData: data,
+                xKey: xField,
+                yKeys: [yField, approximatedKey, diffKey]
+            });
+
         }
     },
 }
