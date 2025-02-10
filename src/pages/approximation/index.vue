@@ -123,7 +123,7 @@
                     <v-col cols="9">
                         <v-list density="compact" style="height: 200px;">
                             <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
-                                :title="`${allBases[basisKey].weight} * ${basisKey}`">
+                                :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
                                 <template v-slot:append>
                                     <v-btn icon="mdi-close" density="compact" variant="text"
                                         @click="delete allBases[basisKey]"></v-btn>
@@ -502,7 +502,7 @@ export default {
                 const sign = weight[0] == '-' ? '-' : '+';
                 weight = sign === '+' ? weight : weight.substring(1);
 
-                result += `${sign}${weight} * ${key}\n`
+                result += `${sign} ${weight}${(key != '1' ? ` * ${key}` : '')}\n`
             }
 
             await navigator.clipboard.writeText(result.slice(0, -1));
