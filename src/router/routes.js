@@ -1,22 +1,17 @@
-import approximation from '@/pages/approximation/index.vue'
-import modeling from '@/pages/modeling/index.vue'
-import graphics from '@/pages/graphics/index.vue'
-
-
 export const routes = [
     {
       path: '/approximation',
       name: 'Аппроксимация',
-      component: approximation
+      component: import('@/pages/approximation/index.vue')
     },
     {
-      path: '/graphics',
+      path: '/chart',
       name: 'Графики',
-      component: graphics
+      component: import('@/pages/chart/index.vue')
     },
     {
-      path: '/modeling',
+      path: '/settings',
       name: 'Настройки',
-      component: modeling
+      component: import('@/pages/settings/index.vue')
     },
   ]

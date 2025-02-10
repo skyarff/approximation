@@ -305,6 +305,7 @@ export default {
         }
     },
     mounted() {
+        
     },
     methods: {
         async makeApproximation() {
@@ -348,9 +349,22 @@ export default {
             }
 
         },
+        filterBases() {
+            const fields = this.dataInfo.fields.slice(1);
+            for (let key of Object.keys(this.allBases)) {
+                for (let variable of this.allBases[key].variables) {
+                    if (!fields.includes(variable)) {
+                        delete this.allBases[key];
+                        break;
+                    }
+                }
+            }
+        },
         getExtendedBases() {
-            if (this.dataInfo.data.length > 0) {
 
+            if (Object.keys(this.allBases).length) this.filterBases();
+            
+            if (this.dataInfo.data.length > 0) {
                 const options = {
                     extendedBases: this.extendedBases,
                     allBases: this.allBases,
