@@ -57,7 +57,7 @@ export default {
             const xKey = this.xKeys[this.xVal].val;
             this.$store.state.graphics.xKey = xKey;
             this.chartData.sort((a, b) => a[xKey] - b[xKey]);
-            this.$refs.chart.setRange(this.min, this.max);
+            this.$refs.chart.callChart(this.min, this.max);
         }
     },
     computed: {

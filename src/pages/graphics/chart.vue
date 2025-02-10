@@ -37,6 +37,11 @@ export default {
             }
         }
     },
+    watch: {
+        chartData() {
+            this.callChart();
+        }, 
+    },
     methods: {
         createChart(context, ref, data, chartKeys, min, max) {
 
@@ -311,7 +316,7 @@ export default {
                 })
             })
         },
-        setRange(min, max) {
+        callChart(min, max) {
             this.disposeAndCall(
                 this.createChart,
                 this.self,

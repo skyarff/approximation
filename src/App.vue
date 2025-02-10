@@ -4,7 +4,12 @@
 
       <Nav />
       <div>
-        <router-view class="h-100 w-100" />
+
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" class="h-100 w-100" />
+          </keep-alive>
+        </router-view>
 
         <v-snackbar class="custom-snackbar" v-model="$store.state.notify.snackbar" :multi-line="true" :timeout="2000"
           variant="tonal" :color="$store.state.notify.color" location="top end">

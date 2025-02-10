@@ -4,9 +4,9 @@
             @change="fileUpload" style="display: none" ref="fileInput" />
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
-            <!-- <v-btn class="def_btn" @click="setChartData">
+            <v-btn class="def_btn" @click="setChartData">
                 УСТАНОВИТЬ ДАННЫЕ
-            </v-btn> -->
+            </v-btn>
             <v-btn :style="{ color: file ? 'green' : '' }" class="def_btn" @click="$refs.fileInput.click()">
                 ЗАГРУЗИТЬ ДАННЫЕ
             </v-btn>
@@ -330,9 +330,9 @@ export default {
 
                 console.log('Result:', this.result);
 
-                setTimeout(() => {
-                    this.setChartData();
-                }, 0)
+                // setTimeout(() => {
+                //     this.setChartData();
+                // }, 0)
             } catch (error) {
                 console.log(error)
             } finally {
