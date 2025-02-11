@@ -440,8 +440,9 @@ export default {
             this.customSettings.customBasis.powers.push(Number(this.numParams.degree));
             this.customSettings.customBasis.variables.push(this.customSettings.selectedVariable);
             this.customSettings.customBasis.weight = 1;
+            this.customSettings.customBasis.outputDegree = this.funcSettings.outputDegree;
 
-            console.log('this.customSettings.customBasis', this.customSettings.customBasis)
+            console.log('this.customSettings.customBasis_', this.customSettings.customBasis)
         },
         addOutputFunc() {
             if (this.funcSettings.selectedOutputFunction) {
