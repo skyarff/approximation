@@ -40,7 +40,7 @@ export default {
     watch: {
         chartData() {
             this.callChart();
-        }, 
+        },
     },
     methods: {
         createChart(context, ref, data, chartKeys, min, max) {
@@ -144,16 +144,16 @@ export default {
 
             const { xKey, yKeys } = chartKeys;
 
-            if (min === undefined && max === undefined) {
-                const values = data.flatMap(row =>
-                    Object.entries(row)
-                        .filter(([yKey]) => yKey !== xKey)
-                        .map(([, val]) => val)
-                );
+            // if (min === undefined && max === undefined) {
+            //     const values = data.flatMap(row =>
+            //         Object.entries(row)
+            //             .filter(([yKey]) => yKey !== xKey)
+            //             .map(([, val]) => val)
+            //     );
 
-                min = Math.min(...values);
-                max = Math.max(...values);
-            }
+            //     min = Math.min(...values);
+            //     max = Math.max(...values);
+            // }
 
 
             const options = {
@@ -185,7 +185,7 @@ export default {
             const color = this.getRandomColor();
 
             const yRenderer = am5xy.AxisRendererY.new(root, {
-                minGridDistance: 30,
+                minGridDistance: 25,
                 cellStartLocation: 0,
                 cellEndLocation: 1,
                 // grid: {
@@ -193,16 +193,23 @@ export default {
                 // }
             });
 
+
             const yAxis = chart.yAxes.push(
                 am5xy.ValueAxis.new(root, {
                     min: parseFloat(min),
                     max: parseFloat(max),
                     strictMinMax: true,
-                    paddingRight: 20,
-                    visible: index == 0,
-                    renderer: yRenderer
+                    paddingRight: 18,
+                    renderer: yRenderer,
+                    extraMax: 0,
+                    extraMin: 0,
+                    maxDeviation: 0,
                 })
             );
+
+            // if (chart.yAxes.indexOf(yAxis) > 0) {
+            //   yAxis.set('syncWithAxis', chart.yAxes.getIndex(0));
+            // }
 
             let tooltip = am5.Tooltip.new(root, {
                 pointerOrientation: 'horizontal',
@@ -230,9 +237,21 @@ export default {
                     stroke: am5.color(color),
                     fill: am5.color(color),
                     tooltip,
-                    visible: false
                 })
             );
+
+
+
+            if (index != 1)
+                yRenderer.grid.template.set('visible', false);
+
+            yRenderer.labels.template.set('fill', series.get('fill'));
+            yRenderer.setAll({
+                stroke: series.get('fill'),
+                strokeOpacity: 1,
+                opacity: 1,
+            });
+
 
             if (context.component.seriesVisibility[yKey] === undefined)
                 context.component.seriesVisibility[yKey] = true;

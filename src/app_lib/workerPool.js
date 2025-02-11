@@ -50,24 +50,6 @@ export default class WorkerPool {
         }
     }
   
-    // Метод для динамической проверки и регулировки количества воркеров
-    async checkAndAdjustPool() {
-        // Проверяем текущую загрузку процессора и память
-        if (performance.memory) {
-            const usedHeap = performance.memory.usedJSHeapSize;
-            const totalHeap = performance.memory.jsHeapSizeLimit;
-            const memoryUsage = usedHeap / totalHeap;
-  
-            console.log('Использование памяти:', Math.round(memoryUsage * 100) + '%');
-            
-            // Если памяти достаточно, можно попробовать добавить воркер
-            if (memoryUsage < 0.7 && this.workers.length < this.maxWorkers) {
-                if (this.createWorker()) {
-                    console.log('Добавлен новый воркер. Всего:', this.workers.length);
-                }
-            }
-        }
-    }
   
     async processChunk(precomputedValues, start, end, fullBasisLength, dataLength) {
         return new Promise((resolve) => {

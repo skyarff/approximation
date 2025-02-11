@@ -29,7 +29,6 @@ async function computeA(data, allBasesArr) {
 
   const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
 
-
     const key = `${basisElement.functions.join()}_${basisIndex}`;
 
     return data.map((dataPoint, dataIndex) => {
@@ -77,8 +76,6 @@ async function computeA(data, allBasesArr) {
     });
   }
 
-  // Периодически проверяем возможность добавления воркеров
-  const checkInterval = setInterval(() => pool.checkAndAdjustPool(), 5000);
 
   try {
     // Запускаем обработку чанков параллельно
@@ -102,7 +99,6 @@ async function computeA(data, allBasesArr) {
 
     return A;
   } finally {
-    clearInterval(checkInterval);
     pool.terminate();
   }
 }
