@@ -24,18 +24,27 @@ export default {
     mounted() {
         this.self = { component: this };
         console.log('chartData перед createChart:', this.chartData);
-        this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys);
+        this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys, this.pointChart);
     },
     computed: {
         chartData() {
-            return this.$store.state.graphics.chartData;
+            return this.$store.state.chart.chartData;
         },
         chartKeys() {
             return {
-                xKey: this.$store.state.graphics.xKey,
-                yKeys: this.$store.state.graphics.yKeys,
+                xKey: this.$store.state.chart.xKey,
+                yKeys: this.$store.state.chart.yKeys,
             }
-        }
+        },
+        chartKeys() {
+            return {
+                xKey: this.$store.state.chart.xKey,
+                yKeys: this.$store.state.chart.yKeys,
+            }
+        },
+        pointChart() {
+            return this.$store.state.settings.pointChart
+        },
     },
     watch: {
         chartData() {
@@ -43,7 +52,7 @@ export default {
         },
     },
     methods: {
-        createChart(context, ref, data, chartKeys, min, max) {
+        createChart(context, ref, data, chartKeys, pointChart = false, min, max) {
 
             const root = am5.Root.new(this.$refs[ref]);
             root._logo.dispose();
@@ -164,7 +173,8 @@ export default {
                 data,
                 legend,
                 min,
-                max
+                max,
+                pointChart
             }
 
 
@@ -181,7 +191,7 @@ export default {
 
             context.component.root = root;
         },
-        createAxisAndSeries({ context, root, chart, xAxis, data, legend, min, max, yKey, xKey, index } = {}) {
+        createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointChart, min, max, yKey, xKey, index } = {}) {
             const color = this.getRandomColor();
 
             const yRenderer = am5xy.AxisRendererY.new(root, {
@@ -241,7 +251,6 @@ export default {
             );
 
 
-
             if (index != 1)
                 yRenderer.grid.template.set('visible', false);
 
@@ -262,16 +271,24 @@ export default {
                 }, 0)
             }
 
-            // series.bullets.push(function () {
-            //     return am5.Bullet.new(root, {
-            //         sprite: am5.Circle.new(root, {
-            //             radius: 3,
-            //             fill: series.get("fill"),
-            //             stroke: root.interfaceColors.get("background"),
-            //             strokeWidth: 2
-            //         })
-            //     });
-            // });
+
+            if (pointChart) {
+                series.setAll({
+                    stroke: undefined,
+                });
+
+                series.bullets.push(function () {
+                    return am5.Bullet.new(root, {
+                        sprite: am5.Circle.new(root, {
+                            radius: 2,
+                            fill: series.get("fill"),
+                            stroke: root.interfaceColors.get("background"),
+                            strokeWidth: 0.5
+                        })
+                    });
+                });
+            }
+
 
             series.data.setAll(data);
 
@@ -342,7 +359,9 @@ export default {
                 'chartDiv',
                 this.chartData,
                 this.chartKeys,
-                min, max)
+                this.pointChart,
+                min, max
+            )
         }
     },
     beforeDestroy() {

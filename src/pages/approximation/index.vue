@@ -14,30 +14,7 @@
 
 
         <div class="w-100 pa-2">
-            <v-row>
-                <v-col cols="1">
-                    <v-text-field title="L1 регуляризация" type="number" label="L1" v-model="numParams.L1" />
-                </v-col>
-                <v-col cols="1">
-                    <v-text-field title="L2 регуляризация" type="number" label="L2" v-model="numParams.L2" />
-                </v-col>
-                <v-col cols="1">
-                    <v-text-field title="Шаг построения степеней базисов" type="number" label="stepPower"
-                        v-model="numParams.stepPower" />
-                </v-col>
-                <v-col cols="1">
-                    <v-text-field title="Нормализация входных значений *multiplicationFactor" type="number"
-                        label="multiplicationFactor" v-model="numParams.multiplicationFactor" />
-                </v-col>
-                <v-col cols="1">
-                    <v-checkbox hint="Наличие константы" v-model="numParams.constant" label="Constant" />
-                </v-col>
-                <v-col cols="1">
-                    <v-checkbox hint="Замена слишком малых входных значений приемлимыми"
-                        v-model="numParams.normSmallValues" label="normSmallValues" />
-                </v-col>
-            </v-row>
-
+     
 
             <v-row>
                 <v-col class="d-flex flex-row" cols="6">
@@ -232,14 +209,19 @@ export default {
                 fields: ['z', 'y', 'x'],
             },
 
+
+
+
             numParams: {
                 constant: true,
                 normSmallValues: true,
                 multiplicationFactor: 1,
                 L1: 1,
                 L2: 1,
-                degree: 1,
                 stepPower: 1,
+                
+
+                degree: 1,
                 depth: 1,
                 depths: [
                     { id: 0, val: 1 },
@@ -304,8 +286,12 @@ export default {
             }
         }
     },
+    computed: {
+        storeNumParams() {
+            return this.$store.state.settings.storeNumParams;
+        },
+    },
     mounted() {
-        
     },
     methods: {
         async makeApproximation() {
@@ -317,10 +303,10 @@ export default {
                 const options = {
                     data: this.dataInfo.data,
                     allBases: this.allBases,
-                    L1: this.numParams.L1,
-                    L2: this.numParams.L2,
-                    normSmallValues: this.numParams.normSmallValues,
-                    multiplicationFactor: this.numParams.multiplicationFactor
+                    L1: this.storeNumParams.L1,
+                    L2: this.storeNumParams.L2,
+                    normSmallValues: this.storeNumParams.normSmallValues,
+                    multiplicationFactor: this.storeNumParams.multiplicationFactor
                 }
 
                 this.result = await getApproximation(options)
@@ -363,13 +349,13 @@ export default {
         getExtendedBases() {
 
             if (Object.keys(this.allBases).length) this.filterBases();
-            
+
             if (this.dataInfo.data.length > 0) {
                 const options = {
                     extendedBases: this.extendedBases,
                     allBases: this.allBases,
-                    constant: this.numParams.constant,
-                    stepPower: this.numParams.stepPower,
+                    constant: this.storeNumParams.constant,
+                    stepPower: this.storeNumParams.stepPower,
                     keys: this.dataInfo.fields,
                 }
 
@@ -534,7 +520,7 @@ export default {
             data.sort((a, b) => a[xField] - b[xField]);
 
 
-            Object.assign(this.$store.state.graphics, {
+            Object.assign(this.$store.state.chart, {
                 chartData: data,
                 xKey: xField,
                 yKeys: [yField, approximatedKey, diffKey]

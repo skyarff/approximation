@@ -7,9 +7,6 @@
                     title="Переменная абсцисс" label="Переменная абсцисс"></v-autocomplete>
             </v-col>
             <v-col cols="1">
-                <v-switch />
-            </v-col>
-            <v-col cols="1">
                 <v-text-field label="min" v-model="min" />
             </v-col>
             <v-col cols="1">
@@ -43,8 +40,8 @@ export default {
     },
     data() {
         return {
-            min: 0,
-            max: 400,
+            min: '',
+            max: '',
             xVal: 0,
         }
     },
@@ -55,19 +52,19 @@ export default {
         apply() {
 
             const xKey = this.xKeys[this.xVal].val;
-            this.$store.state.graphics.xKey = xKey;
+            this.$store.state.chart.xKey = xKey;
             this.chartData.sort((a, b) => a[xKey] - b[xKey]);
             this.$refs.chart.callChart(this.min, this.max);
         }
     },
     computed: {
         chartData() {
-            return this.$store.state.graphics.chartData;
+            return this.$store.state.chart.chartData;
         },
         chartKeys() {
             return {
-                xKey: this.$store.state.graphics.xKey,
-                yKeys: this.$store.state.graphics.yKeys,
+                xKey: this.$store.state.chart.xKey,
+                yKeys: this.$store.state.chart.yKeys,
             }
         },
         xKeys() {

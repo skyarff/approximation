@@ -1,4 +1,4 @@
-export const graphics = {
+export const chart = {
     namespaced: true,
     state: {
         chartData: [

@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
-import { graphics } from './modules/graphics';
+import { chart } from './modules/chart';
+import { settings } from './modules/settings';
 
 export default createStore({
   state: {
@@ -30,6 +31,7 @@ export default createStore({
     }
   },
   modules: {
-    graphics
+    chart,
+    settings
   }
 })
