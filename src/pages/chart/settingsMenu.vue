@@ -32,9 +32,9 @@
                                     </div>
                                 </template>
                                 <template #item="{ item, props }">
-                                    <v-list-item density="compact" class="pl-10 py-0 my-0" v-bind="props">
+                                    <v-list-item density="compact" class="pl-8 py-0 my-0" v-bind="props">
                                         <template #title>
-                                            <div style="font-size: 11px;">
+                                            <div style="font-size: 12.5px;">
                                                 {{ item.title }}
                                             </div>
                                         </template>
