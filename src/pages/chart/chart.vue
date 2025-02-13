@@ -116,25 +116,33 @@ export default {
                 })
             );
 
-            // console.log('data???', data, chartKeys.xKey)
-
-            // data.forEach((item, idx) => {
-            //     if (item[chartKeys.xKey] !== undefined) {
-            //         item[chartKeys.xKey] = parseFloat(item[chartKeys.xKey]);
-            //         console.log(idx, item[chartKeys.xKey])
-            //     }
-            // });
-
-
             xAxis.data.setAll(data);
 
             const legend = chart.children.push(
                 am5.Legend.new(root, {
                     centerX: am5.p50,
                     x: am5.p50,
-                    marginTop: 15
+                    marginTop: 15,
+                    useDefaultMarker: true
                 })
             );
+            legend.markers.template.setAll({
+                width: 9,  // было 8
+                height: 9, // было 8
+
+            });
+
+            legend.markerRectangles.template.setAll({
+
+                cornerRadiusTL: 10,
+                cornerRadiusTR: 10,
+                cornerRadiusBL: 10,
+                cornerRadiusBR: 10,
+            });
+
+            legend.labels.template.setAll({
+                marginLeft: 8,
+            });
 
             legend.itemContainers.template.events.on("click", function (e) {
                 let itemContainer = e.target;
@@ -247,7 +255,7 @@ export default {
                 yRenderer.grid.template.set('visible', false);
 
 
-            yRenderer.labels.template.set('fill', oneAxis ? '#fff' : series.get('fill')); 
+            yRenderer.labels.template.set('fill', oneAxis ? '#fff' : series.get('fill'));
             yRenderer.setAll({ stroke: oneAxis ? '#fff' : series.get('fill'), strokeOpacity: 1, opacity: 1, marginLeft: 2 });
 
             // yRenderer.labels.template.adapters.add("fill", function (fill, target) {
@@ -284,7 +292,7 @@ export default {
                 series.bullets.push(function () {
                     return am5.Bullet.new(root, {
                         sprite: am5.Circle.new(root, {
-                            radius: 2,
+                            radius: 2.5,
                             fill: series.get("fill"),
                             stroke: root.interfaceColors.get("background"),
                             strokeWidth: 0.5

@@ -77,7 +77,7 @@ export default {
 
 <style scoped>
 .chart_div {
-    height: 89vh;
+    height: 88.8vh;
     width: 100%;
 }
 </style>
