@@ -188,10 +188,11 @@ export default {
                 minGridDistance: 25,
                 cellStartLocation: 0,
                 cellEndLocation: 1,
-                // grid: {
-                //     location: 0
-                // }
             });
+
+
+            let oneAxis = false;
+            if (min || max) oneAxis = true;
 
 
             const yAxis = chart.yAxes.push(
@@ -204,6 +205,7 @@ export default {
                     extraMax: 0,
                     extraMin: 0,
                     maxDeviation: 0,
+                    visible: !oneAxis || index == 0
                 })
             );
 
@@ -244,12 +246,24 @@ export default {
             if (index != 1)
                 yRenderer.grid.template.set('visible', false);
 
-            yRenderer.labels.template.set('fill', series.get('fill'));
-            yRenderer.setAll({
-                stroke: series.get('fill'),
-                strokeOpacity: 1,
-                opacity: 1,
-            });
+
+            yRenderer.labels.template.set('fill', oneAxis ? '#fff' : series.get('fill')); 
+            yRenderer.setAll({ stroke: oneAxis ? '#fff' : series.get('fill'), strokeOpacity: 1, opacity: 1, marginLeft: 2 });
+
+            // yRenderer.labels.template.adapters.add("fill", function (fill, target) {
+            //     const label = target.dataItem;
+            //     if (label) {
+            //         const value = label.get("value");
+            //         const maxValue = label.component.getPrivate("max");
+            //         const minValue = label.component.getPrivate("min");
+            //         const midPoint = (maxValue + minValue) / 2;
+
+            //         if (oneAxis) return "#fff";
+
+            //         return value > midPoint ? series.get("fill") : "#fff";
+            //     }
+            //     return fill;
+            // });
 
 
             if (context.component.seriesVisibility[yKey] === undefined)
