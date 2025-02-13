@@ -1,0 +1,49 @@
+<template>
+    <svg 
+      width="14" 
+      height="24" 
+      viewBox="0 0 14 24" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      :class="{ 'rotate-icon': isExpanded && !disabled }" 
+    >
+      <path class="expand_icon"
+        d="M7.0083 16.7422C6.72607 16.7422 6.47152 16.6287 6.24463 16.4019L1.32227 11.4297C1.13965 11.2415 1.04834 11.0174 1.04834 10.7573C1.04834 10.4862 1.13965 10.2593 1.32227 10.0767C1.51042 9.88851 1.74007 9.79443 2.01123 9.79443C2.27132 9.79443 2.50374 9.89404 2.7085 10.0933L7.32373 14.7749H6.69287L11.2998 10.0933C11.5046 9.89404 11.737 9.79443 11.9971 9.79443C12.2627 9.79443 12.4868 9.88851 12.6694 10.0767C12.8576 10.2593 12.9517 10.4862 12.9517 10.7573C12.9517 11.0229 12.8604 11.2471 12.6777 11.4297L7.76367 16.4019C7.54785 16.6232 7.29606 16.7367 7.0083 16.7422Z"
+        :fill="computedColor"
+      />
+    </svg>
+  </template>
+  
+  <script>
+  export default {
+    name: 'ExpandIcon',
+    props: {
+      isExpanded: {
+        type: Boolean,
+        default: false
+      },
+      disabled: {
+        type: Boolean,
+        default: false
+      },
+      color: {
+        type: String,
+        default: '#BCED0A',
+      },
+    },
+    computed: {
+      computedColor() {
+        return this.disabled ? this.color + '88' : this.color;
+      }
+    }
+  }
+  </script>
+  
+  <style scoped>
+  svg {
+    transition: transform 0.3s ease;
+  }
+  .rotate-icon {
+    transform: rotate(180deg);
+  }
+  </style>

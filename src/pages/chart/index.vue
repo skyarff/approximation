@@ -1,91 +1,83 @@
 <template>
-    <div class="h-100 w-100">
+    <div style="overflow: hidden; background: #262525; margin-top: 10px;">
 
-        <v-row class="mx-2">
-            <v-col cols="2">
-                <v-autocomplete v-model="xVal" item-title="val" item-value="id" :items="xKeys"
-                    title="Переменная абсцисс" label="Переменная абсцисс"></v-autocomplete>
-            </v-col>
-            <v-col cols="1">
-                <v-text-field label="min" v-model="min" />
-            </v-col>
-            <v-col cols="1">
-                <v-text-field label="max" v-model="max" />
-            </v-col>
-            <v-col cols="1">
-                <v-btn @click="apply()">Применить</v-btn>
-            </v-col>
-        </v-row>
 
+
+        <!-- <ExpandIcon />
+        <MinusCircleIcon />
+        <MenuKebabIcon />
+        <ListIcon />
+        <EditIcon />
+        <TuneIcon />
+        <InfoIcon /> -->
+
+        <div class="h-100 w-100 mt-3 d-flex justify-end align-center">
+
+            <div>
+                <v-btn @click="$refs.settingsMenu.switchMenu()" class="mr-5" :color="'#262525'" elevation="0" icon
+                    size="x-small">
+                    <FilterIcon :color="`#fff`" :size="17" />
+                </v-btn>
+                <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsMenu" />
+            </div>
+
+        </div>
+
+
+        <div class="chart_div">
+            <chart ref="chart" />
+        </div>
     </div>
 
-
-
-    <div class="chart_div">
-        <chart ref="chart" />
-    </div>
 
 
 </template>
 
 
 <script>
-
+import icons from '@/assets/icons'
+import { defineAsyncComponent } from 'vue'
 import chart from './chart.vue';
+import settingsMenu from './settingsMenu.vue';
+import { settings } from '@/store/modules/settings';
+
+
+const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {
+    acc[key] = defineAsyncComponent(value)
+    return acc
+}, {})
 
 export default {
 
     components: {
-        chart
+        ...asyncIcons,
+        chart,
+        settingsMenu
     },
     data() {
         return {
-            min: '',
-            max: '',
-            xVal: 0,
+            settings: {
+                min: '',
+                max: '',
+                xVal: 0
+            }
         }
     },
     mounted() {
-        console.log('xKeys', this.xKeys)
+
     },
     methods: {
         apply() {
-
-            const xKey = this.xKeys[this.xVal].val;
-            this.$store.state.chart.xKey = xKey;
-            this.chartData.sort((a, b) => a[xKey] - b[xKey]);
-            this.$refs.chart.callChart(this.min, this.max);
+            this.$refs.chart.callChart(this.settings.min, this.settings.max);
         }
     },
-    computed: {
-        chartData() {
-            return this.$store.state.chart.chartData;
-        },
-        chartKeys() {
-            return {
-                xKey: this.$store.state.chart.xKey,
-                yKeys: this.$store.state.chart.yKeys,
-            }
-        },
-        xKeys() {
-            return Object.keys(this.chartData[0])
-                .filter(key => !this.chartKeys.yKeys.includes(key))
-                .map((key, index) => {
-                    return {
-                        id: index,
-                        val: key
-                    }
-                })
-        }
-    },
-
 }
 
 </script>
 
 <style scoped>
 .chart_div {
-    height: 80vh;
+    height: 89vh;
     width: 100%;
 }
 </style>

@@ -1,0 +1,9 @@
+<template>
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path class="check1_icon" d="M5.7998 9.13333L7.22603 10.5596C7.61656 10.9501 8.24972 10.9501 8.64024 10.5596L12.1998 7"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <path class="check1_icon"
+            d="M1 5.8C1 3.14903 3.14903 1 5.8 1H12.2C14.851 1 17 3.14903 17 5.8V12.2C17 14.851 14.851 17 12.2 17H5.8C3.14903 17 1 14.851 1 12.2V5.8Z"
+            stroke="currentColor" stroke-width="1.5" />
+    </svg>
+</template>

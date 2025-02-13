@@ -23,18 +23,6 @@
                     v-model="storeNumParams.normSmallValues" label="normSmallValues" />
             </v-col>
 
-            <v-col cols="1">
-                <div @click="$store.commit('settings/pointChart')"
-                    style="cursor: pointer; width: 250px; display: flex; justify-content: center; align-items: center; outline: 1px solid red; padding-right: 10px; padding-left: 10px;">
-                    <span class="mr-4">
-                        Точечный график
-                    </span>
-                    <v-switch class="ma-0 pa-0" :color="'red'" v-model="pointChart" :hide-details="true" />
-
-
-
-                </div>
-            </v-col>
         </v-row>
     </div>
 </template>
@@ -48,16 +36,11 @@ export default {
         }
     },
     methods: {
-        setPoingChart(flag) {
-            this.$store.dispatch('settings/pointChart', flag);
-        },
+
     },
     computed: {
         storeNumParams() {
             return this.$store.state.settings.storeNumParams;
-        },
-        pointChart() {
-            return this.$store.state.settings.pointChart;
         },
     }
 }

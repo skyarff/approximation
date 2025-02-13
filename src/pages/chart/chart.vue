@@ -66,7 +66,7 @@ export default {
                     wheelY: "zoomX",
                     paddingLeft: 30,
                     paddingRight: 30,
-                    paddingTop: 40,
+                    paddingTop: 15,
                     paddingBottom: 20,
                     layout: root.verticalLayout,
                     background: am5.Rectangle.new(root, {
@@ -80,9 +80,6 @@ export default {
                 minGridDistance: 40,
                 cellStartLocation: 0,
                 cellEndLocation: 1,
-                // grid: {
-                //     location: 0.5
-                // }
             });
 
             xRenderer.labels.template.setAll({
@@ -153,16 +150,9 @@ export default {
 
             const { xKey, yKeys } = chartKeys;
 
-            // if (min === undefined && max === undefined) {
-            //     const values = data.flatMap(row =>
-            //         Object.entries(row)
-            //             .filter(([yKey]) => yKey !== xKey)
-            //             .map(([, val]) => val)
-            //     );
 
-            //     min = Math.min(...values);
-            //     max = Math.max(...values);
-            // }
+            if (min == 0) min = '';
+            if (max == 0) max = '';
 
 
             const options = {
@@ -322,15 +312,25 @@ export default {
             const maxAttempts = 50;
 
             do {
-                const r = Math.floor(Math.random() * (230 - 128) + 128).toString(16);
-                const g = Math.floor(Math.random() * (230 - 128) + 128).toString(16);
-                const b = Math.floor(Math.random() * (230 - 128) + 128).toString(16);
+                let r = Math.floor(Math.random() * (255 - 150) + 150).toString(16);
+                let g = Math.floor(Math.random() * (255 - 150) + 150).toString(16);
+                let b = Math.floor(Math.random() * (255 - 100) + 100).toString(16);
+
+
+                const boost = Math.floor(Math.random() * 3);
+                if (boost === 0) {
+                    r = Math.min(255, parseInt(r, 16) + 50).toString(16);
+                } else if (boost === 1) {
+                    g = Math.min(255, parseInt(g, 16) + 50).toString(16);
+                } else {
+                    b = Math.min(255, parseInt(b, 16) + 50).toString(16);
+                }
+
                 newColor = '#' +
                     (r.length === 1 ? '0' + r : r) +
                     (g.length === 1 ? '0' + g : g) +
                     (b.length === 1 ? '0' + b : b);
 
-                // Проверяем, не похож ли цвет на уже использованные
                 const isSimilar = this.usedColors.some(usedColor =>
                     this.isColorSimilar(newColor, usedColor)
                 );
