@@ -14,9 +14,9 @@ export const routes = [
       name: 'Настройки',
       component: import('@/pages/settings/index.vue')
     },
-    {
-      path: '/settings',
-      name: 'Помощь',
-      component: import('@/pages/settings/index.vue')
-    },
+    // {
+    //   path: '/settings',
+    //   name: 'Помощь',
+    //   component: import('@/pages/settings/index.vue')
+    // },
   ]

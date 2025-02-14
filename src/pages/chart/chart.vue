@@ -200,13 +200,16 @@ export default {
 
 
             let oneAxis = false;
-            if (min || max) oneAxis = true;
-
+            if (min || max) {
+                oneAxis = true;
+                min = min ? parseFloat(min) : 0;
+                max = max ? parseFloat(max) : 0;
+            }
 
             const yAxis = chart.yAxes.push(
                 am5xy.ValueAxis.new(root, {
-                    min: parseFloat(min),
-                    max: parseFloat(max),
+                    min: min,
+                    max: max,
                     strictMinMax: true,
                     paddingRight: 18,
                     renderer: yRenderer,

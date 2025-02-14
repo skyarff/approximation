@@ -3,14 +3,6 @@
 
 
 
-        <!-- <ExpandIcon />
-        <MinusCircleIcon />
-        <MenuKebabIcon />
-        <ListIcon />
-        <EditIcon />
-        <TuneIcon />
-        <InfoIcon /> -->
-
         <div class="h-100 w-100 mt-3 d-flex justify-end align-center">
 
             <div>
@@ -39,7 +31,6 @@ import icons from '@/assets/icons'
 import { defineAsyncComponent } from 'vue'
 import chart from './chart.vue';
 import settingsMenu from './settingsMenu.vue';
-import { settings } from '@/store/modules/settings';
 
 
 const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {

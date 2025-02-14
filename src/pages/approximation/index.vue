@@ -4,8 +4,17 @@
             @change="fileUpload" style="display: none" ref="fileInput" />
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
+            <v-btn @click="$refs.predictMenu.switchMenu()" class="def_btn">
+                ПРЕДСКАЗАТЬ
+                <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenu" />
+            </v-btn>
             <v-btn class="def_btn" @click="setChartData">
-                УСТАНОВИТЬ ДАННЫЕ
+                <div>
+                    УСТАНОВИТЬ ДАННЫЕ
+                </div>
+                <div v-if="setChartDataLoading" class="ml-2">
+                    <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                </div>
             </v-btn>
             <v-btn :style="{ color: file ? 'green' : '' }" class="def_btn" @click="$refs.fileInput.click()">
                 ЗАГРУЗИТЬ ДАННЫЕ
@@ -14,18 +23,20 @@
 
 
         <div class="w-100 pa-2">
-     
+
 
             <v-row>
                 <v-col class="d-flex flex-row" cols="6">
                     <v-col cols="3">
-                        <v-autocomplete variant="outlined" title="Функция участник" v-model="funcSettings.selectedFunction"
-                            :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
-                            item-value="val" label="Выберите функцию"></v-autocomplete>
+                        <v-autocomplete variant="outlined" title="Функция участник"
+                            v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
+                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                            label="Выберите функцию"></v-autocomplete>
 
-                        <v-autocomplete variant="outlined" title="Выходная функция" v-model="funcSettings.selectedOutputFunction"
-                            :items="funcSettings.basisFunctions" :item-title="item => `${item.val} (${item.label})`"
-                            item-value="val" label="Выберите выходную функцию"></v-autocomplete>
+                        <v-autocomplete variant="outlined" title="Выходная функция"
+                            v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
+                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                            label="Выберите выходную функцию"></v-autocomplete>
 
                         <v-text-field variant="outlined" title="Выходная степень" type="number" label="outputDegree"
                             v-model="funcSettings.outputDegree" />
@@ -36,13 +47,13 @@
                             label="Степень"></v-text-field>
                     </v-col>
                     <v-col cols="2">
-                        <v-select variant="outlined" v-model="numParams.depth" :items="numParams.depths" item-title="val" item-value="val"
-                            label="Глубина"></v-select>
+                        <v-select variant="outlined" v-model="numParams.depth" :items="numParams.depths"
+                            item-title="val" item-value="val" label="Глубина"></v-select>
                     </v-col>
                     <v-col cols="2">
-                        <v-select variant="outlined" :disabled="!customSettings.selectedVariable" v-model="customSettings.selectedVariable"
-                            :items="dataInfo.fields.slice(1)" item-title="field" item-value="field"
-                            label="Переменная"></v-select>
+                        <v-select variant="outlined" :disabled="!customSettings.selectedVariable"
+                            v-model="customSettings.selectedVariable" :items="dataInfo.fields.slice(1)"
+                            item-title="field" item-value="field" label="Переменная"></v-select>
                     </v-col>
                     <v-col cols="3">
                         <v-btn elevation="0" class="mb-2" @click="addExtendedBasis">
@@ -127,7 +138,12 @@
                     </div>
                 </v-btn>
                 <v-btn elevation="0" class="mx-6" @click="getExtendedBases">
-                    Получить расширенные базисы
+                    <div>
+                        Получить расширенные базисы
+                    </div>
+                    <div v-if="getBasesLoading" class="ml-2">
+                        <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                    </div>
                 </v-btn>
                 <v-btn elevation="0" class="mr-6" @click="allBases = {}">
                     Очистить базисы
@@ -151,30 +167,7 @@
                     </div>
                 </v-col>
             </v-row>
-
-            <v-row>
-
-                <div style="display: flex; height: fit-content; width: 30%; background: #AAFFFF;">
-                    <v-col cols="4">
-                        <v-list density="compact" style="height: 200px; ">
-                            <v-form ref="form1">
-                                <v-list-item v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index">
-                                    <v-text-field :rules="[v => (v === 0 || !!v) || 'Поле обязательно']"
-                                        v-model="predictInfo.predictData[0][variable]" :label="variable" />
-                                </v-list-item>
-                            </v-form>
-                        </v-list>
-                    </v-col>
-                    <v-col cols="5">
-                        <v-btn elevation="0" class="mb-3" @click="predict">
-                            Предсказать
-                        </v-btn>
-                        <v-text-field v-model="predictInfo.predictAns" label="Предсказание" readonly />
-                    </v-col>
-                </div>
-            </v-row>
         </div>
-
     </div>
 </template>
 
@@ -183,15 +176,21 @@ import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
 import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
 import { calculatePredicted } from '@/app_lib/metrics';
+import predictMenu from './predictMenu.vue';
 
 
 
 export default {
+    components: {
+        predictMenu
+    },
     data() {
         return {
             file: null,
 
             aproximationLoading: false,
+            getBasesLoading: false,
+            setChartDataLoading: false,
 
             dataInfo: {
                 data: [
@@ -209,9 +208,6 @@ export default {
                 fields: ['z', 'y', 'x'],
             },
 
-
-
-
             numParams: {
                 constant: true,
                 normSmallValues: true,
@@ -219,7 +215,7 @@ export default {
                 L1: 1,
                 L2: 1,
                 stepPower: 1,
-                
+
 
                 degree: 1,
                 depth: 1,
@@ -279,11 +275,6 @@ export default {
             },
 
             result: null,
-
-            predictInfo: {
-                predictData: [{}],
-                predictAns: ''
-            }
         }
     },
     computed: {
@@ -295,7 +286,6 @@ export default {
     },
     methods: {
         async makeApproximation() {
-
 
             try {
                 this.aproximationLoading = true;
@@ -315,11 +305,6 @@ export default {
 
                 this.allBases = this.result.approximatedBases;
 
-                console.log('Result:', this.result);
-
-                // setTimeout(() => {
-                //     this.setChartData();
-                // }, 0)
             } catch (error) {
                 console.log(error)
             } finally {
@@ -346,27 +331,35 @@ export default {
                 }
             }
         },
-        getExtendedBases() {
-
-            if (Object.keys(this.allBases).length) this.filterBases();
-
-            if (this.dataInfo.data.length > 0) {
-                const options = {
-                    extendedBases: this.extendedBases,
-                    allBases: this.allBases,
-                    constant: this.storeNumParams.constant,
-                    stepPower: this.storeNumParams.stepPower,
-                    keys: this.dataInfo.fields,
+        async getExtendedBases() {
+            this.getBasesLoading = true;
+            try {
+                
+                if (Object.keys(this.allBases).length) {
+                    this.filterBases();
                 }
 
-                this.allBases = { ...getExtendedBases(options) };
-                console.log('this.basis_', this.allBases)
+                if (this.dataInfo.data.length > 0) {
+                    const options = {
+                        extendedBases: this.extendedBases,
+                        allBases: this.allBases,
+                        constant: this.storeNumParams.constant,
+                        stepPower: this.storeNumParams.stepPower,
+                        keys: this.dataInfo.fields,
+                    }
 
-            } else {
-                this.$store.dispatch('notify', {
-                    text: 'Данные отсутствуют.',
-                    color: 'warning'
-                });
+                    this.allBases = { ...getExtendedBases(options) };
+                    console.log('this.basis_', this.allBases)
+                } else {
+                    this.$store.dispatch('notify', {
+                        text: 'Данные отсутствуют.',
+                        color: 'warning'
+                    });
+                }
+            } catch (error) {
+
+            } finally {
+                this.getBasesLoading = false;
             }
         },
         getExtendedBasisName(basis) {
@@ -494,37 +487,35 @@ export default {
 
             await navigator.clipboard.writeText(result.slice(0, -1));
         },
-        async predict() {
-            const isValid = await this.$refs.form1.validate();
-            if (isValid) {
-                this.predictInfo.predictAns =
-                    calculatePredicted([this.predictInfo.predictData[0]], this.allBases)
-                        .map(ans => ans.toFixed(4))
-                        .join(', ');
-            } else
-                alert('Вы не заполнили форму?');
-        },
-        setChartData() {
-            const { data, fields } = this.dataInfo;
-            const [yField, xField] = fields;
+        async setChartData() {
+            try {
+                this.setChartDataLoading = true;
 
-            const approximated = calculatePredicted(data, this.allBases);
-            const approximatedKey = `${yField} (approximated)`;
-            const diffKey = `${yField} (difference)`;
+                const { data, fields } = this.dataInfo;
+                const [yField, xField] = fields;
 
-            data.forEach((row, i) => {
-                row[approximatedKey] = approximated[i];
-                row[diffKey] = row[yField] - approximated[i];
-            });
+                const approximated = calculatePredicted(data, this.allBases);
+                const approximatedKey = `${yField} (approximated)`;
+                const diffKey = `${yField} (difference)`;
 
-            data.sort((a, b) => a[xField] - b[xField]);
+                data.forEach((row, i) => {
+                    row[approximatedKey] = approximated[i];
+                    row[diffKey] = row[yField] - approximated[i];
+                });
+
+                data.sort((a, b) => a[xField] - b[xField]);
 
 
-            Object.assign(this.$store.state.chart, {
-                chartData: data,
-                xKey: xField,
-                yKeys: [yField, approximatedKey, diffKey]
-            });
+                Object.assign(this.$store.state.chart, {
+                    chartData: data,
+                    xKey: xField,
+                    yKeys: [yField, approximatedKey, diffKey]
+                });
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.setChartDataLoading = false;
+            }
 
         }
     },

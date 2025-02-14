@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-menu v-model="menu" :close-on-content-click="false" :nudge-top="50" location="end" :activator="'parent'">
+        <v-menu v-model="menu" :close-on-content-click="false" location="end" :activator="'parent'">
             <v-card min-width="350" class="px-4 py-2">
                 <v-card-title class="px-2">
 
@@ -23,7 +23,7 @@
                 <v-card-text class="pb-0">
                     <v-row>
                         <v-col class="px-0">
-                            <v-autocomplete class="custom-dropdown" v-model="settingsClone.xVal" item-title="val"
+                            <v-autocomplete v-model="settingsClone.xVal" item-title="val"
                                 item-value="id" :items="xKeys" title="Переменная абсцисс" :hide-details="true" chips
                                 variant="outlined">
                                 <template #label>
@@ -173,18 +173,6 @@ export default {
 </script>
 
 <style scoped>
-.custom-dropdown :deep(.v-list-item-title) {
-    font-size: 11px !important;
-}
 
-/* Для элементов списка */
-.custom-dropdown :deep(.v-list-item) {
-    min-height: 30px !important;
-    /* уменьшаем высоту строки */
-}
 
-/* Для текста в самом поле ввода */
-.custom-dropdown :deep(.v-field__input) {
-    font-size: 11px !important;
-}
 </style>
