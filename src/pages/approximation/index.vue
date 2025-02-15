@@ -5,7 +5,8 @@
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
             <v-btn @click="$refs.predictMenu.switchMenu()" class="def_btn">
-                ПРЕДСКАЗАТЬ
+                <!-- ПРЕДСКАЗАТЬ -->
+                <KeyIcon :color="'#000'" />
                 <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenu" />
             </v-btn>
             <v-btn class="def_btn" @click="setChartData">
@@ -22,147 +23,232 @@
         </div>
 
 
-        <div class="w-100 pa-2">
-
-
-            <v-row>
-                <v-col class="d-flex flex-row" cols="6">
-                    <v-col cols="3">
-                        <v-autocomplete variant="outlined" title="Функция участник"
-                            v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
-                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                            label="Выберите функцию"></v-autocomplete>
-
-                        <v-autocomplete variant="outlined" title="Выходная функция"
-                            v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
-                            :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                            label="Выберите выходную функцию"></v-autocomplete>
-
-                        <v-text-field variant="outlined" title="Выходная степень" type="number" label="outputDegree"
-                            v-model="funcSettings.outputDegree" />
-                    </v-col>
-
-                    <v-col cols="2">
-                        <v-text-field variant="outlined" title="Степень базиса" type="number" v-model="numParams.degree"
-                            label="Степень"></v-text-field>
-                    </v-col>
-                    <v-col cols="2">
-                        <v-select variant="outlined" v-model="numParams.depth" :items="numParams.depths"
-                            item-title="val" item-value="val" label="Глубина"></v-select>
-                    </v-col>
-                    <v-col cols="2">
-                        <v-select variant="outlined" :disabled="!customSettings.selectedVariable"
-                            v-model="customSettings.selectedVariable" :items="dataInfo.fields.slice(1)"
-                            item-title="field" item-value="field" label="Переменная"></v-select>
-                    </v-col>
-                    <v-col cols="3">
-                        <v-btn elevation="0" class="mb-2" @click="addExtendedBasis">
-                            Расш. базис
-                        </v-btn>
-                    </v-col>
-                </v-col>
-
-                <v-col class="d-flex flex-row" cols="6">
-                    <v-col cols="4">
-
-                        <div style="width: 500px; background: #0000AA44;">
-                            Добавляемая переменная
-                        </div>
-                        <div style="height: 100px; width: 500px; background: #ff000044;">
-                            {{ getBasisName(customSettings.customBasis) }}
-                        </div>
-
-
-                        <v-btn elevation="0" @click="addVariable">
-                            Добавить переменную
-                        </v-btn>
-
-                        <v-btn elevation="0" @click="addOutputFunc">
-                            Добавить выходную функцию
-                        </v-btn>
-
-
-                        <v-btn elevation="0" @click="addCustomBasis">
-                            Добавить базис
-                        </v-btn>
-
-                        <v-btn elevation="0" @click="clearCustomBasis">
-                            Обнулить базис
-                        </v-btn>
-                    </v-col>
-                </v-col>
-            </v-row>
-
+        <div class="w-100 pa-5">
 
             <v-row>
                 <v-col cols="4">
-                    <v-list density="compact" style="height: 200px;">
-                        <v-list-item v-for="(basis, index) in extendedBases" :key="index"
-                            :title="getExtendedBasisName(basis)">
-                            <template v-slot:append>
-                                <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
-                                    @click="extendedBases.splice(index, 1)"></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
+                    <v-card class="h-100">
+                        <v-card-title>
+                            <span style="font-size: 17px;">
+                                Управление базисами
+                            </span>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-row>
+                                <v-col class="d-flex justify-center">
+                                    <v-autocomplete :hide-details="true" variant="outlined" title="Функция участник"
+                                        v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
+                                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                                        label="Выберите функцию"></v-autocomplete>
+                                </v-col class="d-flex justify-center">
+                                <v-col>
+                                    <v-text-field :hide-details="true" variant="outlined" title="Степень базиса"
+                                        type="number" v-model="numParams.degree" label="Степень"></v-text-field>
+                                </v-col>
+                                <v-col class="d-flex justify-center">
+                                    <v-select :hide-details="true" variant="outlined" v-model="numParams.depth"
+                                        :items="numParams.depths" item-title="val" item-value="val"
+                                        label="Глубина"></v-select>
+                                </v-col>
+                            </v-row>
+
+                            <v-row class="d-flex align-center">
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-autocomplete :hide-details="true" variant="outlined" title="Выходная функция"
+                                        v-model="funcSettings.selectedOutputFunction"
+                                        :items="funcSettings.basisFunctions"
+                                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
+                                        label="Выберите выходную функцию"></v-autocomplete>
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-text-field :hide-details="true" variant="outlined" title="Выходная степень"
+                                        type="number" label="Выходная степень" v-model="funcSettings.outputDegree" />
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-select :hide-details="true" variant="outlined"
+                                        :disabled="!customSettings.selectedVariable"
+                                        v-model="customSettings.selectedVariable" :items="dataInfo.fields.slice(1)"
+                                        item-title="field" item-value="field" label="Переменная"></v-select>
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-btn :hide-details="true" elevation="0" class="mb-2" @click="addExtendedBasis">
+                                        Расш. базис
+                                    </v-btn>
+                                </v-col>
+
+                            </v-row>
+
+                            <v-row class="d-flex align-center">
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-btn :hide-details="true" elevation="0" @click="addOutputFunc">
+                                        Вых. функция
+                                    </v-btn>
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-btn :hide-details="true" elevation="0" @click="addVariable">
+                                        Добавить
+                                    </v-btn>
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-btn :hide-details="true" elevation="0" @click="addCustomBasis">
+                                        Базис
+                                    </v-btn>
+                                </v-col>
+
+                                <v-col class="d-flex justify-center" cols="3">
+                                    <v-btn :hide-details="true" elevation="0" @click="clearCustomBasis">
+                                        Обнулить
+                                    </v-btn>
+                                </v-col>
+
+
+
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
                 </v-col>
 
-                <div style="display: flex; height: fit-content; width: 40%; background: #CC0000CC;">
-                    <v-col cols="9">
-                        <v-list density="compact" style="height: 200px;">
-                            <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
-                                :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
-                                <template v-slot:append>
-                                    <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
-                                        @click="delete allBases[basisKey]"></v-btn>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </v-col>
-                    <v-col cols="3">
-                        <v-btn elevation="0" @click="copyBasesRepresentation">
-                            Скопировать
-                        </v-btn>
-                    </v-col>
-                </div>
+                <v-col cols="8" class="pl-0">
+                    <v-card class="h-100">
+                        <v-card-title>
+                            <span style="font-size: 17px;">
+                                Расширенные базисы
+                            </span>
+                        </v-card-title>
+                        <v-card-text class="pb-0">
+                            <v-row>
+                                <v-col style="height: 20vh;">
+                                    <v-list density="compact">
+                                        <v-list-item v-for="(basis, index) in extendedBases" :key="index"
+                                            :title="getExtendedBasisName(basis)">
+                                            <template v-slot:append>
+                                                <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
+                                                    @click="extendedBases.splice(index, 1)"></v-btn>
+                                            </template>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+
 
             </v-row>
 
-            <v-row>
-                <v-btn elevation="0" @click="makeApproximation" class="d-flex justify-center align-center">
-                    <div>
-                        Аппроксимировать
-                    </div>
-                    <div v-if="aproximationLoading" class="ml-2">
-                        <v-progress-circular indeterminate color="red" :size="22" :width="4" />
-                    </div>
-                </v-btn>
-                <v-btn elevation="0" class="mx-6" @click="getExtendedBases">
-                    <div>
-                        Получить расширенные базисы
-                    </div>
-                    <div v-if="getBasesLoading" class="ml-2">
-                        <v-progress-circular indeterminate color="red" :size="22" :width="4" />
-                    </div>
-                </v-btn>
-                <v-btn elevation="0" class="mr-6" @click="allBases = {}">
-                    Очистить базисы
-                </v-btn>
+            <v-row class="pt-0 mt-0">
+
+                <v-col cols="4">
+                    <v-card class="h-100">
+                        <v-card-title>
+                            <span style="font-size: 17px;">
+                                Добавляемый базис
+                            </span>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-row class="h-100 w-100 pa-0 ma-0">
+                                <v-col class="pa-0 ma-0">
+
+
+                                    <div class="pt-2">
+                                        {{ getBasisName(customSettings.customBasis) }}
+                                    </div>
+
+
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+
+
+                <v-col cols="8" class="pl-0">
+                    <v-card class="h-100">
+                        <v-card-title>
+                            <span style="font-size: 17px;">
+                                Базисы
+                            </span>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-row class="h-100 w-100 pa-0 ma-0">
+                                <v-col class="pb-0">
+                                    <v-list style="height: 20vh;" density="compact"
+                                        :style="{ background: successColor }">
+                                        <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
+                                            :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
+                                            <template v-slot:append>
+                                                <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
+                                                    @click="delete allBases[basisKey]"></v-btn>
+                                            </template>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-col>
+                            </v-row>
+                            <v-row class="mt-0">
+                                <v-col>
+                                    <v-btn elevation="0" @click="copyBasesRepresentation">
+                                        Скопировать
+                                    </v-btn>
+                                </v-col>
+
+                                <v-col class="d-flex justify-end">
+
+                                    <v-btn elevation="0"
+                                        class="d-flex justify-center align-center mx-2 px-0">
+                                        <DocumentIcon :color="`#000`" />
+                                    </v-btn>
+
+                                    <v-btn elevation="0" @click="makeApproximation"
+                                        class="d-flex justify-center align-center mx-2 px-0">
+                                        <div v-if="aproximationLoading" class="mr-2">
+                                            <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                                        </div>
+                                        <div>
+                                            Аппроксимировать
+                                        </div>
+                                    </v-btn>
+
+                                    <v-btn :disabled="!file" elevation="0" class="mx-2 px-0" @click="getExtendedBases">
+                                        <div>
+                                            Получить расширенные базисы
+                                        </div>
+                                        <div v-if="getBasesLoading" class="ml-2">
+                                            <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                                        </div>
+                                    </v-btn>
+
+                                    <v-btn class="mx-2 px-0" elevation="0" @click="clearBases">
+                                        Очистить базисы
+                                    </v-btn>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
             </v-row>
 
+
+
+
             <v-row>
-                <v-col cols="1">
-                    <div class="truncate bg-red">
+                <v-col cols="2">
+                    <div class="truncate bg-red d-flex justify-center">
                         R2: {{ metrics.R2 }}
                     </div>
                 </v-col>
-                <v-col cols="1">
-                    <div class="truncate bg-green">
+                <v-col cols="2">
+                    <div class="truncate bg-green d-flex justify-center">
                         AIC: {{ metrics.AIC }}
                     </div>
                 </v-col>
-                <v-col cols="1">
-                    <div class="truncate bg-blue">
+                <v-col cols="2">
+                    <div class="truncate bg-blue d-flex justify-center">
                         MSE: {{ metrics.MSE }}
                     </div>
                 </v-col>
@@ -179,10 +265,18 @@ import { calculatePredicted } from '@/app_lib/metrics';
 import predictMenu from './predictMenu.vue';
 
 
+import { defineAsyncComponent } from 'vue'
+import icons from '@/assets/icons';
+
+const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {
+    acc[key] = defineAsyncComponent(value)
+    return acc
+}, {})
 
 export default {
     components: {
-        predictMenu
+        predictMenu,
+        ...asyncIcons
     },
     data() {
         return {
@@ -281,6 +375,10 @@ export default {
         storeNumParams() {
             return this.$store.state.settings.storeNumParams;
         },
+        successColor() {
+            if (this.result == null) return '';
+            return this.result.success ? '#00ff0010' : '#ff000010';
+        }
     },
     mounted() {
     },
@@ -299,10 +397,8 @@ export default {
                     multiplicationFactor: this.storeNumParams.multiplicationFactor
                 }
 
-                this.result = await getApproximation(options)
-
+                this.result = await getApproximation(options);
                 this.metrics = this.result.metrics;
-
                 this.allBases = this.result.approximatedBases;
 
             } catch (error) {
@@ -334,7 +430,7 @@ export default {
         async getExtendedBases() {
             this.getBasesLoading = true;
             try {
-                
+
                 if (Object.keys(this.allBases).length) {
                     this.filterBases();
                 }
@@ -517,6 +613,10 @@ export default {
                 this.setChartDataLoading = false;
             }
 
+        },
+        clearBases() {
+            this.allBases = {};
+            this.result = null;
         }
     },
 }
