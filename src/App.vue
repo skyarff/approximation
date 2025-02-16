@@ -1,29 +1,25 @@
 <template>
   <v-app>
+    <Nav />
     <v-main>
 
-      <Nav />
-      <div>
-
-        <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" class="h-100 w-100" />
-          </keep-alive>
-        </router-view>
-
-        <v-snackbar class="custom-snackbar" v-model="$store.state.notify.snackbar" :multi-line="true" :timeout="2000"
-          variant="tonal" :color="$store.state.notify.color" location="top end">
-          {{ $store.state.notify.text }}
-          <template #actions>
-            <v-btn variant="text" @click="stopReload">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </template>
-        </v-snackbar>
-      </div>
+      <router-view v-slot="{ Component }">
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
+      </router-view>
 
 
     </v-main>
+    <v-snackbar class="custom-snackbar" v-model="$store.state.notify.snackbar" :multi-line="true" :timeout="2000"
+      variant="tonal" :color="$store.state.notify.color" location="top end">
+      {{ $store.state.notify.text }}
+      <template #actions>
+        <v-btn variant="text" @click="stopReload">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 

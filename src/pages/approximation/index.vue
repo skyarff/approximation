@@ -122,8 +122,8 @@
                         </v-card-title>
                         <v-card-text class="pb-0">
                             <v-row>
-                                <v-col style="height: 20vh;">
-                                    <v-list density="compact">
+                                <v-col>
+                                    <v-list class="overflow-y-auto" style="max-height: 20vh"  density="compact">
                                         <v-list-item v-for="(basis, index) in extendedBases" :key="index"
                                             :title="getExtendedBasisName(basis)">
                                             <template v-slot:append>
