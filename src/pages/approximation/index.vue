@@ -5,7 +5,6 @@
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
             <v-btn @click="$refs.predictMenu.switchMenu()" class="def_btn">
-                <!-- ПРЕДСКАЗАТЬ -->
                 <KeyIcon :color="'#000'" />
                 <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenu" />
             </v-btn>
@@ -143,7 +142,6 @@
             </v-row>
 
             <v-row class="pt-0 mt-0">
-
                 <v-col cols="4">
                     <v-card class="h-100">
                         <v-card-title>
@@ -191,19 +189,19 @@
                                 </v-col>
                             </v-row>
                             <v-row class="mt-0">
-                                <v-col>
+                                <v-col class="d-flex justify-start">
                                     <v-btn elevation="0" @click="copyBasesRepresentation">
                                         Скопировать
+                                    </v-btn>
+
+                                    <v-btn @click="$refs.metricsMenu.switchMenu()" elevation="0"
+                                        class="d-flex justify-center align-center mx-2 px-0">
+                                        <DocumentIcon :color="`#000`" />
+                                        <metricsMenu :metrics="metrics" ref="metricsMenu" />
                                     </v-btn>
                                 </v-col>
 
                                 <v-col class="d-flex justify-end">
-
-                                    <v-btn elevation="0"
-                                        class="d-flex justify-center align-center mx-2 px-0">
-                                        <DocumentIcon :color="`#000`" />
-                                    </v-btn>
-
                                     <v-btn elevation="0" @click="makeApproximation"
                                         class="d-flex justify-center align-center mx-2 px-0">
                                         <div v-if="aproximationLoading" class="mr-2">
@@ -232,27 +230,6 @@
                     </v-card>
                 </v-col>
             </v-row>
-
-
-
-
-            <v-row>
-                <v-col cols="2">
-                    <div class="truncate bg-red d-flex justify-center">
-                        R2: {{ metrics.R2 }}
-                    </div>
-                </v-col>
-                <v-col cols="2">
-                    <div class="truncate bg-green d-flex justify-center">
-                        AIC: {{ metrics.AIC }}
-                    </div>
-                </v-col>
-                <v-col cols="2">
-                    <div class="truncate bg-blue d-flex justify-center">
-                        MSE: {{ metrics.MSE }}
-                    </div>
-                </v-col>
-            </v-row>
         </div>
     </div>
 </template>
@@ -263,6 +240,7 @@ import { getApproximation } from '@/app_lib/index';
 import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
 import { calculatePredicted } from '@/app_lib/metrics';
 import predictMenu from './predictMenu.vue';
+import metricsMenu from './metricsMenu.vue';
 
 
 import { defineAsyncComponent } from 'vue'
@@ -275,8 +253,9 @@ const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {
 
 export default {
     components: {
+        ...asyncIcons,
         predictMenu,
-        ...asyncIcons
+        metricsMenu,
     },
     data() {
         return {
