@@ -71,7 +71,7 @@
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :hide-details="true" elevation="0" class="mb-2" @click="addExtendedBasis">
+                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" class="mb-2" @click="addExtendedBasis">
                                         Расш. базис
                                     </v-btn>
                                 </v-col>
@@ -81,25 +81,25 @@
                             <v-row class="d-flex align-center">
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :hide-details="true" elevation="0" @click="addOutputFunc">
+                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true" elevation="0" @click="addOutputFunc">
                                         Вых. функция
                                     </v-btn>
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :hide-details="true" elevation="0" @click="addVariable">
+                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" @click="addVariable">
                                         Добавить
                                     </v-btn>
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :hide-details="true" elevation="0" @click="addCustomBasis">
+                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true" elevation="0" @click="addCustomBasis">
                                         Базис
                                     </v-btn>
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :hide-details="true" elevation="0" @click="clearCustomBasis">
+                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" @click="clearCustomBasis">
                                         Обнулить
                                     </v-btn>
                                 </v-col>
