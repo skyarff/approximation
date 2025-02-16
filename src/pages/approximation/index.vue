@@ -151,7 +151,7 @@
                         </v-card-title>
                         <v-card-text>
                             <v-row class="h-100 w-100 pa-0 ma-0">
-                                <v-col class="pa-0 ma-0">
+                                <v-col class="pa-0 ma-0 overflow-y-auto" style="max-height: 25vh;">
 
 
                                     <div class="pt-2">
@@ -205,7 +205,7 @@
                                     <v-btn elevation="0" @click="makeApproximation"
                                         class="d-flex justify-center align-center mx-2 px-0">
                                         <div v-if="aproximationLoading" class="mr-2">
-                                            <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+                                            <v-progress-circular indeterminate color="#00ff00aa" :size="22" :width="4" />
                                         </div>
                                         <div>
                                             Аппроксимировать
