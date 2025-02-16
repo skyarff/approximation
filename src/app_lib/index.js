@@ -29,7 +29,7 @@ async function computeA(data, allBasesArr) {
 
   const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
 
-    const key = `${basisElement.functions.join()}_${basisIndex}`;
+    const key = `A_${basisIndex}`;
 
     return data.map((dataPoint, dataIndex) => {
       let val = 1;
