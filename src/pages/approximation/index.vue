@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="h-100 ">
         <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             @change="fileUpload" style="display: none" ref="fileInput" />
 
@@ -21,9 +21,7 @@
             </v-btn>
         </div>
 
-
         <div class="w-100 pa-5">
-
             <v-row>
                 <v-col cols="4">
                     <v-card class="h-100">
