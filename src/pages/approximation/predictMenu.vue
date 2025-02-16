@@ -23,7 +23,7 @@
                 <v-card-text class="pb-0">
                     <v-row class="">
                         <v-col cols="12">
-                            <v-list density="compact" style="height: 150px; ">
+                            <v-list density="compact" style="height: 160px; ">
                                 <v-form ref="form1">
                                     <v-list-item class="px-0" v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index">
                                         <v-text-field class="pt-2" :hide-details="true" variant="outlined"
