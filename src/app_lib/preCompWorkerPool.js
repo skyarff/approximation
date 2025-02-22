@@ -76,7 +76,7 @@ const precomputedWorkerCode = `
 export default class PrecomputedValuesWorkerPool {
   constructor() {
     this.maxWorkers = navigator.hardwareConcurrency || 2;
-    this.optimalSize = Math.min(40, this.maxWorkers * 4);
+    this.optimalSize = Math.min(50, this.maxWorkers * 4);
     
 
     this.workers = [];

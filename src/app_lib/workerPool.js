@@ -3,7 +3,7 @@ export default class WorkerPool {
         // Получаем количество логических процессоров
         this.maxWorkers = navigator.hardwareConcurrency || 2;
 
-        this.optimalSize = Math.min(40, this.maxWorkers * 4);
+        this.optimalSize = Math.min(30, this.maxWorkers * 4);
         
         console.log('Доступно процессоров:', this.maxWorkers);
         console.log('Оптимальное количество воркеров:', this.optimalSize);

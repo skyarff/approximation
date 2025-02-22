@@ -144,7 +144,6 @@ async function computeA(data, allBasesArr) {
   }
 }
 
-export { computeA }
 
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
 
