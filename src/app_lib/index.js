@@ -25,7 +25,7 @@ function dataNormalization(data, normSmallValues = false, multiplicationFactor =
   }
 };
 
-async function computeA(data, allBasesArr) {
+async function computeMatrix(data, allBasesArr) {
   console.log('Предвычисления');
 
   const simplifyBasisArray = (allBasesArr) => {
@@ -86,13 +86,15 @@ async function computeA(data, allBasesArr) {
   }
 
   const precomputedValues = [];
+
+  
   try {
     const results = await Promise.all(preChunks.map(chunk =>
       prePool.processChunk(
         simplifiedBasisArr,
         simplifiedData,
         chunk.start,
-        chunk.end
+        chunk.end,
       )
     ));
 
@@ -106,8 +108,9 @@ async function computeA(data, allBasesArr) {
     prePool.terminate();
   }
 
-  console.log('Формирование матрицы A');
-  const A = new Array(allBasesArr.length);
+
+  console.log('Формирование матрицы');
+  const matrix = new Array(allBasesArr.length);
 
   const pool = new WorkerPool();
   const chunkSize = Math.ceil(allBasesArr.length / pool.workers.length);
@@ -121,24 +124,31 @@ async function computeA(data, allBasesArr) {
   }
 
   try {
+    const outPutKey = Object.keys(data[0])[0];
+    const simplifiedData = data.map(item => ({
+      [outPutKey]: item[outPutKey]
+  }));
     const results = await Promise.all(chunks.map(chunk =>
       pool.processChunk(
         precomputedValues,
         chunk.start,
         chunk.end,
         allBasesArr.length,
-        data.length
+        simplifiedData,
+        outPutKey
       )
     ));
 
     results.forEach((result, index) => {
       const startIndex = chunks[index].start;
       result.forEach((row, rowIndex) => {
-        A[startIndex + rowIndex] = row;
+        matrix[startIndex + rowIndex] = row;
       });
     });
 
-    return A;
+
+    return matrix;
+    
   } finally {
     pool.terminate();
   }
@@ -151,40 +161,15 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
 
   const allBasesArr = Object.values(allBases);
 
-  const A = await computeA(data, allBasesArr);
-  console.log('матрица A сформирована')
+  const matrix = await computeMatrix(data, allBasesArr);
+  console.log('матрица сформирована')
 
-  for (let i = 0; i < A.length; i++)
-    A[i][i] += 2 * L2;
-
-  const dataFields = Object.keys(data[0]);
-
-  const B = allBasesArr.map((b, index) => {
-    let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-
-      let val = 1;
-      for (let t = 0; t < allBasesArr[index].variables.length; t++) {
-        const func = basisFunctions.getFunction(b.functions[t]);
-        val *= Math.pow(func(data[i][allBasesArr[index].variables[t]]), allBasesArr[index].powers[t]);
-      }
-
-      val = basisFunctions.getFunction(b.outputFunc)(val);
-
-      if ('outputDegree' in b && b.outputDegree != 1)
-        val = Math.pow(val, b.outputDegree);
-
-      sum += data[i][dataFields[0]] * val;
-    }
-
-    return sum - L1;
-  });
-
-
-  console.log('матрица B сформирована')
-
-
-  const weights = await solveMatrix(A, B);
+  for (let i = 0; i < matrix.length; i++) {
+    matrix[i][i] += 2 * L2;
+    matrix[i][matrix.length] -= L1;
+  }
+    
+  const weights = await solveMatrix(matrix);
   const success = weights.every(w => Number.isFinite(w));
 
   const approximatedBases = structuredClone(allBases);
@@ -192,16 +177,14 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   if (success) Object.values(approximatedBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
-
   const metrics = {
     R2: calculateR2(data, approximatedBases, success),
     AIC: calculateAIC(data, approximatedBases, data, success),
     MSE: calculateMSE(data, approximatedBases, data, success),
   }
 
-  return { A, B, weights, success, metrics, approximatedBases };
+  return { matrix, weights, success, metrics, approximatedBases };
 }
-
 
 
 export { getApproximation }

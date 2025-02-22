@@ -1,9 +1,8 @@
 export default class WorkerPool {
     constructor() {
-        // Получаем количество логических процессоров
         this.maxWorkers = navigator.hardwareConcurrency || 2;
 
-        this.optimalSize = Math.min(30, this.maxWorkers * 4);
+        this.optimalSize = Math.min(35, this.maxWorkers * 4);
         
         console.log('Доступно процессоров:', this.maxWorkers);
         console.log('Оптимальное количество воркеров:', this.optimalSize);
@@ -11,7 +10,7 @@ export default class WorkerPool {
         this.workers = [];
         this.tasks = [];
         
-        // Создаем оптимальное количество воркеров
+
         for (let i = 0; i < this.optimalSize; i++) {
             this.createWorker();
         }
@@ -20,22 +19,26 @@ export default class WorkerPool {
     createWorker() {
         const workerCode = `
             self.onmessage = function(e) {
-                const { precomputedValues, start, end, fullBasisLength, dataLength } = e.data;
+                const { precomputedValues, start, end, fullBasisLength, data, outPutKey } = e.data;
                 
                 const result = [];
                 for (let i = start; i < end; i++) {
                     const row = new Array(fullBasisLength);
-                    for (let j = 0; j < fullBasisLength; j++) {
+                    for (let j = 0; j < fullBasisLength + 1; j++) {
                         let sum = 0;
-                        for (let k = 0; k < dataLength; k++) {
-                            sum += precomputedValues[i][k] * precomputedValues[j][k];
+                        for (let k = 0; k < data.length; k++) {
+
+                            if (j === fullBasisLength) {
+                                sum += precomputedValues[i][k] * data[k][outPutKey];
+                            } else {
+                                sum += precomputedValues[i][k] * precomputedValues[j][k];
+                            }
                         }
                         row[j] = sum;
                     }
                     result.push(row);
                 }
                 
-                console.log('worker done!')
                 self.postMessage({ result, start, end });
             }
         `;
@@ -52,7 +55,7 @@ export default class WorkerPool {
     }
   
   
-    async processChunk(precomputedValues, start, end, fullBasisLength, dataLength) {
+    async processChunk(precomputedValues, start, end, fullBasisLength, data, outPutKey) {
         return new Promise((resolve) => {
             const worker = this.workers.find(w => !w.busy);
             if (worker) {
@@ -66,7 +69,8 @@ export default class WorkerPool {
                     start, 
                     end, 
                     fullBasisLength, 
-                    dataLength 
+                    data,
+                    outPutKey,
                 });
             }
         });

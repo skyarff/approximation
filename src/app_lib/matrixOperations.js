@@ -1,47 +1,46 @@
-function solveMatrix(A, B) {
-    const n = A.length;
-    const augmentedMatrix = A.map((row, i) => [...row, B[i]]); // Расширенная матрица
-
+function solveMatrix(matrix) {
+    const n = matrix.length;
+    
     // Прямой ход
     for (let i = 0; i < n; i++) {
         // Поиск максимального элемента для частичной поворотной стратегии
         let maxRow = i;
         for (let j = i + 1; j < n; j++) {
-            if (Math.abs(augmentedMatrix[j][i]) > Math.abs(augmentedMatrix[maxRow][i])) {
+            if (Math.abs(matrix[j][i]) > Math.abs(matrix[maxRow][i])) {
                 maxRow = j;
             }
         }
 
         // Перестановка строк
         if (maxRow !== i) {
-            [augmentedMatrix[i], augmentedMatrix[maxRow]] = 
-            [augmentedMatrix[maxRow], augmentedMatrix[i]];
+            [matrix[i], matrix[maxRow]] = 
+            [matrix[maxRow], matrix[i]];
         }
 
         // Проверка на вырожденность матрицы
-        if (Math.abs(augmentedMatrix[i][i]) < 1e-308) {
+        if (Math.abs(matrix[i][i]) < 1e-308) {
             throw new Error('Матрица вырождена');
         }
 
         // Нормализация строки
-        const pivot = augmentedMatrix[i][i];
+        const pivot = matrix[i][i];
         for (let j = i; j <= n; j++) {
-            augmentedMatrix[i][j] /= pivot;
+            matrix[i][j] /= pivot;
         }
 
         // Исключение переменной из других уравнений
         for (let j = 0; j < n; j++) {
             if (i !== j) {
-                const factor = augmentedMatrix[j][i];
+                const factor = matrix[j][i];
                 for (let k = i; k <= n; k++) {
-                    augmentedMatrix[j][k] -= factor * augmentedMatrix[i][k];
+                    matrix[j][k] -= factor * matrix[i][k];
                 }
             }
         }
     }
 
     // Получение решения
-    return augmentedMatrix.map(row => row[n]);
+    return matrix.map(row => row[n]);
 }
 
 export { solveMatrix };

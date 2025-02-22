@@ -40,7 +40,7 @@ const precomputedWorkerCode = `
 
   self.onmessage = function(e) {
     const { basisElements, data, start, end } = e.data;
-    
+
     const result = [];
     
     for(let basisIndex = start; basisIndex < end; basisIndex++) {
@@ -62,53 +62,53 @@ const precomputedWorkerCode = `
         if ('outputDegree' in basisElement && basisElement.outputDegree != 1) {
           val = Math.pow(val, basisElement.outputDegree);
         }
-        
+
         return val;
       });
       
-      result.push(values);
-    }
+      result.push(values); // Добавили эту строку
+    } 
     
     self.postMessage({ result, start, end });
-  }
+  } 
 `;
 
 export default class PrecomputedValuesWorkerPool {
-  constructor() {
-    this.maxWorkers = navigator.hardwareConcurrency || 2;
-    this.optimalSize = Math.min(50, this.maxWorkers * 4);
-    
+    constructor() {
+        this.maxWorkers = navigator.hardwareConcurrency || 2;
+        this.optimalSize = Math.min(35, this.maxWorkers * 4);
 
-    this.workers = [];
-    this.tasks = [];
-    
-    const blob = new Blob([precomputedWorkerCode], { type: 'application/javascript' });
-    for (let i = 0; i < this.optimalSize; i++) {
-      this.workers.push(new Worker(URL.createObjectURL(blob)));
+
+        this.workers = [];
+        this.tasks = [];
+
+        const blob = new Blob([precomputedWorkerCode], { type: 'application/javascript' });
+        for (let i = 0; i < this.optimalSize; i++) {
+            this.workers.push(new Worker(URL.createObjectURL(blob)));
+        }
     }
-  }
-  
-  async processChunk(basisElements, data, start, end) {
-    return new Promise((resolve) => {
-      const worker = this.workers.find(w => !w.busy);
-      if (worker) {
-        worker.busy = true;
-        worker.onmessage = (e) => {
-          worker.busy = false;
-          resolve(e.data.result);
-        };
-        worker.postMessage({ 
-          basisElements,
-          data,
-          start,
-          end
+
+    async processChunk(basisElements, data, start, end) {
+        return new Promise((resolve) => {
+            const worker = this.workers.find(w => !w.busy);
+            if (worker) {
+                worker.busy = true;
+                worker.onmessage = (e) => {
+                    worker.busy = false;
+                    resolve(e.data.result);
+                };
+                worker.postMessage({
+                    basisElements,
+                    data,
+                    start,
+                    end,
+                });
+            }
         });
-      }
-    });
-  }
-  
-  terminate() {
-    this.workers.forEach(worker => worker.terminate());
-    this.workers = [];
-  }
+    }
+
+    terminate() {
+        this.workers.forEach(worker => worker.terminate());
+        this.workers = [];
+    }
 }
