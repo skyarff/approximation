@@ -4,6 +4,7 @@ import { Array } from 'core-js';
 import { calculateR2, calculateAIC, calculateMSE } from './metrics';
 import { basisFunctions } from './bases';
 import WorkerPool from './workerPool';
+import PrecomputedValuesWorkerPool from './preCompWorkerPool'
 
 
 
@@ -25,47 +26,90 @@ function dataNormalization(data, normSmallValues = false, multiplicationFactor =
 };
 
 async function computeA(data, allBasesArr) {
-  const functionCache = new Map();
+  console.log('Предвычисления');
 
-  const precomputedValues = allBasesArr.map((basisElement, basisIndex) => {
+  const simplifyBasisArray = (allBasesArr) => {
+    // Для небольших массивов slice() работает быстрее spread
+    return allBasesArr.map(basis => ({
+      variables: basis.variables.slice(),
+      functions: basis.functions.slice(),
+      powers: basis.powers.slice(),
+      outputFunc: basis.outputFunc,
+      outputDegree: basis.outputDegree
+    }));
+  };
 
-    const key = `A_${basisIndex}`;
+  // Использование
+  const simplifiedBasisArr = simplifyBasisArray(allBasesArr);
 
-    return data.map((dataPoint, dataIndex) => {
-      let val = 1;
-      for (let t = 0; t < basisElement.variables.length; t++) {
-        const cacheKey = `${key}_${dataIndex}_${t}`;
-
-
-        let funcResult;
-        if (functionCache.has(cacheKey)) {
-          funcResult = functionCache.get(cacheKey);
-        } else {
-          const func = basisFunctions.getFunction(basisElement.functions[t]);
-          const fieldValue = dataPoint[basisElement.variables[t]];
-
-          funcResult = Math.pow(func(fieldValue), basisElement.powers[t]);
-          functionCache.set(cacheKey, funcResult);
-        }
-
-        val *= funcResult;
+  // Упрощаем данные
+  const getUniqueVariables = (basisArr) => {
+    const variables = new Set();
+    for (const basis of basisArr) {
+      for (const variable of basis.variables) {
+        variables.add(variable);
       }
+    }
+    return variables;
+  };
 
-      val = basisFunctions.getFunction(basisElement.outputFunc)(val);
+  // Оптимизированная версия
+  const simplifyData = (data, basisArr) => {
+    // Получаем множество уникальных переменных
+    const uniqueVariables = getUniqueVariables(basisArr);
 
-      if ('outputDegree' in basisElement && basisElement.outputDegree != 1)
-        val = Math.pow(val, basisElement.outputDegree);
-
-      return val;
+    // Преобразуем данные за один проход
+    return data.map(point => {
+      const result = {};
+      for (const variable of uniqueVariables) {
+        if (point[variable] !== undefined) {
+          result[variable] = Number(point[variable]);
+        }
+      }
+      return result;
     });
-  });
+  };
 
+  // Использование
+  const simplifiedData = simplifyData(data, simplifiedBasisArr);
+
+  // Создаем пул с передачей basisFunctions
+  const prePool = new PrecomputedValuesWorkerPool(basisFunctions);
+  const preChunkSize = Math.ceil(allBasesArr.length / prePool.workers.length);
+  const preChunks = [];
+
+  for (let i = 0; i < allBasesArr.length; i += preChunkSize) {
+    preChunks.push({
+      start: i,
+      end: Math.min(i + preChunkSize, allBasesArr.length)
+    });
+  }
+
+  const precomputedValues = [];
+  try {
+    const results = await Promise.all(preChunks.map(chunk =>
+      prePool.processChunk(
+        simplifiedBasisArr,
+        simplifiedData,
+        chunk.start,
+        chunk.end
+      )
+    ));
+
+    results.forEach((chunkResult, index) => {
+      chunkResult.forEach((row, rowIndex) => {
+        precomputedValues[preChunks[index].start + rowIndex] = row;
+      });
+    });
+
+  } finally {
+    prePool.terminate();
+  }
+
+  console.log('Формирование матрицы A');
   const A = new Array(allBasesArr.length);
 
-  // Создаем пул с оптимальным количеством воркеров
   const pool = new WorkerPool();
-
-  // Разбиваем задачу на части в зависимости от количества воркеров
   const chunkSize = Math.ceil(allBasesArr.length / pool.workers.length);
   const chunks = [];
 
@@ -76,9 +120,7 @@ async function computeA(data, allBasesArr) {
     });
   }
 
-
   try {
-    // Запускаем обработку чанков параллельно
     const results = await Promise.all(chunks.map(chunk =>
       pool.processChunk(
         precomputedValues,
@@ -89,7 +131,6 @@ async function computeA(data, allBasesArr) {
       )
     ));
 
-    // Собираем результаты
     results.forEach((result, index) => {
       const startIndex = chunks[index].start;
       result.forEach((row, rowIndex) => {
@@ -102,6 +143,8 @@ async function computeA(data, allBasesArr) {
     pool.terminate();
   }
 }
+
+export { computeA }
 
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
 
