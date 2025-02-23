@@ -118,10 +118,10 @@
                                 Расширенные базисы
                             </span>
                         </v-card-title>
-                        <v-card-text class="pb-0">
+                        <v-card-text>
                             <v-row>
                                 <v-col>
-                                    <v-list class="overflow-y-auto" style="max-height: 20vh"  density="compact">
+                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 100px)"  density="compact">
                                         <v-list-item v-for="(basis, index) in extendedBases" :key="index"
                                             :title="getExtendedBasisName(basis)">
                                             <template v-slot:append>
@@ -206,7 +206,7 @@
                                             <v-progress-circular indeterminate color="#00ff00aa" :size="22" :width="4" />
                                         </div>
                                         <div>
-                                            Аппроксимировать
+                                            Аппр.
                                         </div>
                                     </v-btn>
 
