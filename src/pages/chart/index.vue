@@ -16,7 +16,7 @@
         </div>
 
 
-        <div class="chart_div">
+        <div class="chart_div" style="height: calc(100vh - 102px);">
             <chart ref="chart" />
         </div>
     </div>
