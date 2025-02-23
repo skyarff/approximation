@@ -121,7 +121,7 @@
                         <v-card-text>
                             <v-row>
                                 <v-col>
-                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 108px)"  density="compact">
+                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 100px)"  density="compact">
                                         <v-list-item v-for="(basis, index) in extendedBases" :key="index"
                                             :title="getExtendedBasisName(basis)">
                                             <template v-slot:append>
@@ -172,7 +172,7 @@
                         <v-card-text>
                             <v-row class="h-100 w-100 pa-0 ma-0">
                                 <v-col class="pb-0">
-                                    <v-list style="height: calc(60vh - 230px);" density="compact"
+                                    <v-list style="height: calc(60vh - 225px);" density="compact"
                                         :style="{ background: successColor }">
                                         <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
                                             :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
