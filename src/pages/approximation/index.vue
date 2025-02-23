@@ -174,7 +174,7 @@
                         <v-card-text>
                             <v-row class="h-100 w-100 pa-0 ma-0">
                                 <v-col class="pb-0">
-                                    <v-list style="height: 20vh;" density="compact"
+                                    <v-list style="height: calc(60vh - 230px);" density="compact"
                                         :style="{ background: successColor }">
                                         <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
                                             :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
