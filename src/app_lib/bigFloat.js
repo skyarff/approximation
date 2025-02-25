@@ -114,7 +114,7 @@ class ExtFloat {
     }
 }
 
-// Примеры
+
 const x = ExtFloat.fromStr("1.234e+1000");
 const y = ExtFloat.fromStr("2");
 

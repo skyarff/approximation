@@ -29,7 +29,6 @@ async function computeMatrix(data, allBasesArr) {
   console.log('Предвычисления');
 
   const simplifyBasisArray = (allBasesArr) => {
-    // Для небольших массивов slice() работает быстрее spread
     return allBasesArr.map(basis => ({
       variables: basis.variables.slice(),
       functions: basis.functions.slice(),
@@ -39,10 +38,8 @@ async function computeMatrix(data, allBasesArr) {
     }));
   };
 
-  // Использование
   const simplifiedBasisArr = simplifyBasisArray(allBasesArr);
 
-  // Упрощаем данные
   const getUniqueVariables = (basisArr) => {
     const variables = new Set();
     for (const basis of basisArr) {
@@ -53,12 +50,9 @@ async function computeMatrix(data, allBasesArr) {
     return variables;
   };
 
-  // Оптимизированная версия
   const simplifyData = (data, basisArr) => {
-    // Получаем множество уникальных переменных
     const uniqueVariables = getUniqueVariables(basisArr);
 
-    // Преобразуем данные за один проход
     return data.map(point => {
       const result = {};
       for (const variable of uniqueVariables) {
@@ -70,10 +64,8 @@ async function computeMatrix(data, allBasesArr) {
     });
   };
 
-  // Использование
   const simplifiedData = simplifyData(data, simplifiedBasisArr);
 
-  // Создаем пул с передачей basisFunctions
   const prePool = new PrecomputedValuesWorkerPool(basisFunctions);
   const preChunkSize = Math.ceil(allBasesArr.length / prePool.workers.length);
   const preChunks = [];
@@ -87,7 +79,6 @@ async function computeMatrix(data, allBasesArr) {
 
   const precomputedValues = [];
 
-  
   try {
     const results = await Promise.all(preChunks.map(chunk =>
       prePool.processChunk(

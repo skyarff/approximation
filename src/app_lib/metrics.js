@@ -53,7 +53,7 @@ function calculateAIC(data, allBases, success = true) {
     return aic;
 }
 
-// MSE (Mean Squared Error) - среднеквадратическая ошибка
+
 function calculateMSE(data, allBases, success = true) {
     if (!success) return null;
 
