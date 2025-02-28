@@ -255,10 +255,10 @@ const predictMenuRef = ref(null);
 const metricsMenuRef = ref(null);
 
 
-let file = ref(null);
-let aproximationLoading = ref(false);
-let getBasesLoading = ref(false);
-let setChartDataLoading = ref(false);
+const file = ref(null);
+const aproximationLoading = ref(false);
+const getBasesLoading = ref(false);
+const setChartDataLoading = ref(false);
 
 const dataInfo = reactive({
     data: [
@@ -333,17 +333,17 @@ const customSettings = reactive({
     },
 });
 
-let extendedBases = ref(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']);
+const extendedBases = ref(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']);
 
-let allBases = ref({});
+const allBases = ref({});
 
-let metrics = ref({
+const metrics = ref({
     R2: '',
     AIC: '',
     MSE: '',
 });
 
-let result = ref(null);
+const result = ref(null);
 
 
 const storeNumParams = computed(() => store.state.settings.storeNumParams);
@@ -354,7 +354,6 @@ const successColor = computed(() => {
 
 
 
-
 async function makeApproximation() {
     try {
         aproximationLoading.value = true;
@@ -362,10 +361,10 @@ async function makeApproximation() {
         const options = {
             data: dataInfo.data,
             allBases: allBases.value,
-            L1: storeNumParams.L1,
-            L2: storeNumParams.L2,
-            normSmallValues: storeNumParams.normSmallValues,
-            multiplicationFactor: storeNumParams.multiplicationFactor
+            L1: storeNumParams.value.L1,
+            L2: storeNumParams.value.L2,
+            normSmallValues: storeNumParams.value.normSmallValues,
+            multiplicationFactor: storeNumParams.value.multiplicationFactor
         }
 
 

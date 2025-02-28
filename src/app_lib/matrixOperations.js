@@ -1,7 +1,5 @@
 function solveMatrix(matrix) {
     const n = matrix.length;
-
-    console.log('matrix', structuredClone(matrix))
     
     // Прямой ход
     for (let i = 0; i < n; i++) {
