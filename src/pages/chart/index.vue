@@ -6,11 +6,11 @@
         <div class="h-100 w-100 mt-3 d-flex justify-end align-center">
 
             <div>
-                <v-btn @click="$refs.settingsMenu.switchMenu()" class="mr-5" :color="'#262525'" elevation="0" icon
+                <v-btn @click="settingsRef.switchMenu()" class="mr-5" :color="'#262525'" elevation="0" icon
                     size="x-small">
                     <component :is="icons.FilterIcon" :color="'#fff'" :size="17" />
                 </v-btn>
-                <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsMenu" />
+                <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsRef" />
             </div>
 
         </div>
@@ -41,6 +41,7 @@ const settings = reactive({
 });
 
 const chartRef = ref(null);
+const settingsRef = ref(null);
 
 function apply() {
     chartRef.value.callChart(settings.min, settings.max);

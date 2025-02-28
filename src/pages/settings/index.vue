@@ -140,25 +140,17 @@
     </div>
 </template>
 
-<script>
 
-export default {
-    data() {
-        return {
+<script setup>
+import { useStore } from 'vuex';
+import { computed } from 'vue';
 
-        }
-    },
-    methods: {
-
-    },
-    computed: {
-        storeNumParams() {
-            return this.$store.state.settings.storeNumParams;
-        },
-    }
-}
+const store = useStore();
+const storeNumParams = computed(() => store.state.settings.storeNumParams);
 
 </script>
+
+
 
 <style scoped>
 .paragraph_text {

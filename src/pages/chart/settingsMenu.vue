@@ -23,9 +23,8 @@
                 <v-card-text class="pb-0">
                     <v-row>
                         <v-col class="px-0">
-                            <v-autocomplete v-model="settingsClone.xVal" item-title="val"
-                                item-value="id" :items="xKeys" title="Переменная абсцисс" :hide-details="true" chips
-                                variant="outlined">
+                            <v-autocomplete v-model="settingsClone.xVal" item-title="val" item-value="id" :items="xKeys"
+                                title="Переменная абсцисс" :hide-details="true" chips variant="outlined">
                                 <template #label>
                                     <div style="font-size: 11px;">
                                         Переменная абсцисс
@@ -106,73 +105,80 @@
     </div>
 </template>
 
-<script>
 
-export default {
-    data() {
-        return {
-            menu: false,
-            settingsClone: {}
-        }
-    },
-    props: {
-        settings: {
-            type: Object
-        }
-    },
-    computed: {
-        chartData() {
-            return this.$store.state.chart.chartData;
-        },
-        chartKeys() {
-            return {
-                xKey: this.$store.state.chart.xKey,
-                yKeys: this.$store.state.chart.yKeys,
-            }
-        },
-        xKeys() {
-            return Object.keys(this.chartData[0])
-                .filter(key => !this.chartKeys.yKeys.includes(key))
-                .map((key, index) => {
-                    return {
-                        id: index,
-                        val: key
-                    }
-                })
-        },
-        pointChart() {
-            return this.$store.state.settings.pointChart;
-        },
-    },
-    methods: {
-        switchMenu() {
-            this.menu = !this.menu;
-            if (this.menu) {
-                this.settingsClone = structuredClone(this.settings);
-            }
-        },
-        apply() {
-            for (let key of Object.keys(this.settingsClone))
-                this.settings[key] = this.settingsClone[key];
+<script setup>
+import { ref, reactive } from 'vue';
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-            const xKey = this.xKeys[this.settings.xVal].val;
-            this.$store.state.chart.xKey = xKey;
-            this.chartData.sort((a, b) => a[xKey] - b[xKey]);
+const emit = defineEmits(['applySettings']);
 
-            this.$emit('applySettings');
-        },
-        resetRange() {
-            this.settings.min = '';
-            this.settings.max = '';
-            this.settingsClone.min = '';
-            this.settingsClone.max = '';
-            this.$emit('applySettings');
-        }
+const store = useStore();
+const props = defineProps({
+    settings: {
+        type: Object
     }
-}
+});
+
+
+let menu = ref(false);
+function switchMenu() {
+    menu.value = !menu.value;
+    if (menu.value) {
+        settingsClone = structuredClone(props.settings);
+    }
+};
+
+
+const pointChart = computed(() => store.state.settings.pointChart);
+
+
+
+let settingsClone = reactive({});
+const chartKeys = computed(() => {
+    return {
+        xKey: store.state.chart.xKey,
+        yKeys: store.state.chart.yKeys,
+    }
+});
+const xKeys = computed(() => {
+    return Object.keys(chartData.value[0])
+        .filter(key => !chartKeys.value.yKeys.includes(key))
+        .map((key, index) => {
+            return {
+                id: index,
+                val: key
+            }
+        })
+});
+const chartData = computed(() => store.state.chart.chartData);
+function apply() {
+    for (let key of Object.keys(settingsClone))
+        props.settings[key] = settingsClone[key];
+
+    const xKey = xKeys.value[props.settings.xVal].val;
+    store.state.chart.xKey = xKey;
+    chartData.value.sort((a, b) => a[xKey] - b[xKey]);
+    emit('applySettings');
+};
+
+
+function resetRange() {
+    props.settings.min = '';
+    props.settings.max = '';
+    settingsClone.min = '';
+    settingsClone.max = '';
+    emit('applySettings');
+};
+
+
+defineExpose({
+    switchMenu
+})
+
+
 </script>
 
-<style scoped>
 
 
-</style>
+<style scoped></style>

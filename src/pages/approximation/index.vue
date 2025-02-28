@@ -4,9 +4,9 @@
             @change="fileUpload" style="display: none" ref="fileInput" />
 
         <div class="ef px-4 w-100" style="background: #d3e3e1;">
-            <v-btn @click="$refs.predictMenu.switchMenu()" class="def_btn">
-                <KeyIcon :color="'#000'" />
-                <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenu" />
+            <v-btn @click="predictMenuRef.switchMenu()" class="def_btn">
+                <component :is="icons.KeyIcon" :color="'#000'" />
+                <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenuRef" />
             </v-btn>
             <v-btn class="def_btn" @click="setChartData">
                 <div>
@@ -71,7 +71,8 @@
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" class="mb-2" @click="addExtendedBasis">
+                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" class="mb-2"
+                                        @click="addExtendedBasis">
                                         Расш. базис
                                     </v-btn>
                                 </v-col>
@@ -81,7 +82,8 @@
                             <v-row class="d-flex align-center">
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true" elevation="0" @click="addOutputFunc">
+                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true"
+                                        elevation="0" @click="addOutputFunc">
                                         Вых. функция
                                     </v-btn>
                                 </v-col>
@@ -93,13 +95,15 @@
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true" elevation="0" @click="addCustomBasis">
+                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true"
+                                        elevation="0" @click="addCustomBasis">
                                         Базис
                                     </v-btn>
                                 </v-col>
 
                                 <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" @click="clearCustomBasis">
+                                    <v-btn :disabled="!file" :hide-details="true" elevation="0"
+                                        @click="clearCustomBasis">
                                         Обнулить
                                     </v-btn>
                                 </v-col>
@@ -121,7 +125,8 @@
                         <v-card-text>
                             <v-row>
                                 <v-col>
-                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 100px)"  density="compact">
+                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 100px)"
+                                        density="compact">
                                         <v-list-item v-for="(basis, index) in extendedBases" :key="index"
                                             :title="getExtendedBasisName(basis)">
                                             <template v-slot:append>
@@ -174,7 +179,7 @@
                                 <v-col class="pb-0">
                                     <v-list style="height: calc(60vh - 225px);" density="compact"
                                         :style="{ background: successColor }">
-                                        <v-list-item v-for="(basisKey, index) in Object.keys(allBases) " :key="index"
+                                        <v-list-item v-for="(basisKey, index) in Object.keys(allBases)" :key="index"
                                             :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
                                             <template v-slot:append>
                                                 <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
@@ -190,10 +195,10 @@
                                         Скопировать
                                     </v-btn>
 
-                                    <v-btn @click="$refs.metricsMenu.switchMenu()" elevation="0"
+                                    <v-btn @click="metricsMenuRef.switchMenu()" elevation="0"
                                         class="d-flex justify-center align-center mx-2 px-0">
-                                        <DocumentIcon :color="`#000`" />
-                                        <metricsMenu :metrics="metrics" ref="metricsMenu" />
+                                        <component :is="icons.DocumentIcon" :color="'#000'" />
+                                        <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
                                     </v-btn>
                                 </v-col>
 
@@ -201,14 +206,15 @@
                                     <v-btn elevation="0" @click="makeApproximation"
                                         class="d-flex justify-center align-center mx-2 px-0">
                                         <div v-if="aproximationLoading" class="mr-2">
-                                            <v-progress-circular indeterminate color="#00ff00aa" :size="22" :width="4" />
+                                            <v-progress-circular indeterminate color="#00ff00aa" :size="22"
+                                                :width="4" />
                                         </div>
                                         <div>
                                             Аппр.
                                         </div>
                                     </v-btn>
 
-                                    <v-btn :disabled="!file" elevation="0" class="mx-2 px-0" @click="getExtendedBases">
+                                    <v-btn :disabled="!file" elevation="0" class="mx-2 px-0" @click="getExtBases">
                                         <div>
                                             Получить расширенные базисы
                                         </div>
@@ -230,369 +236,381 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
 import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
 import { calculatePredicted } from '@/app_lib/metrics';
 import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
-
-
-
 import icons from '@/assets/icons';
 
+import { ref, reactive } from 'vue';
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+
+const predictMenuRef = ref(null);
+const metricsMenuRef = ref(null);
 
 
-export default {
-    components: {
-        ...icons,
-        predictMenu,
-        metricsMenu,
+let file = ref(null);
+let aproximationLoading = ref(false);
+let getBasesLoading = ref(false);
+let setChartDataLoading = ref(false);
+
+const dataInfo = reactive({
+    data: [
+        { z: 1, y: 1, x: 2, t: 2 },
+        { z: 4, y: 2, x: 5, t: 2 },
+        { z: 9, y: 3, x: 2, t: 2 },
+        { z: 16, y: 4, x: 9, t: 2 },
+        { z: 25, y: 5, x: 4, t: 2 },
+        { z: 36, y: 6, x: 42, t: 2 },
+        { z: 49, y: 7, x: 5, t: 2 },
+        { z: 64, y: 8, x: 1, t: 2 },
+        { z: 81, y: 9, x: 9, t: 2 },
+        { z: 100, y: 10, x: 2, t: 2 }
+    ],
+    fields: ['z', 'y', 'x'],
+});
+
+const numParams = reactive({
+    constant: true,
+    normSmallValues: true,
+    multiplicationFactor: 1,
+    L1: 1,
+    L2: 1,
+    stepPower: 1,
+
+
+    degree: 1,
+    depth: 1,
+    depths: [
+        { id: 0, val: 1 },
+        { id: 1, val: 2 },
+        { id: 2, val: 3 }
+    ],
+});
+
+const funcSettings = reactive({
+    basisFunctions: [
+        { id: 1, val: '', label: 'Идентичность' },
+        { id: 2, val: 'sqrt', label: 'Квадратный корень' },
+        { id: 3, val: 'sin', label: 'Синус' },
+        { id: 4, val: 'cos', label: 'Косинус' },
+        { id: 5, val: 'tan', label: 'Тангенс' },
+        { id: 6, val: 'atan', label: 'Арктангенс' },
+        { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
+        { id: 8, val: 'acosh', label: 'Гиперболический арккосинус от модуля' },
+        { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
+        { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
+        { id: 11, val: 'exp', label: 'Экспонента' },
+        { id: 12, val: 'abs', label: 'Модуль' },
+        { id: 13, val: 'sinh', label: 'Гиперболический синус' },
+        { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
+        { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
+    ],
+    selectedFunction: '',
+    selectedOutputFunction: '',
+    outputDegree: 1
+});
+
+const customSettings = reactive({
+    selectedVariable: '',
+    defaultCustomBasis: {
+        functions: [],
+        powers: [],
+        variables: [],
+        weight: 1,
     },
-    data() {
-        return {
-            file: null,
+    customBasis: {
+        functions: [],
+        powers: [],
+        variables: [],
+        weight: '',
+    },
+});
 
-            aproximationLoading: false,
-            getBasesLoading: false,
-            setChartDataLoading: false,
+let extendedBases = ref(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']);
 
-            dataInfo: {
-                data: [
-                    { z: 1, y: 1, x: 2, t: 2 },
-                    { z: 4, y: 2, x: 5, t: 2 },
-                    { z: 9, y: 3, x: 2, t: 2 },
-                    { z: 16, y: 4, x: 9, t: 2 },
-                    { z: 25, y: 5, x: 4, t: 2 },
-                    { z: 36, y: 6, x: 42, t: 2 },
-                    { z: 49, y: 7, x: 5, t: 2 },
-                    { z: 64, y: 8, x: 1, t: 2 },
-                    { z: 81, y: 9, x: 9, t: 2 },
-                    { z: 100, y: 10, x: 2, t: 2 }
-                ],
-                fields: ['z', 'y', 'x'],
-            },
+let allBases = ref({});
 
-            numParams: {
-                constant: true,
-                normSmallValues: true,
-                multiplicationFactor: 1,
-                L1: 1,
-                L2: 1,
-                stepPower: 1,
+let metrics = ref({
+    R2: '',
+    AIC: '',
+    MSE: '',
+});
+
+let result = ref(null);
 
 
-                degree: 1,
-                depth: 1,
-                depths: [
-                    { id: 0, val: 1 },
-                    { id: 1, val: 2 },
-                    { id: 2, val: 3 }
-                ],
-            },
+const storeNumParams = computed(() => store.state.settings.storeNumParams);
+const successColor = computed(() => {
+    if (result.value == null) return '';
+    return result.value.success ? '#00ff0010' : '#ff000010';
+});
 
-            funcSettings: {
-                basisFunctions: [
-                    { id: 1, val: '', label: 'Идентичность' },
-                    { id: 2, val: 'sqrt', label: 'Квадратный корень' },
-                    { id: 3, val: 'sin', label: 'Синус' },
-                    { id: 4, val: 'cos', label: 'Косинус' },
-                    { id: 5, val: 'tan', label: 'Тангенс' },
-                    { id: 6, val: 'atan', label: 'Арктангенс' },
-                    { id: 7, val: 'asinh', label: 'Гиперболический арксинус' },
-                    { id: 8, val: 'acosh', label: 'Гиперболический арккосинус от модуля' },
-                    { id: 9, val: 'ln', label: 'Натуральный логарифм от модуля' },
-                    { id: 10, val: 'lg', label: 'Десятичный логарифм от модуля' },
-                    { id: 11, val: 'exp', label: 'Экспонента' },
-                    { id: 12, val: 'abs', label: 'Модуль' },
-                    { id: 13, val: 'sinh', label: 'Гиперболический синус' },
-                    { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
-                    { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
-                ],
-                selectedFunction: '',
-                selectedOutputFunction: '',
-                outputDegree: 1
-            },
 
-            customSettings: {
-                selectedVariable: '',
-                defaultCustomBasis: {
-                    functions: [],
-                    powers: [],
-                    variables: [],
-                    weight: 1,
-                },
-                customBasis: {
-                    functions: [],
-                    powers: [],
-                    variables: [],
-                    weight: '',
-                },
-            },
 
-            extendedBases: ['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2'],
-            allBases: {},
 
-            metrics: {
-                R2: '',
-                AIC: '',
-                MSE: '',
-            },
+async function makeApproximation() {
+    try {
+        aproximationLoading.value = true;
 
-            result: null,
+        const options = {
+            data: dataInfo.data,
+            allBases: allBases.value,
+            L1: storeNumParams.L1,
+            L2: storeNumParams.L2,
+            normSmallValues: storeNumParams.normSmallValues,
+            multiplicationFactor: storeNumParams.multiplicationFactor
         }
-    },
-    computed: {
-        storeNumParams() {
-            return this.$store.state.settings.storeNumParams;
-        },
-        successColor() {
-            if (this.result == null) return '';
-            return this.result.success ? '#00ff0010' : '#ff000010';
+
+
+        result.value = await getApproximation(options);
+
+        metrics.value = result.value.metrics;
+        allBases.value = result.value.approximatedBases;
+
+    } catch (error) {
+        console.log(error)
+    } finally {
+        aproximationLoading.value = false;
+    }
+};
+
+function addExtendedBasis() {
+    if (funcSettings.outputDegree) {
+        extendedBases.value.push(
+            `${numParams.depth}${funcSettings.selectedFunction}^${numParams.degree}/${funcSettings.selectedOutputFunction}^${funcSettings.outputDegree}`);
+    }
+
+};
+
+function filterBases() {
+    const fields = dataInfo.fields.slice(1);
+    for (let key of Object.keys(allBases.value)) {
+        for (let variable of allBases.value[key].variables) {
+            if (!fields.includes(variable)) {
+                delete allBases.value[key];
+                break;
+            }
         }
-    },
-    mounted() {
-    },
-    methods: {
-        async makeApproximation() {
+    }
+    console.log('exit')
+};
 
-            try {
-                this.aproximationLoading = true;
 
-                const options = {
-                    data: this.dataInfo.data,
-                    allBases: this.allBases,
-                    L1: this.storeNumParams.L1,
-                    L2: this.storeNumParams.L2,
-                    normSmallValues: this.storeNumParams.normSmallValues,
-                    multiplicationFactor: this.storeNumParams.multiplicationFactor
-                }
 
-                this.result = await getApproximation(options);
-                this.metrics = this.result.metrics;
-                this.allBases = this.result.approximatedBases;
+async function getExtBases() {
+    getBasesLoading.value = true;
+    try {
+        if (Object.keys(allBases.value).length) {
+            filterBases();
+        }
 
-            } catch (error) {
-                console.log(error)
-            } finally {
-                this.aproximationLoading = false;
+
+        if (dataInfo.data.length > 0) {
+            const options = {
+                extendedBases: extendedBases.value,
+                allBases: allBases.value,
+                constant: storeNumParams.constant,
+                stepPower: storeNumParams.stepPower,
+                keys: dataInfo.fields,
             }
 
-
-        },
-        addExtendedBasis() {
-            if (this.funcSettings.outputDegree) {
-                this.extendedBases.push(
-                    `${this.numParams.depth}${this.funcSettings.selectedFunction}^${this.numParams.degree}/${this.funcSettings.selectedOutputFunction}^${this.funcSettings.outputDegree}`)
-            }
-
-        },
-        filterBases() {
-            const fields = this.dataInfo.fields.slice(1);
-            for (let key of Object.keys(this.allBases)) {
-                for (let variable of this.allBases[key].variables) {
-                    if (!fields.includes(variable)) {
-                        delete this.allBases[key];
-                        break;
-                    }
-                }
-            }
-        },
-        async getExtendedBases() {
-            this.getBasesLoading = true;
-            try {
-
-                if (Object.keys(this.allBases).length) {
-                    this.filterBases();
-                }
-
-                if (this.dataInfo.data.length > 0) {
-                    const options = {
-                        extendedBases: this.extendedBases,
-                        allBases: this.allBases,
-                        constant: this.storeNumParams.constant,
-                        stepPower: this.storeNumParams.stepPower,
-                        keys: this.dataInfo.fields,
-                    }
-
-                    this.allBases = { ...getExtendedBases(options) };
-                    console.log('this.basis_', this.allBases)
-                } else {
-                    this.$store.dispatch('notify', {
-                        text: 'Данные отсутствуют.',
-                        color: 'warning'
-                    });
-                }
-            } catch (error) {
-
-            } finally {
-                this.getBasesLoading = false;
-            }
-        },
-        getExtendedBasisName(basis) {
-            const funcs = basis.split('/');
-
-            const rows1 = funcs[0].split('^');
-
-            const depth1 = rows1.length > 0 ? `${rows1[0][0]}` : '1';
-            const degree1 = rows1.length > 1 ? `${rows1[1]}` : '';
-            const func1 = rows1[0].substring(1);
-
-
-            let name = `x`;
-            if (func1) name = `${func1}(x)`;
-            if (degree1 && degree1 != 1) name = `${name}^${degree1}`;
-
-
-            if (funcs[1]) {
-
-                const rows2 = funcs[1].split('^');
-                if (rows2[0]) {
-                    const func2 = rows2[0];
-                    name = `${func2}(${name})`
-                }
-
-                if (rows2[1] && rows2[1] != 1) {
-                    if (!rows2[0]) name = `(${name})`;
-                    name = `${name}^${rows2[1]}`
-                }
-            }
-
-            name = `${name} - глубина ${depth1}`
-
-            return name;
-        },
-        addCustomBasis() {
-
-            this.allBases[this.getBasisName(this.customSettings.customBasis)]
-                = (
-                    {
-                        weight: 1,
-                        functions: this.customSettings.customBasis.functions,
-                        variables: this.customSettings.customBasis.variables,
-                        powers: this.customSettings.customBasis.powers,
-                        outputFunc: this.funcSettings.selectedOutputFunction,
-                        outputDegree: this.funcSettings.outputDegree,
-                    }
-                );
-
-            console.log('this.allBases', this.allBases)
-        },
-        getBasisName(basis) {
-            return getBasisKey(basis);
-        },
-        addVariable() {
-            this.customSettings.customBasis.functions.push(this.funcSettings.selectedFunction);
-            this.customSettings.customBasis.powers.push(Number(this.numParams.degree));
-            this.customSettings.customBasis.variables.push(this.customSettings.selectedVariable);
-            this.customSettings.customBasis.weight = 1;
-            this.customSettings.customBasis.outputDegree = this.funcSettings.outputDegree;
-
-            console.log('this.customSettings.customBasis_', this.customSettings.customBasis)
-        },
-        addOutputFunc() {
-            if (this.funcSettings.selectedOutputFunction) {
-                this.customSettings.customBasis.outputFunc = this.funcSettings.selectedOutputFunction;
-            } else if (this.customSettings.customBasis.outputFunc)
-                delete this.customSettings.customBasis.outputFunc;
-
-        },
-        addOutputDegree() {
-            if (this.funcSettings.outputDegree) {
-                this.customSettings.customBasis.outputDegree = this.funcSettings.outputDegree;
-            }
-        },
-        clearCustomBasis() {
-            this.customSettings.customBasis = structuredClone(this.customSettings.defaultCustomBasis);
-        },
-        async fileUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.name.endsWith('.xlsx')) {
-                this.file = file;
-                this.dataInfo.data = await this.readExcelFile(file);
-                this.dataInfo.fields = Object.keys(this.dataInfo.data[0]);
-                this.customSettings.selectedVariable = this.dataInfo.fields[1];
-            } else {
-                this.$store.dispatch('notify', {
-                    text: 'Пожалуйста, выберите файл формата .xlsx',
-                    color: 'error'
-                });
-            }
-            event.target.value = '';
-        },
-        async readExcelFile(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const data = e.target.result;
-                        const workbook = read(data, { type: 'array' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        const jsonData = utils.sheet_to_json(worksheet);
-
-                        console.log('Прочитанные данные:', jsonData);
-                        console.log('Структура первой строки:', Object.keys(jsonData[0]));
-                        resolve(jsonData);
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-
-                reader.readAsArrayBuffer(file);
+            allBases.value = { ...getExtendedBases(options) };
+        } else {
+            store.dispatch('notify', {
+                text: 'Данные отсутствуют.',
+                color: 'warning'
             });
-        },
-        async copyBasesRepresentation() {
-            let result = '';
-            for (let key in this.allBases) {
-                let weight = this.allBases[key].weight.toString();
-                const sign = weight[0] == '-' ? '-' : '+';
-                weight = sign === '+' ? weight : weight.substring(1);
-
-                result += `${sign} ${weight}${(key != '1' ? ` * ${key}` : '')}\n`
-            }
-
-            await navigator.clipboard.writeText(result.slice(0, -1));
-        },
-        async setChartData() {
-            try {
-                this.setChartDataLoading = true;
-
-                const { data, fields } = this.dataInfo;
-                const [yField, xField] = fields;
-
-                const approximated = calculatePredicted(data, this.allBases);
-                const approximatedKey = `${yField} (approximated)`;
-                const diffKey = `${yField} (difference)`;
-
-                data.forEach((row, i) => {
-                    row[approximatedKey] = approximated[i];
-                    row[diffKey] = row[yField] - approximated[i];
-                });
-
-                data.sort((a, b) => a[xField] - b[xField]);
-
-
-                Object.assign(this.$store.state.chart, {
-                    chartData: data,
-                    xKey: xField,
-                    yKeys: [yField, approximatedKey, diffKey]
-                });
-            } catch (error) {
-                console.log(error)
-            } finally {
-                this.setChartDataLoading = false;
-            }
-
-        },
-        clearBases() {
-            this.allBases = {};
-            this.result = null;
         }
-    },
+    } catch (error) {
+
+    } finally {
+        getBasesLoading.value = false;
+        console.log('basis_123', allBases.value)
+    }
+};
+
+function getExtendedBasisName(basis) {
+    const funcs = basis.split('/');
+
+    const rows1 = funcs[0].split('^');
+
+    const depth1 = rows1.length > 0 ? `${rows1[0][0]}` : '1';
+    const degree1 = rows1.length > 1 ? `${rows1[1]}` : '';
+    const func1 = rows1[0].substring(1);
+
+
+    let name = `x`;
+    if (func1) name = `${func1}(x)`;
+    if (degree1 && degree1 != 1) name = `${name}^${degree1}`;
+
+
+    if (funcs[1]) {
+
+        const rows2 = funcs[1].split('^');
+        if (rows2[0]) {
+            const func2 = rows2[0];
+            name = `${func2}(${name})`
+        }
+
+        if (rows2[1] && rows2[1] != 1) {
+            if (!rows2[0]) name = `(${name})`;
+            name = `${name}^${rows2[1]}`
+        }
+    }
+
+    name = `${name} - глубина ${depth1}`
+
+    return name;
+};
+
+function addCustomBasis() {
+
+    allBases.value[getBasisName(customSettings.customBasis)]
+        = (
+            {
+                weight: 1,
+                functions: customSettings.customBasis.functions,
+                variables: customSettings.customBasis.variables,
+                powers: customSettings.customBasis.powers,
+                outputFunc: funcSettings.selectedOutputFunction,
+                outputDegree: funcSettings.outputDegree,
+            }
+        );
+
+    console.log('allBases', allBases.value)
+};
+
+
+
+function getBasisName(basis) {
+    return getBasisKey(basis);
+};
+
+function addVariable() {
+    customSettings.customBasis.functions.push(funcSettings.selectedFunction);
+    customSettings.customBasis.powers.push(Number(numParams.degree));
+    customSettings.customBasis.variables.push(customSettings.selectedVariable);
+    customSettings.customBasis.weight = 1;
+    customSettings.customBasis.outputDegree = funcSettings.outputDegree;
+
+    console.log('customSettings.customBasis_', customSettings.customBasis)
+};
+
+function addOutputFunc() {
+    if (funcSettings.selectedOutputFunction) {
+        customSettings.customBasis.outputFunc = funcSettings.selectedOutputFunction;
+    } else if (customSettings.customBasis.outputFunc)
+        delete customSettings.customBasis.outputFunc;
+
+};
+
+
+
+function clearCustomBasis() {
+    customSettings.customBasis = structuredClone(customSettings.defaultCustomBasis);
+};
+
+async function fileUpload(event) {
+    const docFile = event.target.files[0];
+    if (docFile && docFile.name.endsWith('.xlsx')) {
+        file.value = docFile;
+        dataInfo.data = await readExcelFile(file.value);
+        dataInfo.fields = Object.keys(dataInfo.data[0]);
+        customSettings.selectedVariable = dataInfo.fields[1];
+    } else {
+        store.dispatch('notify', {
+            text: 'Пожалуйста, выберите файл формата .xlsx',
+            color: 'error'
+        });
+    }
+    event.target.value = '';
+};
+
+
+async function readExcelFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = e.target.result;
+                const workbook = read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = utils.sheet_to_json(worksheet);
+
+                console.log('Прочитанные данные:', jsonData);
+                console.log('Структура первой строки:', Object.keys(jsonData[0]));
+                resolve(jsonData);
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+};
+
+async function copyBasesRepresentation() {
+    let res = '';
+    for (let key in allBases.value) {
+        let weight = allBases.value[key].weight.toString();
+        const sign = weight[0] == '-' ? '-' : '+';
+        weight = sign === '+' ? weight : weight.substring(1);
+
+        res += `${sign} ${weight}${(key != '1' ? ` * ${key}` : '')}\n`
+    }
+
+    await navigator.clipboard.writeText(res.slice(0, -1));
+};
+
+async function setChartData() {
+    try {
+        setChartDataLoading.value = true;
+
+        const { data, fields } = dataInfo;
+        const [yField, xField] = fields;
+
+        const approximated = calculatePredicted(data, allBases.value);
+        const approximatedKey = `${yField} (approximated)`;
+        const diffKey = `${yField} (difference)`;
+
+        data.forEach((row, i) => {
+            row[approximatedKey] = approximated[i];
+            row[diffKey] = row[yField] - approximated[i];
+        });
+
+        data.sort((a, b) => a[xField] - b[xField]);
+
+
+        Object.assign(store.state.chart, {
+            chartData: data,
+            xKey: xField,
+            yKeys: [yField, approximatedKey, diffKey]
+        });
+    } catch (error) {
+        console.log(error)
+    } finally {
+        setChartDataLoading.value = false;
+    }
+
+};
+
+function clearBases() {
+    allBases.value = {};
+    result.value = null;
 }
+
+
 </script>
+
+
 
 <style scoped>
 .num_grid {
