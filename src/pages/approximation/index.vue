@@ -245,7 +245,7 @@ import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 import icons from '@/assets/icons';
 
-import { ref, reactive } from 'vue';
+import { ref, reactive, toRefs } from 'vue';
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
@@ -493,11 +493,13 @@ function getBasisName(basis) {
 };
 
 function addVariable() {
-    customSettings.customBasis.functions.push(funcSettings.selectedFunction);
-    customSettings.customBasis.powers.push(Number(numParams.degree));
-    customSettings.customBasis.variables.push(customSettings.selectedVariable);
-    customSettings.customBasis.weight = 1;
-    customSettings.customBasis.outputDegree = funcSettings.outputDegree;
+    const { customBasis } = toRefs(customSettings);
+
+    customBasis.value.functions.push(funcSettings.selectedFunction);
+    customBasis.value.powers.push(Number(numParams.degree));
+    customBasis.value.variables.push(customSettings.selectedVariable);
+    customBasis.value.weight = 1;
+    customBasis.value.outputDegree = funcSettings.outputDegree;
 
     console.log('customSettings.customBasis_', customSettings.customBasis)
 };
