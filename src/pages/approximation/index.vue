@@ -245,36 +245,17 @@ import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 import icons from '@/assets/icons';
 
+import { useStore } from 'vuex';
 import { ref, reactive, toRefs } from 'vue';
 import { computed } from 'vue';
-import { useStore } from 'vuex';
+
+
 
 const store = useStore();
-
 const predictMenuRef = ref(null);
 const metricsMenuRef = ref(null);
 
 
-const file = ref(null);
-const aproximationLoading = ref(false);
-const getBasesLoading = ref(false);
-const setChartDataLoading = ref(false);
-
-const dataInfo = reactive({
-    data: [
-        { z: 1, y: 1, x: 2, t: 2 },
-        { z: 4, y: 2, x: 5, t: 2 },
-        { z: 9, y: 3, x: 2, t: 2 },
-        { z: 16, y: 4, x: 9, t: 2 },
-        { z: 25, y: 5, x: 4, t: 2 },
-        { z: 36, y: 6, x: 42, t: 2 },
-        { z: 49, y: 7, x: 5, t: 2 },
-        { z: 64, y: 8, x: 1, t: 2 },
-        { z: 81, y: 9, x: 9, t: 2 },
-        { z: 100, y: 10, x: 2, t: 2 }
-    ],
-    fields: ['z', 'y', 'x'],
-});
 
 const numParams = reactive({
     constant: true,
@@ -284,7 +265,6 @@ const numParams = reactive({
     L2: 1,
     stepPower: 1,
 
-
     degree: 1,
     depth: 1,
     depths: [
@@ -292,6 +272,24 @@ const numParams = reactive({
         { id: 1, val: 2 },
         { id: 2, val: 3 }
     ],
+});
+
+
+
+const customSettings = reactive({
+    selectedVariable: '',
+    defaultCustomBasis: {
+        functions: [],
+        powers: [],
+        variables: [],
+        weight: 1,
+    },
+    customBasis: {
+        functions: [],
+        powers: [],
+        variables: [],
+        weight: '',
+    },
 });
 
 const funcSettings = reactive({
@@ -317,68 +315,49 @@ const funcSettings = reactive({
     outputDegree: 1
 });
 
-const customSettings = reactive({
-    selectedVariable: '',
-    defaultCustomBasis: {
-        functions: [],
-        powers: [],
-        variables: [],
-        weight: 1,
-    },
-    customBasis: {
-        functions: [],
-        powers: [],
-        variables: [],
-        weight: '',
-    },
-});
+function addVariable() {
+    const { customBasis } = toRefs(customSettings);
+
+    customBasis.value.functions.push(funcSettings.selectedFunction);
+    customBasis.value.powers.push(Number(numParams.degree));
+    customBasis.value.variables.push(customSettings.selectedVariable);
+    customBasis.value.weight = 1;
+    customBasis.value.outputDegree = funcSettings.outputDegree;
+
+    console.log('customSettings.customBasis_', customSettings.customBasis)
+};
+
+function addCustomBasis() {
+    allBases.value[getBasisName(customSettings.customBasis)]
+        = (
+            {
+                weight: 1,
+                functions: customSettings.customBasis.functions,
+                variables: customSettings.customBasis.variables,
+                powers: customSettings.customBasis.powers,
+                outputFunc: funcSettings.selectedOutputFunction,
+                outputDegree: funcSettings.outputDegree,
+            }
+        );
+
+    console.log('allBases', allBases.value)
+};
+
+function clearCustomBasis() {
+    customSettings.customBasis = structuredClone(customSettings.defaultCustomBasis);
+};
+
+function addOutputFunc() {
+    if (funcSettings.selectedOutputFunction) {
+        customSettings.customBasis.outputFunc = funcSettings.selectedOutputFunction;
+    } else if (customSettings.customBasis.outputFunc)
+        delete customSettings.customBasis.outputFunc;
+
+};
+
+
 
 const extendedBases = ref(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']);
-
-const allBases = ref({});
-
-const metrics = ref({
-    R2: '',
-    AIC: '',
-    MSE: '',
-});
-
-const result = ref(null);
-
-
-const storeNumParams = computed(() => store.state.settings.storeNumParams);
-const successColor = computed(() => {
-    if (result.value == null) return '';
-    return result.value.success ? '#00ff0010' : '#ff000010';
-});
-
-
-
-async function makeApproximation() {
-    try {
-        aproximationLoading.value = true;
-
-        const options = {
-            data: dataInfo.data,
-            allBases: allBases.value,
-            L1: storeNumParams.value.L1,
-            L2: storeNumParams.value.L2,
-            normSmallValues: storeNumParams.value.normSmallValues,
-            multiplicationFactor: storeNumParams.value.multiplicationFactor
-        }
-
-
-        result.value = await getApproximation(options);
-
-        metrics.value = result.value.metrics;
-        allBases.value = result.value.approximatedBases;
-
-    } catch (error) {
-        console.log(error)
-    } finally {
-        aproximationLoading.value = false;
-    }
-};
 
 function addExtendedBasis() {
     if (funcSettings.outputDegree) {
@@ -386,53 +365,6 @@ function addExtendedBasis() {
             `${numParams.depth}${funcSettings.selectedFunction}^${numParams.degree}/${funcSettings.selectedOutputFunction}^${funcSettings.outputDegree}`);
     }
 
-};
-
-function filterBases() {
-    const fields = dataInfo.fields.slice(1);
-    for (let key of Object.keys(allBases.value)) {
-        for (let variable of allBases.value[key].variables) {
-            if (!fields.includes(variable)) {
-                delete allBases.value[key];
-                break;
-            }
-        }
-    }
-    console.log('exit')
-};
-
-
-
-async function getExtBases() {
-    getBasesLoading.value = true;
-    try {
-        if (Object.keys(allBases.value).length) {
-            filterBases();
-        }
-
-
-        if (dataInfo.data.length > 0) {
-            const options = {
-                extendedBases: extendedBases.value,
-                allBases: allBases.value,
-                constant: storeNumParams.value.constant,
-                stepPower: storeNumParams.value.stepPower,
-                keys: dataInfo.fields,
-            }
-
-            allBases.value = { ...getExtendedBases(options) };
-        } else {
-            store.dispatch('notify', {
-                text: 'Данные отсутствуют.',
-                color: 'warning'
-            });
-        }
-    } catch (error) {
-
-    } finally {
-        getBasesLoading.value = false;
-        console.log('basis_123', allBases.value)
-    }
 };
 
 function getExtendedBasisName(basis) {
@@ -469,93 +401,67 @@ function getExtendedBasisName(basis) {
     return name;
 };
 
-function addCustomBasis() {
 
-    allBases.value[getBasisName(customSettings.customBasis)]
-        = (
-            {
-                weight: 1,
-                functions: customSettings.customBasis.functions,
-                variables: customSettings.customBasis.variables,
-                powers: customSettings.customBasis.powers,
-                outputFunc: funcSettings.selectedOutputFunction,
-                outputDegree: funcSettings.outputDegree,
+
+const storeNumParams = computed(() => store.state.settings.storeNumParams);
+
+const dataInfo = reactive({
+    data: [],
+    fields: [],
+});
+
+
+
+const allBases = ref({});
+
+const getBasesLoading = ref(false);
+
+async function getExtBases() {
+    getBasesLoading.value = true;
+    try {
+        if (Object.keys(allBases.value).length) {
+            filterBases();
+        }
+
+        if (dataInfo.data.length > 0) {
+            const options = {
+                extendedBases: extendedBases.value,
+                allBases: allBases.value,
+                constant: storeNumParams.value.constant,
+                stepPower: storeNumParams.value.stepPower,
+                keys: dataInfo.fields,
             }
-        );
 
-    console.log('allBases', allBases.value)
+            allBases.value = { ...getExtendedBases(options) };
+        } else {
+            store.dispatch('notify', {
+                text: 'Данные отсутствуют.',
+                color: 'warning'
+            });
+        }
+    } catch (error) {
+
+    } finally {
+        getBasesLoading.value = false;
+        console.log('basis_123', allBases.value)
+    }
 };
 
-
+function filterBases() {
+    const fields = dataInfo.fields.slice(1);
+    for (let key of Object.keys(allBases.value)) {
+        for (let variable of allBases.value[key].variables) {
+            if (!fields.includes(variable)) {
+                delete allBases.value[key];
+                break;
+            }
+        }
+    }
+    console.log('exit')
+};
 
 function getBasisName(basis) {
     return getBasisKey(basis);
-};
-
-function addVariable() {
-    const { customBasis } = toRefs(customSettings);
-
-    customBasis.value.functions.push(funcSettings.selectedFunction);
-    customBasis.value.powers.push(Number(numParams.degree));
-    customBasis.value.variables.push(customSettings.selectedVariable);
-    customBasis.value.weight = 1;
-    customBasis.value.outputDegree = funcSettings.outputDegree;
-
-    console.log('customSettings.customBasis_', customSettings.customBasis)
-};
-
-function addOutputFunc() {
-    if (funcSettings.selectedOutputFunction) {
-        customSettings.customBasis.outputFunc = funcSettings.selectedOutputFunction;
-    } else if (customSettings.customBasis.outputFunc)
-        delete customSettings.customBasis.outputFunc;
-
-};
-
-
-
-function clearCustomBasis() {
-    customSettings.customBasis = structuredClone(customSettings.defaultCustomBasis);
-};
-
-async function fileUpload(event) {
-    const docFile = event.target.files[0];
-    if (docFile && docFile.name.endsWith('.xlsx')) {
-        file.value = docFile;
-        dataInfo.data = await readExcelFile(file.value);
-        dataInfo.fields = Object.keys(dataInfo.data[0]);
-        customSettings.selectedVariable = dataInfo.fields[1];
-    } else {
-        store.dispatch('notify', {
-            text: 'Пожалуйста, выберите файл формата .xlsx',
-            color: 'error'
-        });
-    }
-    event.target.value = '';
-};
-
-
-async function readExcelFile(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const data = e.target.result;
-                const workbook = read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = utils.sheet_to_json(worksheet);
-
-                console.log('Прочитанные данные:', jsonData);
-                console.log('Структура первой строки:', Object.keys(jsonData[0]));
-                resolve(jsonData);
-            } catch (error) {
-                reject(error);
-            }
-        };
-
-        reader.readAsArrayBuffer(file);
-    });
 };
 
 async function copyBasesRepresentation() {
@@ -570,6 +476,56 @@ async function copyBasesRepresentation() {
 
     await navigator.clipboard.writeText(res.slice(0, -1));
 };
+
+function clearBases() {
+    allBases.value = {};
+    result.value = null;
+}
+
+
+
+const result = ref(null);
+
+const successColor = computed(() => {
+    if (result.value == null) return '';
+    return result.value.success ? '#00ff0010' : '#ff000010';
+});
+
+const metrics = ref({
+    R2: '',
+    AIC: '',
+    MSE: '',
+});
+
+const aproximationLoading = ref(false);
+
+async function makeApproximation() {
+    try {
+        aproximationLoading.value = true;
+
+        const options = {
+            data: dataInfo.data,
+            allBases: allBases.value,
+            L1: storeNumParams.value.L1,
+            L2: storeNumParams.value.L2,
+            normSmallValues: storeNumParams.value.normSmallValues,
+            multiplicationFactor: storeNumParams.value.multiplicationFactor
+        }
+
+
+        result.value = await getApproximation(options);
+
+        metrics.value = result.value.metrics;
+        allBases.value = result.value.approximatedBases;
+
+    } catch (error) {
+        console.log(error)
+    } finally {
+        aproximationLoading.value = false;
+    }
+};
+
+const setChartDataLoading = ref(false);
 
 async function setChartData() {
     try {
@@ -603,10 +559,48 @@ async function setChartData() {
 
 };
 
-function clearBases() {
-    allBases.value = {};
-    result.value = null;
-}
+
+
+const file = ref(null);
+
+async function fileUpload(event) {
+    const docFile = event.target.files[0];
+    if (docFile && docFile.name.endsWith('.xlsx')) {
+        file.value = docFile;
+        dataInfo.data = await readExcelFile(file.value);
+        dataInfo.fields = Object.keys(dataInfo.data[0]);
+        customSettings.selectedVariable = dataInfo.fields[1];
+    } else {
+        store.dispatch('notify', {
+            text: 'Пожалуйста, выберите файл формата .xlsx',
+            color: 'error'
+        });
+    }
+    event.target.value = '';
+};
+
+async function readExcelFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = e.target.result;
+                const workbook = read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = utils.sheet_to_json(worksheet);
+
+                console.log('Прочитанные данные:', jsonData);
+                console.log('Структура первой строки:', Object.keys(jsonData[0]));
+                resolve(jsonData);
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+};
 
 
 </script>

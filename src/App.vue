@@ -23,27 +23,19 @@
   </v-app>
 </template>
 
-<script>
-import Nav from '@/components/nav.vue'
-import '@/assets/styles/defStyle.css'
-import '@/assets/styles/defBtn.css'
+<script setup>
+import Nav from '@/components/nav.vue';
+import '@/assets/styles/defStyle.css';
+import '@/assets/styles/defBtn.css';
+import { useStore } from 'vuex';
 
-export default {
-  name: 'App',
-  components: {
-    Nav
-  },
-  data() {
-    return {
+const store = useStore();
 
-    }
-  },
-  methods: {
-    stopReload() {
-      this.$store.commit('setSnackbar', false)
-    }
-  }
+function stopReload() {
+  store.commit('setSnackbar', false)
 }
+
 </script>
+
 
 <style></style>

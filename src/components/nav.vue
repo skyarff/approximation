@@ -4,28 +4,28 @@
     </v-tabs>
 </template>
 
-<script>
 
-import { routes } from '@/router/routes.js'
+<script setup>
+import { routes } from '@/router/routes.js';
+import { useRouter } from 'vue-router';
+import { ref, watch, onMounted } from 'vue';
 
-export default {
-    data() {
-        return {
-            path: routes[0].path,
-            routes: routes
-        }
-    },
-    created() {
-        this.$router.push(this.path)
-    },
-    watch: {
-        path(newVal) {
-            this.$router.push(newVal)
-        } 
-    }
-}
+
+const router = useRouter();
+const path = ref(routes[0].path);
+
+onMounted(() => {
+    router.push(path.value);
+})
+
+watch(path, (newVal) => {
+    router.push(newVal);
+});
 
 </script>
+
+
+
 
 <style scoped>
 
