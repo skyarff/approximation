@@ -239,17 +239,14 @@ import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 
 
-import { defineAsyncComponent } from 'vue'
+
 import icons from '@/assets/icons';
 
-const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {
-    acc[key] = defineAsyncComponent(value)
-    return acc
-}, {})
+
 
 export default {
     components: {
-        ...asyncIcons,
+        ...icons,
         predictMenu,
         metricsMenu,
     },

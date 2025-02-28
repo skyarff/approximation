@@ -25,7 +25,8 @@
                         <v-col cols="12">
                             <v-list density="compact" style="height: 160px; ">
                                 <v-form ref="form1">
-                                    <v-list-item class="px-0" v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index">
+                                    <v-list-item class="px-0" v-for="(variable, index) in dataInfo.fields.slice(1)"
+                                        :key="index">
                                         <v-text-field class="pt-2" :hide-details="true" variant="outlined"
                                             :rules="[v => (v === 0 || !!v) || 'Поле обязательно']"
                                             v-model="predictInfo.predictData[0][variable]" :label="variable">
@@ -73,70 +74,51 @@
     </div>
 </template>
 
-<script>
-import { calculatePredicted } from '@/app_lib/metrics';
 
-export default {
-    data() {
-        return {
-            menu: false,
-            predictInfo: {
-                predictData: [{}],
-                predictAns: ''
-            },
-        }
+<script setup>
+import { calculatePredicted } from '@/app_lib/metrics';
+import { ref, reactive } from 'vue';
+
+const props = defineProps({
+    dataInfo: {
+        type: Object
     },
-    props: {
-        dataInfo: {
-            type: Object
-        },
-        allBases: {
-            type: Object
-        }
-    },
-    computed: {
-        chartData() {
-            return this.$store.state.chart.chartData;
-        },
-        chartKeys() {
-            return {
-                xKey: this.$store.state.chart.xKey,
-                yKeys: this.$store.state.chart.yKeys,
-            }
-        },
-        xKeys() {
-            return Object.keys(this.chartData[0])
-                .filter(key => !this.chartKeys.yKeys.includes(key))
-                .map((key, index) => {
-                    return {
-                        id: index,
-                        val: key
-                    }
-                })
-        },
-        pointChart() {
-            return this.$store.state.settings.pointChart;
-        },
-    },
-    methods: {
-        switchMenu() {
-            this.menu = !this.menu;
-            if (this.menu) {
-                this.settingsClone = structuredClone(this.settings);
-            }
-        },
-        async predict() {
-            const isValid = await this.$refs.form1.validate();
-            if (isValid) {
-                this.predictInfo.predictAns =
-                    calculatePredicted([this.predictInfo.predictData[0]], this.allBases)
-                        .map(ans => ans.toFixed(4))
-                        .join(', ');
-            } else
-                alert('Вы не заполнили форму?');
-        },
+    allBases: {
+        type: Object
     }
-}
+});
+
+
+let menu = ref(false);
+function switchMenu() {
+    menu.value = !menu.value;
+};
+
+
+const predictInfo = reactive({
+    predictData: [{}],
+    predictAns: ''
+});
+const form1 = ref(null);
+async function predict() {
+    const isValid = await form1.value.validate();
+    if (isValid) {
+        predictInfo.predictAns =
+            calculatePredicted([predictInfo.predictData[0]], props.allBases)
+                .map(ans => ans.toFixed(4))
+                .join(', ');
+    } else
+        alert('Вы не заполнили форму?');
+};
+
+
+
+defineExpose({
+    switchMenu,
+    predict
+});
+
 </script>
+
 
 <style scoped></style>

@@ -8,7 +8,7 @@
             <div>
                 <v-btn @click="$refs.settingsMenu.switchMenu()" class="mr-5" :color="'#262525'" elevation="0" icon
                     size="x-small">
-                    <FilterIcon :color="`#fff`" :size="17" />
+                    <component :is="icons.FilterIcon" :color="'#fff'" :size="17" />
                 </v-btn>
                 <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsMenu" />
             </div>
@@ -17,7 +17,7 @@
 
 
         <div class="chart_div" style="height: calc(100vh - 102px);">
-            <chart ref="chart" />
+            <chart ref="chartRef" />
         </div>
     </div>
 
@@ -26,45 +26,30 @@
 </template>
 
 
-<script>
+<script setup>
+
 import icons from '@/assets/icons'
-import { defineAsyncComponent } from 'vue'
-import chart from './chart.vue';
+import { ref, reactive } from 'vue'
 import settingsMenu from './settingsMenu.vue';
+import chart from './chart.vue';
 
 
-const asyncIcons = Object.entries(icons).reduce((acc, [key, value]) => {
-    acc[key] = defineAsyncComponent(value)
-    return acc
-}, {})
+const settings = reactive({
+    min: '',
+    max: '',
+    xVal: 0
+});
 
-export default {
+const chartRef = ref(null);
 
-    components: {
-        ...asyncIcons,
-        chart,
-        settingsMenu
-    },
-    data() {
-        return {
-            settings: {
-                min: '',
-                max: '',
-                xVal: 0
-            }
-        }
-    },
-    mounted() {
-
-    },
-    methods: {
-        apply() {
-            this.$refs.chart.callChart(this.settings.min, this.settings.max);
-        }
-    },
+function apply() {
+    chartRef.value.callChart(settings.min, settings.max);
 }
 
+
 </script>
+
+
 
 <style scoped>
 .chart_div {

@@ -38,29 +38,28 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
 
-export default {
-    data() {
-        return {
-            menu: false,
-        }
+const props = defineProps({
+    metrics: {
+        type: Object
     },
-    props: {
-        metrics: {
-            type: Object
-        },
-    },
-    methods: {
-        switchMenu() {
-            this.menu = !this.menu;
-            if (this.menu) {
-                this.settingsClone = structuredClone(this.settings);
-            }
-        },
+})
 
-    }
+
+let menu = ref(false);
+function switchMenu() {
+    menu.value = !menu.value;
 }
+
+defineExpose({
+    switchMenu
+})
+
+
 </script>
+
+
 
 <style scoped></style>
