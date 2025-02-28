@@ -415,8 +415,8 @@ async function getExtBases() {
             const options = {
                 extendedBases: extendedBases.value,
                 allBases: allBases.value,
-                constant: storeNumParams.constant,
-                stepPower: storeNumParams.stepPower,
+                constant: storeNumParams.value.constant,
+                stepPower: storeNumParams.value.stepPower,
                 keys: dataInfo.fields,
             }
 
