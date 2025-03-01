@@ -1,5 +1,5 @@
 
-import wasmUrl from './gaussian_elimination.wasm?url';
+import wasmUrl from './streaming.wasm?url';
 
 
 let appLibPromise = null;

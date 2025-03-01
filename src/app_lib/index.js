@@ -1,5 +1,8 @@
 
 import { solveMatrix } from '@/app_lib/matrixOperations';
+
+import { solveLargeSystem } from '@/app_lib_wasm/solveMatrix';
+
 import { Array } from 'core-js';
 import { calculateR2, calculateAIC, calculateMSE } from './metrics';
 import { basisFunctions } from './bases';
@@ -160,7 +163,9 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
     matrix[i][matrix.length] -= L1;
   }
     
+  // const weights = await solveLargeSystem(matrix);
   const weights = await solveMatrix(matrix);
+  
   const success = weights.every(w => Number.isFinite(w));
 
   const approximatedBases = structuredClone(allBases);
