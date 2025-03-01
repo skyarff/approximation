@@ -1,9 +1,8 @@
 import { getAppLib } from './index';
 
 /**
- * 
- * @param {Array<Array<number>>} matrix
- * @returns {Promise<Array<number>|null>}
+ * @param {Array<Array<number>>} matrix - Расширенная матрица системы (коэффициенты + свободные члены)
+ * @returns {Promise<Array<number>|null>} - Массив с решением или null при ошибке
  */
 export async function solveMatrix(matrix) {
   try {
@@ -30,23 +29,19 @@ export async function solveMatrix(matrix) {
       }
     }
 
-    const dataPtr = wasm.malloc(flatArray.byteLength);
 
+    const dataPtr = wasm.malloc(flatArray.byteLength);
     new Float64Array(wasm.memory.buffer, dataPtr, flatArray.length).set(flatArray);
 
-    const solutionPtr = wasm.solve_system(dataPtr, rows, cols);
-
+    const solutionPtr = wasm.solve_matrix(dataPtr, rows, cols);
     wasm.free(dataPtr);
 
+
     if (!solutionPtr) return null;
+    const resultView = new Float64Array(wasm.memory.buffer, solutionPtr, rows);
+    const solution = Array.from(resultView);
 
-    const solution = new Array(rows);
-    for (let i = 0; i < rows; i++) {
-      solution[i] = wasm.get_solution_value(solutionPtr, i);
-    }
-
-    wasm.free_array(solutionPtr);
-
+    wasm.free_solution(solutionPtr);
     return solution;
   } catch (error) {
     console.error("Ошибка при решении матрицы:", error);
