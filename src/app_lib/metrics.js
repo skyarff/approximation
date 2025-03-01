@@ -48,6 +48,7 @@ function calculateAIC(data, allBases, success = true, predicted) {
     const n = data.length;
     const k = Object.keys(allBases).length;
 
+
     if (!predicted) 
         predicted = calculatePredicted(data, allBases);
 

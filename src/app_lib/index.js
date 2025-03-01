@@ -183,8 +183,8 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   const predicted = calculatePredicted(data, approximatedBases);
   const metrics = {
     R2: calculateR2(data, approximatedBases, success, predicted),
-    AIC: calculateAIC(data, approximatedBases, data, success, predicted),
-    MSE: calculateMSE(data, approximatedBases, data, success, predicted),
+    AIC: calculateAIC(data, approximatedBases, success, predicted),
+    MSE: calculateMSE(data, approximatedBases, success, predicted),
   }
   console.timeEnd('metrics')
 
