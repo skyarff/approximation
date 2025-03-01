@@ -16,6 +16,12 @@ void free_array(void* array);
 long double test_gauss();
 
 
+int main() 
+{
+    return 0;
+}
+
+
 
 EMSCRIPTEN_KEEPALIVE
 int sumOfNInts(int n)

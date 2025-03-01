@@ -1,1 +1,3 @@
 emcc streaming.c streaming_util.c -o streaming.js
+
+emcc add.c streaming.c streaming_util.c -o streaming.js
