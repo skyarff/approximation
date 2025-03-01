@@ -1,4 +1,4 @@
-import wasmUrl from './gaussian_elimination.wasm?url';
+import wasmUrl from './appLib.wasm?url';
 
 let appLibPromise = null;
 

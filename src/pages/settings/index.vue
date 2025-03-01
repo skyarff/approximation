@@ -143,17 +143,7 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed, onMounted } from 'vue';
-
-
-
-import { getAppLib } from '@/app_lib_wasm/index';
-
-onMounted(async () => {
-    const appLib = await getAppLib();
-    console.log('sum from set 100', appLib.sumOfNInts(100));
-    console.log('mul 120', appLib.mul(10, 12));
-})
+import { computed } from 'vue';
 
 
 

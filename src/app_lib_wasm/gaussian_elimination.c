@@ -2,15 +2,7 @@
 #include <math.h>
 #include <emscripten.h>
 
-/**
- * Оптимизированное решение системы линейных уравнений методом Гаусса
- * Использует подход схожий с JavaScript-версией
- * 
- * @param flat_matrix Плоский массив представляющий матрицу [a11,a12,...,a1n,b1, a21,a22,...,a2n,b2, ...]
- * @param rows Количество строк (уравнений)
- * @param cols Количество столбцов (переменных + 1 для свободных членов)
- * @return Указатель на массив с решением или NULL в случае ошибки
- */
+
 EMSCRIPTEN_KEEPALIVE
 double* solve_matrix(double* flat_matrix, int rows, int cols) {
     // Проверка входных данных
@@ -92,42 +84,8 @@ double* solve_matrix(double* flat_matrix, int rows, int cols) {
     return solution;
 }
 
-/**
- * Освобождает память, выделенную для решения
- */
+
 EMSCRIPTEN_KEEPALIVE
 void free_solution(double* solution) {
     if (solution) free(solution);
-}
-
-/**
- * Тестовая функция для проверки решателя
- */
-EMSCRIPTEN_KEEPALIVE
-int test_matrix() {
-    // Пример: 2x + y + z = 5, 3x + 5y + 2z = 15, x + 3y + 7z = 25
-    double test_data[] = {
-        2.0, 1.0, 1.0, 5.0,
-        3.0, 5.0, 2.0, 15.0,
-        1.0, 3.0, 7.0, 25.0
-    };
-    
-    double* solution = solve_matrix(test_data, 3, 4);
-    if (!solution) return -1;
-    
-    // Проверка результата (должно быть около x=1, y=2, z=3)
-    int correct = 1;
-    if (fabs(solution[0] - 1.0) > 1e-10) correct = 0;
-    if (fabs(solution[1] - 2.0) > 1e-10) correct = 0;
-    if (fabs(solution[2] - 3.0) > 1e-10) correct = 0;
-    
-    free_solution(solution);
-    return correct;
-}
-
-/**
- * Пустая функция main для компиляции
- */
-int main() {
-    return 0;
 }

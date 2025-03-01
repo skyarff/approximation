@@ -1,9 +1,6 @@
 import { getAppLib } from './index';
 
-/**
- * @param {Array<Array<number>>} matrix - Расширенная матрица системы (коэффициенты + свободные члены)
- * @returns {Promise<Array<number>|null>} - Массив с решением или null при ошибке
- */
+
 export async function solveMatrix(matrix) {
   try {
     // Получаем WebAssembly-модуль
