@@ -15,8 +15,16 @@ const router = useRouter();
 const path = ref(routes[0].path);
 
 onMounted(() => {
-    router.push(path.value);
-})
+    const currentPath = router.currentRoute.value.path;
+    const matchingRoute = routes.find(route => route.path === currentPath);
+    if (matchingRoute) {
+        path.value = matchingRoute.path;
+    }
+    // Только если мы находимся на корневом маршруте, выполняем перенаправление
+    else if (currentPath === '/') {
+        router.push(routes[0].path);
+    }
+});
 
 watch(path, (newVal) => {
     router.push(newVal);

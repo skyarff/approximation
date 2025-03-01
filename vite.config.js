@@ -14,6 +14,10 @@ export default defineConfig({
     }),
   ],
   define: { 'process.env': {} },
+  assetsInclude: ['**/*.wasm'],
+  build: {
+    assetsInlineLimit: 0, // Предотвратит встраивание WASM в JS
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
