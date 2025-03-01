@@ -4,7 +4,7 @@
 import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
 
 import { Array } from 'core-js';
-import { calculateR2, calculateAIC, calculateMSE } from './metrics';
+import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from './metrics';
 import { basisFunctions } from './bases';
 import WorkerPool from './workerPool';
 import PrecomputedValuesWorkerPool from './preCompWorkerPool'
@@ -157,7 +157,10 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
 
   const allBasesArr = Object.values(allBases);
 
+  console.time('matrix')
   const matrix = await computeMatrix(data, allBasesArr);
+  console.timeEnd('matrix')
+
   console.log('матрица сформирована')
 
   for (let i = 0; i < matrix.length; i++) {
@@ -175,11 +178,15 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   if (success) Object.values(approximatedBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
+
+  console.time('metrics')
+  const predicted = calculatePredicted(data, approximatedBases);
   const metrics = {
-    R2: calculateR2(data, approximatedBases, success),
-    AIC: calculateAIC(data, approximatedBases, data, success),
-    MSE: calculateMSE(data, approximatedBases, data, success),
+    R2: calculateR2(data, approximatedBases, success, predicted),
+    AIC: calculateAIC(data, approximatedBases, data, success, predicted),
+    MSE: calculateMSE(data, approximatedBases, data, success, predicted),
   }
+  console.timeEnd('metrics')
 
   console.timeEnd('approximation')
 

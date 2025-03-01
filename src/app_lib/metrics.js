@@ -24,12 +24,15 @@ function calculatePredicted(data, allBases) {
     });
 }
 
-function calculateR2(data, allBases, success = true) {
+function calculateR2(data, allBases, success = true, predicted) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
 
-    const predicted = calculatePredicted(data, allBases);
+
+    if (!predicted) 
+        predicted = calculatePredicted(data, allBases);
+    
 
     const mean = data.reduce((sum, val) => sum + val[fields[0]], 0) / data.length;
     const tss = data.reduce((sum, val) => sum + Math.pow(val[fields[0]] - mean, 2), 0);
@@ -38,14 +41,17 @@ function calculateR2(data, allBases, success = true) {
     return 1 - (rss / tss);
 }
 
-function calculateAIC(data, allBases, success = true) {
+function calculateAIC(data, allBases, success = true, predicted) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
     const n = data.length;
     const k = Object.keys(allBases).length;
 
-    const predicted = calculatePredicted(data, allBases);
+    if (!predicted) 
+        predicted = calculatePredicted(data, allBases);
+
+
     const rss = data.reduce((sum, val, i) => sum + Math.pow(val[fields[0]] - predicted[i], 2), 0);
 
     const aic = n * Math.log(rss / n) + 2 * k;
@@ -54,10 +60,12 @@ function calculateAIC(data, allBases, success = true) {
 }
 
 
-function calculateMSE(data, allBases, success = true) {
+function calculateMSE(data, allBases, success = true, predicted) {
     if (!success) return null;
 
-    const predicted = calculatePredicted(data, allBases);
+    if (!predicted) 
+        predicted = calculatePredicted(data, allBases);
+
     const fields = Object.keys(data[0]);
     const n = data.length;
 
