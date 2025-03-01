@@ -143,7 +143,21 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+
+import { appLib } from '@/app_lib_wasm/index';
+
+
+
+setTimeout(() => {
+    console.log('sum from set 100TTTTT', appLib.sumOfNInts(100));
+    console.log('mul 120', appLib.mul(10, 12))
+}, 0)
+
+
+
+
+
 
 const store = useStore();
 const storeNumParams = computed(() => store.state.settings.storeNumParams);
