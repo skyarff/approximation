@@ -1,38 +1,46 @@
-import wasmUrl from './appLib.wasm?url';
+// src/app_lib_wasm/index.js
+import './appLib.js';
 
-let appLibPromise = null;
+let modulePromise = null;
 
-function getAppLib() {
-  if (appLibPromise) return appLibPromise;
+export function getAppLib() {
+  if (modulePromise) return modulePromise;
   
-  // Создаем объект окружения для Emscripten
-  const importObject = {
-    env: {
-      // Минимальный набор необходимых функций
-      _abort_js: function() { console.error('Abort called'); },
-      emscripten_resize_heap: function() { return false; },
-      emscripten_notify_memory_growth: function() {}
-    },
-    wasi_snapshot_preview1: {
-      proc_exit: function() {},
-      fd_close: function() { return 0; },
-      fd_write: function() { return 0; },
-      fd_seek: function() { return 0; },
-      fd_read: function() { return 0; }
-    }
-  };
-  
-  appLibPromise = WebAssembly.instantiateStreaming(fetch(wasmUrl), importObject)
-    .then(result => {
-      // Просто возвращаем экспорты без попытки модификации
-      return result.instance.exports;
-    })
-    .catch(error => {
-      console.error("Ошибка загрузки WASM:", error);
-      throw error;
-    });
+  modulePromise = new Promise((resolve, reject) => {
+    window.Module = window.Module || {};
     
-  return appLibPromise;
+    // Функция для поиска файла .wasm
+    window.Module.locateFile = function(path) {
+      if (path.endsWith('.wasm')) {
+        // Используем относительный путь к appLib.wasm
+        return new URL('./appLib.wasm', import.meta.url).href;
+      }
+      return path;
+    };
+    
+    // Обработчик завершения инициализации
+    const originalOnRuntimeInitialized = window.Module.onRuntimeInitialized;
+    window.Module.onRuntimeInitialized = function() {
+      if (originalOnRuntimeInitialized) originalOnRuntimeInitialized();
+      console.log('WebAssembly модуль инициализирован');
+      resolve(window.Module);
+    };
+    
+    // Обработчик ошибок
+    const originalOnAbort = window.Module.onAbort;
+    window.Module.onAbort = function(what) {
+      if (originalOnAbort) originalOnAbort(what);
+      console.error('WebAssembly ошибка:', what);
+      reject(new Error(`WebAssembly модуль не удалось загрузить: ${what}`));
+    };
+    
+    // Таймаут на случай, если что-то пойдет не так
+    setTimeout(() => {
+      if (!window.Module._malloc) {
+        reject(new Error('Превышено время ожидания загрузки WebAssembly модуля'));
+      }
+    }, 10000);
+  });
+  
+  return modulePromise;
 }
-
-export { getAppLib };

@@ -13,6 +13,12 @@ export default defineConfig({
       autoImport: true,
     }),
   ],
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
   define: { 'process.env': {} },
   assetsInclude: ['**/*.wasm'],
   build: {

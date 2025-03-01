@@ -1,11 +1,13 @@
-import { getAppLib } from './index';
-
+// src/app_lib_wasm/solveMatrix.js
+import { getAppLib } from './moduleLoader';
 
 export async function solveMatrix(matrix) {
   console.time('wasm_matrix_solver');
   try {
     // Получаем WebAssembly-модуль
+    console.log('Получаем WebAssembly модуль...');
     const wasm = await getAppLib();
+    console.log('Модуль получен, начинаем решение матрицы');
 
     // Базовые проверки
     if (!matrix || !matrix.length) return null;
@@ -18,7 +20,7 @@ export async function solveMatrix(matrix) {
       return null;
     }
 
-    // Создаем плоский массив напрямую (быстрее, чем вложенные циклы)
+    // Создаем плоский массив 
     const flatArray = new Float64Array(rows * cols);
     let index = 0;
     for (let i = 0; i < rows; i++) {
@@ -27,19 +29,38 @@ export async function solveMatrix(matrix) {
       }
     }
 
+    // Выделяем память для данных
+    console.log(`Выделяем память для матрицы (${rows}x${cols})...`);
+    const dataPtr = wasm._malloc(flatArray.byteLength);
 
-    const dataPtr = wasm.malloc(flatArray.byteLength);
-    new Float64Array(wasm.memory.buffer, dataPtr, flatArray.length).set(flatArray);
+    // Копируем данные в память WebAssembly
+    console.log('Копируем данные...');
+    new Float64Array(wasm.HEAPF64.buffer, dataPtr, flatArray.length).set(flatArray);
 
-    const solutionPtr = wasm.solve_matrix(dataPtr, rows, cols);
-    wasm.free(dataPtr);
+    console.log(`Вызываем решатель матрицы (${rows >= 4 ? 'многопоточный' : 'однопоточный'})...`);
+    const solutionPtr = rows >= 4
+      ? wasm._solve_matrix_mt(dataPtr, rows, cols)
+      : wasm._solve_matrix(dataPtr, rows, cols);
 
+    // Освобождаем память входных данных
+    wasm._free(dataPtr);
 
-    if (!solutionPtr) return null;
-    const resultView = new Float64Array(wasm.memory.buffer, solutionPtr, rows);
-    const solution = Array.from(resultView);
+    if (!solutionPtr) {
+      console.warn("Не удалось решить матрицу (возможно вырожденная матрица)");
+      return null;
+    }
 
-    wasm.free_solution(solutionPtr);
+    // Копируем результат
+    console.log('Копируем результат...');
+    const solution = [];
+    for (let i = 0; i < rows; i++) {
+      solution.push(wasm.HEAPF64[(solutionPtr / 8) + i]);
+    }
+
+    // Освобождаем память решения
+    wasm._free_solution(solutionPtr);
+
+    console.log('Решение матрицы завершено успешно');
     return solution;
   } catch (error) {
     console.error("Ошибка при решении матрицы:", error);

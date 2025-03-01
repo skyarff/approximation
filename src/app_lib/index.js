@@ -1,18 +1,12 @@
-
-// import { solveMatrix } from '@/app_lib/matrixOperations';
-
-import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
-
 import { Array } from 'core-js';
 import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from './metrics';
 import { basisFunctions } from './bases';
 import WorkerPool from './workerPool';
-import PrecomputedValuesWorkerPool from './preCompWorkerPool'
-
-
+import PrecomputedValuesWorkerPool from './preCompWorkerPool';
+import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
+import { computeMatrixWithC } from '@/app_lib_wasm/buildMatrix';
 
 function dataNormalization(data, normSmallValues = false, multiplicationFactor = 1) {
-
   if (!normSmallValues && multiplicationFactor == 1) return;
   multiplicationFactor = parseFloat(multiplicationFactor);
 
@@ -20,14 +14,15 @@ function dataNormalization(data, normSmallValues = false, multiplicationFactor =
 
   for (let i = 0; i < data.length; i++) {
     for (let field of fields) {
-      if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor
+      if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor;
       if (normSmallValues && Math.abs(data[i][field]) < 1e-20) {
         data[i][field] = 1e-20;
       }
     }
   }
-};
+}
 
+// Оригинальная JavaScript-версия computeMatrix
 async function computeMatrix(data, allBasesArr) {
   console.log('Предвычисления');
 
@@ -69,7 +64,7 @@ async function computeMatrix(data, allBasesArr) {
 
   const simplifiedData = simplifyData(data, simplifiedBasisArr);
 
-  const prePool = new PrecomputedValuesWorkerPool(basisFunctions);
+  const prePool = new PrecomputedValuesWorkerPool();
   const preChunkSize = Math.ceil(allBasesArr.length / prePool.workers.length);
   const preChunks = [];
 
@@ -102,73 +97,79 @@ async function computeMatrix(data, allBasesArr) {
     prePool.terminate();
   }
 
-
-  console.log('Формирование матрицы');
-  const matrix = new Array(allBasesArr.length);
-
-  const pool = new WorkerPool();
-  const chunkSize = Math.ceil(allBasesArr.length / pool.workers.length);
-  const chunks = [];
-
-  for (let i = 0; i < allBasesArr.length; i += chunkSize) {
-    chunks.push({
-      start: i,
-      end: Math.min(i + chunkSize, allBasesArr.length)
-    });
-  }
-
-  try {
-    const outPutKey = Object.keys(data[0])[0];
-    const simplifiedData = data.map(item => ({
-      [outPutKey]: item[outPutKey]
+  // Используем нашу новую C-версию для построения матрицы
+  console.log('Переключение на C-версию формирования матрицы');
+  const outPutKey = Object.keys(data[0])[0];
+  const outputData = data.map(item => ({
+    [outPutKey]: item[outPutKey]
   }));
-    const results = await Promise.all(chunks.map(chunk =>
-      pool.processChunk(
-        precomputedValues,
-        chunk.start,
-        chunk.end,
-        allBasesArr.length,
-        simplifiedData,
-        outPutKey
-      )
-    ));
-
-    results.forEach((result, index) => {
-      const startIndex = chunks[index].start;
-      result.forEach((row, rowIndex) => {
-        matrix[startIndex + rowIndex] = row;
-      });
-    });
-
-
-    return matrix;
+  
+  try {
+    // Используем C-версию для построения матрицы
+    return await computeMatrixWithC(precomputedValues, outputData);
+  } catch (error) {
+    console.error('Ошибка в C-версии, возвращаемся к JavaScript:', error);
     
-  } finally {
-    pool.terminate();
+    // Резервный вариант - используем оригинальную JS-реализацию
+    console.log('Формирование матрицы (JS-версия)');
+    const matrix = new Array(allBasesArr.length);
+
+    const pool = new WorkerPool();
+    const chunkSize = Math.ceil(allBasesArr.length / pool.workers.length);
+    const chunks = [];
+
+    for (let i = 0; i < allBasesArr.length; i += chunkSize) {
+      chunks.push({
+        start: i,
+        end: Math.min(i + chunkSize, allBasesArr.length)
+      });
+    }
+
+    try {
+      const results = await Promise.all(chunks.map(chunk =>
+        pool.processChunk(
+          precomputedValues,
+          chunk.start,
+          chunk.end,
+          allBasesArr.length,
+          outputData,
+          outPutKey
+        )
+      ));
+
+      results.forEach((result, index) => {
+        const startIndex = chunks[index].start;
+        result.forEach((row, rowIndex) => {
+          matrix[startIndex + rowIndex] = row;
+        });
+      });
+
+      return matrix;
+      
+    } finally {
+      pool.terminate();
+    }
   }
 }
 
-
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
-
-  console.time('approximation')
+  console.time('approximation');
 
   dataNormalization(data, normSmallValues, multiplicationFactor);
 
   const allBasesArr = Object.values(allBases);
 
-  console.time('matrix')
+  console.time('matrix');
   const matrix = await computeMatrix(data, allBasesArr);
-  console.timeEnd('matrix')
+  console.timeEnd('matrix');
 
-  console.log('матрица сформирована')
+  console.log('матрица сформирована');
 
   for (let i = 0; i < matrix.length; i++) {
     matrix[i][i] += 2 * L2;
     matrix[i][matrix.length] -= L1;
   }
     
-  // const weights = await solveLargeSystem(matrix);
   const weights = await solveMatrix(matrix);
   
   const success = weights.every(w => Number.isFinite(w));
@@ -178,20 +179,18 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   if (success) Object.values(approximatedBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
-
-  console.time('metrics')
+  console.time('metrics');
   const predicted = calculatePredicted(data, approximatedBases);
   const metrics = {
     R2: calculateR2(data, approximatedBases, success, predicted),
     AIC: calculateAIC(data, approximatedBases, success, predicted),
     MSE: calculateMSE(data, approximatedBases, success, predicted),
-  }
-  console.timeEnd('metrics')
+  };
+  console.timeEnd('metrics');
 
-  console.timeEnd('approximation')
+  console.timeEnd('approximation');
 
   return { matrix, weights, success, metrics, approximatedBases };
 }
 
-
-export { getApproximation }
+export { getApproximation };
