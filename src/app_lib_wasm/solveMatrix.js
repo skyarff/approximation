@@ -2,6 +2,7 @@ import { getAppLib } from './index';
 
 
 export async function solveMatrix(matrix) {
+  console.time('wasm_matrix_solver');
   try {
     // Получаем WebAssembly-модуль
     const wasm = await getAppLib();
@@ -43,5 +44,7 @@ export async function solveMatrix(matrix) {
   } catch (error) {
     console.error("Ошибка при решении матрицы:", error);
     return null;
+  } finally {
+    console.timeEnd('wasm_matrix_solver');
   }
 }

@@ -1,4 +1,6 @@
 function solveMatrix(matrix) {
+
+    console.time('_matrix_solver');
     const n = matrix.length;
     
     // Прямой ход
@@ -39,8 +41,12 @@ function solveMatrix(matrix) {
         }
     }
 
+    const res = matrix.map(row => row[n]);
+
+    console.timeEnd('_matrix_solver');
+
     // Получение решения
-    return matrix.map(row => row[n]);
+    return res;
 }
 
 export { solveMatrix };

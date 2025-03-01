@@ -151,6 +151,8 @@ async function computeMatrix(data, allBasesArr) {
 
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
 
+  console.time('approximation')
+
   dataNormalization(data, normSmallValues, multiplicationFactor);
 
   const allBasesArr = Object.values(allBases);
@@ -178,6 +180,8 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
     AIC: calculateAIC(data, approximatedBases, data, success),
     MSE: calculateMSE(data, approximatedBases, data, success),
   }
+
+  console.timeEnd('approximation')
 
   return { matrix, weights, success, metrics, approximatedBases };
 }
