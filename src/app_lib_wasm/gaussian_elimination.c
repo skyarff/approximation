@@ -1,25 +1,24 @@
-#include <stdlib.h>
-#include <stdio.h>
+// #include <stdlib.h>
 #include <math.h>
 #include <emscripten.h>
 
 // Функция для обмена двух строк матрицы
-void swap_rows(long double **matrix, int row1, int row2, int cols) {
+void swap_rows(double **matrix, int row1, int row2, int cols) {
     for (int i = 0; i < cols; i++) {
-        long double temp = matrix[row1][i];
+        double temp = matrix[row1][i];
         matrix[row1][i] = matrix[row2][i];
         matrix[row2][i] = temp;
     }
 }
 
 // Функция для поиска максимального элемента в столбце для частичного выбора ведущего элемента
-int find_max_row(long double **matrix, int col, int start_row, int rows) {
+int find_max_row(double **matrix, int col, int start_row, int rows) {
     int max_row = start_row;
-    long double max_val = fabsl(matrix[start_row][col]);
+    double max_val = fabs(matrix[start_row][col]);
     
     for (int i = start_row + 1; i < rows; i++) {
-        if (fabsl(matrix[i][col]) > max_val) {
-            max_val = fabsl(matrix[i][col]);
+        if (fabs(matrix[i][col]) > max_val) {
+            max_val = fabs(matrix[i][col]);
             max_row = i;
         }
     }
@@ -36,7 +35,7 @@ int find_max_row(long double **matrix, int col, int start_row, int rows) {
  * @param solution Массив для хранения решения (должен быть размером rows)
  * @return 1 если решение найдено, 0 если система несовместна или имеет бесконечно много решений
  */
-int solve_gaussian(long double **augmented_matrix, int rows, int cols, long double *solution) {
+int solve_gaussian(double **augmented_matrix, int rows, int cols, double *solution) {
     // Прямой ход метода Гаусса (приведение к треугольному виду)
     for (int i = 0; i < rows; i++) {
         // Частичный выбор ведущего элемента
@@ -46,19 +45,19 @@ int solve_gaussian(long double **augmented_matrix, int rows, int cols, long doub
         }
         
         // Если ведущий элемент слишком мал, считаем его нулем
-        if (fabsl(augmented_matrix[i][i]) < 1e-10L) {
+        if (fabs(augmented_matrix[i][i]) < 1e-10) {
             return 0; // Система либо несовместна, либо имеет бесконечно много решений
         }
         
         // Нормализация строки i
-        long double pivot = augmented_matrix[i][i];
+        double pivot = augmented_matrix[i][i];
         for (int j = i; j < cols; j++) {
             augmented_matrix[i][j] /= pivot;
         }
         
         // Обнуление элементов ниже ведущего элемента
         for (int k = i + 1; k < rows; k++) {
-            long double factor = augmented_matrix[k][i];
+            double factor = augmented_matrix[k][i];
             for (int j = i; j < cols; j++) {
                 augmented_matrix[k][j] -= factor * augmented_matrix[i][j];
             }
@@ -86,13 +85,13 @@ int solve_gaussian(long double **augmented_matrix, int rows, int cols, long doub
  * @return Указатель на массив с решением или NULL, если решение не найдено
  */
 EMSCRIPTEN_KEEPALIVE
-long double* solve_system(long double* flat_matrix, int rows, int cols) {
+double* solve_system(double* flat_matrix, int rows, int cols) {
     // Распределение памяти для решения
-    long double* solution = (long double*)malloc(rows * sizeof(long double));
+    double* solution = (double*)malloc(rows * sizeof(double));
     if (!solution) return NULL;
     
     // Создание двумерного представления матрицы для удобства работы
-    long double** matrix = (long double**)malloc(rows * sizeof(long double*));
+    double** matrix = (double**)malloc(rows * sizeof(double*));
     if (!matrix) {
         free(solution);
         return NULL;
@@ -124,8 +123,8 @@ long double* solve_system(long double* flat_matrix, int rows, int cols) {
  * @return Указатель на созданный массив
  */
 EMSCRIPTEN_KEEPALIVE
-long double* create_solution_array(int size) {
-    return (long double*)malloc(size * sizeof(long double));
+double* create_solution_array(int size) {
+    return (double*)malloc(size * sizeof(double));
 }
 
 /**
@@ -136,7 +135,7 @@ long double* create_solution_array(int size) {
  * @return Значение переменной
  */
 EMSCRIPTEN_KEEPALIVE
-long double get_solution_value(long double* solution, int index) {
+double get_solution_value(double* solution, int index) {
     return solution[index];
 }
 
@@ -160,22 +159,22 @@ void free_array(void* array) {
  * @return Значение первой переменной или -1 в случае ошибки
  */
 EMSCRIPTEN_KEEPALIVE
-long double test_gauss() {
+double test_gauss() {
     // Расширенная матрица системы (включает коэффициенты и свободные члены)
-    long double test_matrix[3 * 4] = {
+    double test_matrix[3 * 4] = {
         2, 1, 1, 5,     // 2x + y + z = 5
         3, 5, 2, 15,    // 3x + 5y + 2z = 15
         1, 3, 7, 25     // x + 3y + 7z = 25
     };
     
     // Решаем систему
-    long double* solution = solve_system(test_matrix, 3, 4);
+    double* solution = solve_system(test_matrix, 3, 4);
     
     if (solution) {
-        long double x = solution[0];
+        double x = solution[0];
         free(solution);
         return x;
     } else {
-        return -1.0L;
+        return -1.0;
     }
 }

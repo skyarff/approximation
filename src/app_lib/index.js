@@ -163,8 +163,8 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
     matrix[i][matrix.length] -= L1;
   }
     
-  // const weights = await solveLargeSystem(matrix);
-  const weights = await solveMatrix(matrix);
+  const weights = await solveLargeSystem(matrix);
+  // const weights = await solveMatrix(matrix);
   
   const success = weights.every(w => Number.isFinite(w));
 
