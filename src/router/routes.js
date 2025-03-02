@@ -1,6 +1,6 @@
 export const routes = [
   {
-    path: '/approximation',
+    path: '/',
     name: 'Аппроксимация',
     component: () => import('@/pages/approximation/index.vue')  // Обратите внимание на () =>
   },
