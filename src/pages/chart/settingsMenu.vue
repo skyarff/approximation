@@ -75,12 +75,12 @@
 
                     <v-row>
                         <v-col class="px-0 py-0">
-                            <div @click="$store.commit('settings/pointChart')"
+                            <div @click="chartStore.switchPoint()"
                                 style="cursor: pointer; display: flex; justify-content: start; align-items: center;">
                                 <span style="margin-right: 16px; font-size: 11px;">
                                     Точечный график
                                 </span>
-                                <v-switch class="ma-0 pa-0" :color="'black'" v-model="pointChart"
+                                <v-switch class="ma-0 pa-0" :color="'black'" v-model="chartStore.pointChart"
                                     :hide-details="true" />
                             </div>
                         </v-col>
@@ -109,11 +109,13 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { computed } from 'vue';
-import { useStore } from 'vuex';
+
+import { useChartStore } from '@/store_pinia/chart';
+const chartStore = useChartStore();
 
 const emit = defineEmits(['applySettings']);
 
-const store = useStore();
+
 const props = defineProps({
     settings: {
         type: Object
@@ -125,25 +127,17 @@ let menu = ref(false);
 function switchMenu() {
     menu.value = !menu.value;
     if (menu.value) {
-        settingsClone = structuredClone(props.settings);
+        settingsClone.value = structuredClone(props.settings);
     }
 };
 
 
-const pointChart = computed(() => store.state.settings.pointChart);
 
+let settingsClone = ref({});
 
-
-let settingsClone = reactive({});
-const chartKeys = computed(() => {
-    return {
-        xKey: store.state.chart.xKey,
-        yKeys: store.state.chart.yKeys,
-    }
-});
 const xKeys = computed(() => {
-    return Object.keys(chartData.value[0])
-        .filter(key => !chartKeys.value.yKeys.includes(key))
+    return Object.keys(chartStore.chartData[0])
+        .filter(key => !chartStore.yKeys.includes(key))
         .map((key, index) => {
             return {
                 id: index,
@@ -151,14 +145,22 @@ const xKeys = computed(() => {
             }
         })
 });
-const chartData = computed(() => store.state.chart.chartData);
-function apply() {
-    for (let key of Object.keys(settingsClone))
-        props.settings[key] = settingsClone[key];
 
-    const xKey = xKeys.value[props.settings.xVal].val;
-    store.state.chart.xKey = xKey;
-    chartData.value.sort((a, b) => a[xKey] - b[xKey]);
+function apply() {
+
+    
+    for (let key of Object.keys(settingsClone.value))
+        props.settings[key] = settingsClone.value[key];
+
+        console.log('1')
+    
+
+
+    chartStore.xKey = xKeys.value[props.settings.xVal].val;
+
+    chartStore.sortChartData();
+
+    
     emit('applySettings');
 };
 
@@ -166,8 +168,8 @@ function apply() {
 function resetRange() {
     props.settings.min = '';
     props.settings.max = '';
-    settingsClone.min = '';
-    settingsClone.max = '';
+    settingsClone.value.min = '';
+    settingsClone.value.max = '';
     emit('applySettings');
 };
 

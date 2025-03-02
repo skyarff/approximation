@@ -245,13 +245,20 @@ import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 import icons from '@/assets/icons';
 
-import { useStore } from 'vuex';
 import { ref, reactive, toRefs } from 'vue';
 import { computed } from 'vue';
 
+import { useAppStore } from '@/store_pinia/app';
+const appStore = useAppStore();
+
+import { useChartStore } from '@/store_pinia/chart';
+const chartStore = useChartStore();
+
+import { useSettingsStore } from '@/store_pinia/settings'
+const settingsStore = useSettingsStore();
 
 
-const store = useStore();
+
 const predictMenuRef = ref(null);
 const metricsMenuRef = ref(null);
 
@@ -403,8 +410,6 @@ function getExtendedBasisName(basis) {
 
 
 
-const storeNumParams = computed(() => store.state.settings.storeNumParams);
-
 const dataInfo = reactive({
     data: [],
     fields: [],
@@ -427,14 +432,14 @@ async function getExtBases() {
             const options = {
                 extendedBases: extendedBases.value,
                 allBases: allBases.value,
-                constant: storeNumParams.value.constant,
-                stepPower: storeNumParams.value.stepPower,
+                constant: settingsStore.numParams.constant,
+                stepPower: settingsStore.numParams.stepPower,
                 keys: dataInfo.fields,
             }
 
             allBases.value = { ...getExtendedBases(options) };
         } else {
-            store.dispatch('notify', {
+            appStore.showEvent({
                 text: 'Данные отсутствуют.',
                 color: 'warning'
             });
@@ -506,17 +511,17 @@ async function makeApproximation() {
         const options = {
             data: dataInfo.data,
             allBases: allBases.value,
-            L1: storeNumParams.value.L1,
-            L2: storeNumParams.value.L2,
-            normSmallValues: storeNumParams.value.normSmallValues,
-            multiplicationFactor: storeNumParams.value.multiplicationFactor
+            L1: settingsStore.numParams.L1,
+            L2: settingsStore.numParams.L2,
+            normSmallValues: settingsStore.numParams.normSmallValues,
+            multiplicationFactor: settingsStore.numParams.multiplicationFactor
         }
 
         result.value = await getApproximation(options);
 
         setTimeout(() => {
             metrics.value = result.value.metrics.value;
-        },0)
+        }, 0)
 
         allBases.value = result.value.approximatedBases;
 
@@ -548,11 +553,17 @@ async function setChartData() {
         data.sort((a, b) => a[xField] - b[xField]);
 
 
-        Object.assign(store.state.chart, {
+        // chartStore.chartData = data;
+        // chartStore.xKey = xField;
+        // chartStore.yKeys = [yField, approximatedKey, diffKey];
+
+
+        Object.assign(chartStore, {
             chartData: data,
             xKey: xField,
             yKeys: [yField, approximatedKey, diffKey]
         });
+
     } catch (error) {
         console.log(error)
     } finally {
@@ -560,6 +571,8 @@ async function setChartData() {
     }
 
 };
+
+
 
 
 
@@ -573,7 +586,8 @@ async function fileUpload(event) {
         dataInfo.fields = Object.keys(dataInfo.data[0]);
         customSettings.selectedVariable = dataInfo.fields[1];
     } else {
-        store.dispatch('notify', {
+
+        appStore.showEvent({
             text: 'Пожалуйста, выберите файл формата .xlsx',
             color: 'error'
         });
@@ -609,34 +623,4 @@ async function readExcelFile(file) {
 
 
 
-<style scoped>
-.num_grid {
-    width: fit-content;
-    height: 100%;
-    position: relative;
-}
-
-.num_btn {
-    padding: 0;
-    height: 64px !important;
-    width: 64px !important;
-
-}
-
-.add_div {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    bottom: 0;
-    left: auto;
-    right: auto;
-}
-
-.truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-</style>
+<style scoped></style>

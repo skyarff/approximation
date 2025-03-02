@@ -1,5 +1,5 @@
 <template>
-    <div class="chart_wrapper">
+    <div class="chart-wrapper">
         <div v-if="chartDivOn" class="trends" ref="chartDiv"></div>
     </div>
 </template>
@@ -9,6 +9,7 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
+import { useChartStore } from '@/store_pinia/chart';
 
 export default {
     name: 'chart',
@@ -28,22 +29,16 @@ export default {
     },
     computed: {
         chartData() {
-            return this.$store.state.chart.chartData;
+            return useChartStore().chartData;
         },
         chartKeys() {
             return {
-                xKey: this.$store.state.chart.xKey,
-                yKeys: this.$store.state.chart.yKeys,
-            }
-        },
-        chartKeys() {
-            return {
-                xKey: this.$store.state.chart.xKey,
-                yKeys: this.$store.state.chart.yKeys,
+                xKey: useChartStore().xKey,
+                yKeys: useChartStore().yKeys,
             }
         },
         pointChart() {
-            return this.$store.state.settings.pointChart
+            return useChartStore().pointChart;
         },
     },
     watch: {
@@ -53,6 +48,8 @@ export default {
     },
     methods: {
         createChart(context, ref, data, chartKeys, pointChart = false, min, max) {
+
+            console.log('pointChart!!', pointChart)
 
             const root = am5.Root.new(this.$refs[ref]);
             root._logo.dispose();
@@ -127,8 +124,8 @@ export default {
                 })
             );
             legend.markers.template.setAll({
-                width: 9,  // было 8
-                height: 9, // было 8
+                width: 9,
+                height: 9,
 
             });
 
@@ -155,8 +152,11 @@ export default {
                 }
             });
 
+            console.log('fromChart_chartKeys', chartKeys)
 
             const { xKey, yKeys } = chartKeys;
+
+            console.log('xKey_xKey', xKey)
 
 
             if (min == 0) min = '';
@@ -406,7 +406,7 @@ export default {
     left: 0;
 }
 
-.chart_wrapper {
+.chart-wrapper {
     position: relative;
     height: 100%;
     width: 100%;

@@ -16,7 +16,7 @@
         </div>
 
 
-        <div class="chart_div" style="height: calc(100vh - 102px);">
+        <div class="chart-div" style="height: calc(100vh - 102px);">
             <chart ref="chartRef" />
         </div>
     </div>
@@ -53,7 +53,7 @@ function apply() {
 
 
 <style scoped>
-.chart_div {
+.chart-div {
     height: 88.8vh;
     width: 100%;
 }

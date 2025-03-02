@@ -8,18 +8,18 @@
           <component :is="Component" />
         </keep-alive>
       </router-view>
-
-
     </v-main>
-    <v-snackbar class="custom-snackbar" v-model="$store.state.notify.snackbar" :multi-line="true" :timeout="2000"
-      variant="tonal" :color="$store.state.notify.color" location="top end">
-      {{ $store.state.notify.text }}
+
+    <v-snackbar class="custom-snackbar" v-model="appStore.notify.snackbar" :multi-line="true" :timeout="2000"
+      variant="tonal" :color="appStore.notify.color" location="top end">
+      {{ appStore.notify.text }}
       <template #actions>
-        <v-btn variant="text" @click="stopReload">
+        <v-btn variant="text" @click="appStore.setSnackbar(false)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
     </v-snackbar>
+    
   </v-app>
 </template>
 
@@ -27,13 +27,10 @@
 import Nav from '@/components/nav.vue';
 import '@/assets/styles/defStyle.css';
 import '@/assets/styles/defBtn.css';
-import { useStore } from 'vuex';
 
-const store = useStore();
 
-function stopReload() {
-  store.commit('setSnackbar', false)
-}
+import { useAppStore } from './store_pinia/app';
+const appStore = useAppStore();
 
 </script>
 
