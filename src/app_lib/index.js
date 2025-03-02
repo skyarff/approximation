@@ -103,13 +103,13 @@ async function computeMatrix(data, allBasesArr) {
   const outputData = data.map(item => ({
     [outPutKey]: item[outPutKey]
   }));
-  
+
   try {
     // Используем C-версию для построения матрицы
     return await computeMatrixWithC(precomputedValues, outputData);
   } catch (error) {
     console.error('Ошибка в C-версии, возвращаемся к JavaScript:', error);
-    
+
     // Резервный вариант - используем оригинальную JS-реализацию
     console.log('Формирование матрицы (JS-версия)');
     const matrix = new Array(allBasesArr.length);
@@ -145,7 +145,7 @@ async function computeMatrix(data, allBasesArr) {
       });
 
       return matrix;
-      
+
     } finally {
       pool.terminate();
     }
@@ -169,9 +169,9 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
     matrix[i][i] += 2 * L2;
     matrix[i][matrix.length] -= L1;
   }
-    
+
   const weights = await solveMatrix(matrix);
-  
+
   const success = weights.every(w => Number.isFinite(w));
 
   const approximatedBases = structuredClone(allBases);
@@ -179,14 +179,17 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   if (success) Object.values(approximatedBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
-  console.time('metrics');
-  const predicted = calculatePredicted(data, approximatedBases);
-  const metrics = {
-    R2: calculateR2(data, approximatedBases, success, predicted),
-    AIC: calculateAIC(data, approximatedBases, success, predicted),
-    MSE: calculateMSE(data, approximatedBases, success, predicted),
-  };
-  console.timeEnd('metrics');
+  const metrics = {};
+  setTimeout(() => {
+    console.time('metrics');
+    const predicted = calculatePredicted(data, approximatedBases);
+    metrics.value = {
+      R2: calculateR2(data, approximatedBases, success, predicted),
+      AIC: calculateAIC(data, approximatedBases, success, predicted),
+      MSE: calculateMSE(data, approximatedBases, success, predicted),
+    };
+    console.timeEnd('metrics');
+  },0);
 
   console.timeEnd('approximation');
 

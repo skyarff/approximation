@@ -512,10 +512,12 @@ async function makeApproximation() {
             multiplicationFactor: storeNumParams.value.multiplicationFactor
         }
 
-
         result.value = await getApproximation(options);
 
-        metrics.value = result.value.metrics;
+        setTimeout(() => {
+            metrics.value = result.value.metrics.value;
+        },0)
+
         allBases.value = result.value.approximatedBases;
 
     } catch (error) {
