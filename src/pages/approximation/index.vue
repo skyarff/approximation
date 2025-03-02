@@ -556,12 +556,14 @@ async function setChartData() {
         // chartStore.chartData = data;
         // chartStore.xKey = xField;
         // chartStore.yKeys = [yField, approximatedKey, diffKey];
+        // chartStore.newData = true;
 
 
         Object.assign(chartStore, {
             chartData: data,
             xKey: xField,
-            yKeys: [yField, approximatedKey, diffKey]
+            yKeys: [yField, approximatedKey, diffKey],
+            newData: true
         });
 
     } catch (error) {

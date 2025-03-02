@@ -20,36 +20,36 @@ export default {
             usedColors: [],
             self: null,
             seriesVisibility: {},
+            chartStore: useChartStore(),
         }
     },
     mounted() {
         this.self = { component: this };
-        console.log('chartData перед createChart:', this.chartData);
-        this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys, this.pointChart);
+        // console.log('chartData перед createChart:', this.chartData);
+        // this.createChart(this.self, 'chartDiv', this.chartData, this.chartKeys, this.pointChart);
     },
     computed: {
         chartData() {
-            return useChartStore().chartData;
+            return this.chartStore.chartData;
         },
         chartKeys() {
             return {
-                xKey: useChartStore().xKey,
-                yKeys: useChartStore().yKeys,
+                xKey: this.chartStore.xKey,
+                yKeys: this.chartStore.yKeys,
             }
         },
         pointChart() {
-            return useChartStore().pointChart;
+            return this.chartStore.pointChart;
         },
     },
-    watch: {
-        chartData() {
+    activated() {
+        if (this.chartStore.newData) {
             this.callChart();
-        },
+            this.chartStore.newData = false;
+        }
     },
     methods: {
         createChart(context, ref, data, chartKeys, pointChart = false, min, max) {
-
-            console.log('pointChart!!', pointChart)
 
             const root = am5.Root.new(this.$refs[ref]);
             root._logo.dispose();
@@ -152,11 +152,8 @@ export default {
                 }
             });
 
-            console.log('fromChart_chartKeys', chartKeys)
 
             const { xKey, yKeys } = chartKeys;
-
-            console.log('xKey_xKey', xKey)
 
 
             if (min == 0) min = '';

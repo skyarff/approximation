@@ -148,19 +148,12 @@ const xKeys = computed(() => {
 
 function apply() {
 
-    
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
-        console.log('1')
-    
-
-
     chartStore.xKey = xKeys.value[props.settings.xVal].val;
-
     chartStore.sortChartData();
 
-    
     emit('applySettings');
 };
 
