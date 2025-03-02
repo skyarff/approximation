@@ -1,238 +1,255 @@
 <template>
-    <div class="h-100 ">
+    <div class="app-container">
+        <!-- Скрытый input для загрузки файла -->
         <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             @change="fileUpload" style="display: none" ref="fileInput" />
 
-        <div class="ef px-4 w-100" style="background: #d3e3e1;">
-            <v-btn @click="predictMenuRef.switchMenu()" class="def_btn">
-                <component :is="icons.KeyIcon" :color="'#000'" />
-                <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenuRef" />
-            </v-btn>
-            <v-btn class="def_btn" @click="setChartData">
-                <div>
-                    УСТАНОВИТЬ ДАННЫЕ
+        <!-- Верхняя панель -->
+        <header class="app-header">
+            <div class="app-title">
+                <v-icon icon="mdi-chart-areaspline" color="primary" class="mr-2" size="small" />
+                <span class="text-subtitle-2 font-weight-medium text-primary">Система аппроксимации</span>
+            </div>
+
+
+
+            <div class="action-buttons d-flex justify-end">
+                <v-tooltip text="Получить предсказание" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn @click="predictMenuRef.switchMenu()" variant="tonal" color="indigo-lighten-4" v-bind="props">
+                            <component :is="icons.KeyIcon" :color="'#000'" />
+                            <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenuRef" />
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+
+                <v-tooltip text="Установить данные в график" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn class="mr-2" color="primary" variant="flat" @click="setChartData" v-bind="props">
+                            <v-icon left class="mr-1">mdi-chart-line</v-icon>
+                            <span>УСТАНОВИТЬ ДАННЫЕ</span>
+                            <v-progress-circular v-if="setChartDataLoading" indeterminate color="white" :size="16" :width="2" class="ml-2" />
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+                
+                <v-tooltip text="Загрузить данные из Excel файла" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn color="success" variant="flat" class="mr-2" @click="$refs.fileInput.click()" v-bind="props"
+                             :class="{'file-loaded': file}">
+                            <v-icon left class="mr-1">mdi-file-upload</v-icon>
+                            <span>ЗАГРУЗИТЬ ДАННЫЕ</span>
+                            <v-icon v-if="file" class="ml-1" size="small">mdi-check-circle</v-icon>
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+                
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="app-content">
+            <!-- Панели управления - двухстрочный вариант -->
+            <div class="configuration-panel">
+                <div class="config-section">
+                    <div class="section-title">
+                        <v-icon size="small" color="#1e3a5f">mdi-function</v-icon>
+                        <span>Функция и параметры</span>
+                    </div>
+                    <div class="config-controls">
+                        <div class="control-group basis-function">
+                            <div class="control-label">Выберите функцию</div>
+                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg" 
+                                v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
+                                :item-title="item => `${item.val} (${item.label})`" item-value="val" 
+                                bg-color="white" />
+                        </div>
+                        <div class="control-group degree">
+                            <div class="control-label">Степень</div>
+                            <v-text-field density="compact" hide-details variant="outlined" class="rounded-lg"
+                                type="number" v-model="numParams.degree" bg-color="white" />
+                        </div>
+                        <div class="control-group depth">
+                            <div class="control-label">Глубина</div>
+                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
+                                v-model="numParams.depth" :items="numParams.depths" 
+                                item-title="val" item-value="val" bg-color="white" />
+                        </div>
+                    </div>
                 </div>
-                <div v-if="setChartDataLoading" class="ml-2">
-                    <v-progress-circular indeterminate color="red" :size="22" :width="4" />
+
+                <div class="config-section">
+                    <div class="section-title">
+                        <v-icon size="small" color="#1e3a5f">mdi-function-variant</v-icon>
+                        <span>Выходная функция</span>
+                    </div>
+                    <div class="config-controls">
+                        <div class="control-group output-function">
+                            <div class="control-label">Выходная функция</div>
+                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
+                                v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
+                                :item-title="item => `${item.val} (${item.label})`" item-value="val" 
+                                bg-color="white" />
+                        </div>
+                        <div class="control-group output-degree">
+                            <div class="control-label">Степень</div>
+                            <v-text-field density="compact" hide-details variant="outlined" class="rounded-lg"
+                                type="number" v-model="funcSettings.outputDegree" bg-color="white" />
+                        </div>
+                        <div class="control-group variable">
+                            <div class="control-label">Переменная</div>
+                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
+                                :disabled="!customSettings.selectedVariable"
+                                v-model="customSettings.selectedVariable" :items="dataInfo.fields.slice(1)"
+                                item-title="field" item-value="field" bg-color="white" />
+                        </div>
+                    </div>
                 </div>
-            </v-btn>
-            <v-btn :style="{ color: file ? 'green' : '' }" class="def_btn" @click="$refs.fileInput.click()">
-                ЗАГРУЗИТЬ ДАННЫЕ
-            </v-btn>
-        </div>
 
-        <div class="w-100 pa-5 pb-1">
-            <v-row>
-                <v-col cols="4">
-                    <v-card class="h-100">
-                        <v-card-title>
-                            <span style="font-size: 17px;">
-                                Управление базисами
-                            </span>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-row>
-                                <v-col class="d-flex justify-center">
-                                    <v-autocomplete :hide-details="true" variant="outlined" title="Функция участник"
-                                        v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
-                                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                                        label="Выберите функцию"></v-autocomplete>
-                                </v-col class="d-flex justify-center">
-                                <v-col>
-                                    <v-text-field :hide-details="true" variant="outlined" title="Степень базиса"
-                                        type="number" v-model="numParams.degree" label="Степень"></v-text-field>
-                                </v-col>
-                                <v-col class="d-flex justify-center">
-                                    <v-select :hide-details="true" variant="outlined" v-model="numParams.depth"
-                                        :items="numParams.depths" item-title="val" item-value="val"
-                                        label="Глубина"></v-select>
-                                </v-col>
-                            </v-row>
+                <div class="config-section action-section">
+                    <div class="action-buttons">
+                        <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
+                            @click="addExtendedBasis" class="text-white action-btn">
+                            <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                            <span>РАСШ. БАЗИС</span>
+                        </v-btn>
+                        <v-btn :disabled="!customSettings.customBasis.functions.length" color="blue-lighten-1" variant="flat" size="small"
+                            @click="addOutputFunc" class="text-white action-btn">
+                            <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
+                            <span>ВЫХ. ФУНКЦИЯ</span>
+                        </v-btn>
+                        <v-btn :disabled="!file" color="teal-lighten-1" variant="flat" size="small"
+                            @click="addVariable" class="text-white action-btn">
+                            <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+                            <span>ДОБАВИТЬ</span>
+                        </v-btn>
+                        <v-btn :disabled="!customSettings.customBasis.functions.length" color="amber-darken-1" variant="flat" size="small"
+                            @click="addCustomBasis" class="text-white action-btn">
+                            <v-icon size="small" class="mr-1">mdi-database-plus</v-icon>
+                            <span>БАЗИС</span>
+                        </v-btn>
+                        <v-btn :disabled="!file" color="red-lighten-1" variant="flat" size="small"
+                            @click="clearCustomBasis" class="text-white action-btn">
+                            <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
+                            <span>ОБНУЛИТЬ</span>
+                        </v-btn>
+                    </div>
+                </div>
+            </div>
 
-                            <v-row class="d-flex align-center">
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-autocomplete :hide-details="true" variant="outlined" title="Выходная функция"
-                                        v-model="funcSettings.selectedOutputFunction"
-                                        :items="funcSettings.basisFunctions"
-                                        :item-title="item => `${item.val} (${item.label})`" item-value="val"
-                                        label="Выберите выходную функцию"></v-autocomplete>
-                                </v-col>
+            <!-- Основные панели -->
+            <div class="panels-container">
+                <!-- Верхний ряд панелей -->
+                <div class="panels-row">
+                    <!-- Добавляемый базис -->
+                    <section class="panel adding-basis">
+                        <div class="panel-header">
+                            <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-math-integral</v-icon>
+                            <span>Добавляемый базис</span>
+                        </div>
+                        <div class="panel-content">
+                            <div v-if="customSettings.customBasis.functions.length" class="basis-preview">
+                                {{ getBasisName(customSettings.customBasis) }}
+                            </div>
+                            <div v-else class="no-data-message">
+                                <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-function</v-icon>
+                                <div>Базис не определен</div>
+                            </div>
+                        </div>
+                    </section>
 
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-text-field :hide-details="true" variant="outlined" title="Выходная степень"
-                                        type="number" label="Выходная степень" v-model="funcSettings.outputDegree" />
-                                </v-col>
+                    <!-- Расширенные базисы -->
+                    <section class="panel extended-bases">
+                        <div class="panel-header">
+                            <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-view-list</v-icon>
+                            <span>Расширенные базисы</span>
+                            <div class="panel-counter" v-if="extendedBases.length">
+                                {{ extendedBases.length }}
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="basis-list">
+                                <div v-for="(basis, index) in extendedBases" :key="index"
+                                    class="basis-item">
+                                    <div class="basis-formula">{{ getExtendedBasisName(basis) }}</div>
+                                    <v-btn icon="mdi-close" density="compact" variant="text" color="red"
+                                        @click="extendedBases.splice(index, 1)" size="x-small"></v-btn>
+                                </div>
+                                <div v-if="!extendedBases.length" class="no-data-message">
+                                    <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-database-off</v-icon>
+                                    <div>Нет расширенных базисов</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
 
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-select :hide-details="true" variant="outlined"
-                                        :disabled="!customSettings.selectedVariable"
-                                        v-model="customSettings.selectedVariable" :items="dataInfo.fields.slice(1)"
-                                        item-title="field" item-value="field" label="Переменная"></v-select>
-                                </v-col>
+                <!-- Нижний ряд - Базисы с контролами -->
+                <section class="panel bases-panel">
+                    <div class="panel-header">
+                        <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-database</v-icon>
+                        <span>Базисы</span>
+                        <div class="panel-counter" v-if="Object.keys(allBases).length">
+                            {{ Object.keys(allBases).length }}
+                        </div>
+                        
+                        <v-spacer></v-spacer>
+                        
+                        <div class="panel-actions">
+                            <v-btn color="blue-lighten-2" size="x-small" variant="text" class="text-white mr-1"
+                                @click="copyBasesRepresentation">
+                                <v-icon size="small">mdi-content-copy</v-icon>
+                            </v-btn>
+                            
+                            <v-btn color="blue-grey-lighten-1" size="x-small" variant="text" class="text-white"
+                                @click="metricsMenuRef.switchMenu()">
+                                <v-icon size="small">mdi-chart-box</v-icon>
+                                <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
+                            </v-btn>
+                        </div>
+                    </div>
+                    <div class="panel-content bases-content">
+                        <!-- Список базисов -->
+                        <div class="basis-list-container" :class="{ 'success-highlight': successColor }">
+                            <div v-for="(basisKey, index) in Object.keys(allBases)" :key="index" class="basis-item">
+                                <div class="basis-formula">{{ `${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}` }}</div>
+                                <v-btn icon="mdi-close" density="compact" variant="text" color="red"
+                                    @click="delete allBases[basisKey]" size="x-small"></v-btn>
+                            </div>
+                            <div v-if="!Object.keys(allBases).length" class="no-data-message">
+                                <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-database-off</v-icon>
+                                <div>Нет базисов</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Панель кнопок управления -->
+                        <div class="bases-actions">
+                            <v-btn color="green-darken-1" size="small" variant="flat" class="action-btn text-white" 
+                                @click="makeApproximation">
+                                <v-progress-circular v-if="aproximationLoading" indeterminate color="white" :size="16"
+                                    :width="2" class="mr-1" />
+                                <v-icon v-else size="small" class="mr-1">mdi-chart-bell-curve</v-icon>
+                                <span>АППРОКСИМАЦИЯ</span>
+                            </v-btn>
 
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" class="mb-2"
-                                        @click="addExtendedBasis">
-                                        Расш. базис
-                                    </v-btn>
-                                </v-col>
+                            <v-btn color="amber-darken-1" size="small" variant="flat" class="action-btn text-white ml-2" 
+                                :disabled="!file" @click="getExtBases">
+                                <v-progress-circular v-if="getBasesLoading" indeterminate color="white" :size="16"
+                                    :width="2" class="mr-1" />
+                                <v-icon v-else size="small" class="mr-1">mdi-database-plus</v-icon>
+                                <span>РАСШ. БАЗИСЫ</span>
+                            </v-btn>
 
-                            </v-row>
-
-                            <v-row class="d-flex align-center">
-
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true"
-                                        elevation="0" @click="addOutputFunc">
-                                        Вых. функция
-                                    </v-btn>
-                                </v-col>
-
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!file" :hide-details="true" elevation="0" @click="addVariable">
-                                        Добавить
-                                    </v-btn>
-                                </v-col>
-
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!customSettings.customBasis.functions.length" :hide-details="true"
-                                        elevation="0" @click="addCustomBasis">
-                                        Базис
-                                    </v-btn>
-                                </v-col>
-
-                                <v-col class="d-flex justify-center" cols="3">
-                                    <v-btn :disabled="!file" :hide-details="true" elevation="0"
-                                        @click="clearCustomBasis">
-                                        Обнулить
-                                    </v-btn>
-                                </v-col>
-
-
-
-                            </v-row>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-
-                <v-col cols="8" class="pl-0">
-                    <v-card class="h-100">
-                        <v-card-title>
-                            <span style="font-size: 17px;">
-                                Расширенные базисы
-                            </span>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-row>
-                                <v-col>
-                                    <v-list class="overflow-y-auto" style="height: calc(40vh - 100px)"
-                                        density="compact">
-                                        <v-list-item v-for="(basis, index) in extendedBases" :key="index"
-                                            :title="getExtendedBasisName(basis)">
-                                            <template v-slot:append>
-                                                <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
-                                                    @click="extendedBases.splice(index, 1)"></v-btn>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-col>
-                            </v-row>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-
-
-            </v-row>
-
-            <v-row class="pt-0 mt-0">
-                <v-col cols="4">
-                    <v-card class="h-100">
-                        <v-card-title>
-                            <span style="font-size: 17px;">
-                                Добавляемый базис
-                            </span>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-row class="w-100 pa-0 ma-0">
-                                <v-col class="pa-0 ma-0 overflow-y-auto">
-
-                                    <div class="pt-2">
-                                        {{ getBasisName(customSettings.customBasis) }}
-                                    </div>
-
-                                </v-col>
-                            </v-row>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-
-
-                <v-col cols="8" class="pl-0">
-                    <v-card class="h-100">
-                        <v-card-title>
-                            <span style="font-size: 17px;">
-                                Базисы
-                            </span>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-row class="h-100 w-100 pa-0 ma-0">
-                                <v-col class="pb-0">
-                                    <v-list style="height: calc(60vh - 225px);" density="compact"
-                                        :style="{ background: successColor }">
-                                        <v-list-item v-for="(basisKey, index) in Object.keys(allBases)" :key="index"
-                                            :title="`${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}`">
-                                            <template v-slot:append>
-                                                <v-btn elevation="0" icon="mdi-close" density="compact" variant="text"
-                                                    @click="delete allBases[basisKey]"></v-btn>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-col>
-                            </v-row>
-                            <v-row class="mt-0">
-                                <v-col class="d-flex justify-start">
-                                    <v-btn elevation="0" @click="copyBasesRepresentation">
-                                        Скопировать
-                                    </v-btn>
-
-                                    <v-btn @click="metricsMenuRef.switchMenu()" elevation="0"
-                                        class="d-flex justify-center align-center mx-2 px-0">
-                                        <component :is="icons.DocumentIcon" :color="'#000'" />
-                                        <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
-                                    </v-btn>
-                                </v-col>
-
-                                <v-col class="d-flex justify-end">
-                                    <v-btn elevation="0" @click="makeApproximation"
-                                        class="d-flex justify-center align-center mx-2 px-0">
-                                        <div v-if="aproximationLoading" class="mr-2">
-                                            <v-progress-circular indeterminate color="#00ff00aa" :size="22"
-                                                :width="4" />
-                                        </div>
-                                        <div>
-                                            Аппр.
-                                        </div>
-                                    </v-btn>
-
-                                    <v-btn :disabled="!file" elevation="0" class="mx-2 px-0" @click="getExtBases">
-                                        <div>
-                                            Получить расширенные базисы
-                                        </div>
-                                        <div v-if="getBasesLoading" class="ml-2">
-                                            <v-progress-circular indeterminate color="red" :size="22" :width="4" />
-                                        </div>
-                                    </v-btn>
-
-                                    <v-btn class="mx-2 px-0" elevation="0" @click="clearBases">
-                                        Очистить базисы
-                                    </v-btn>
-                                </v-col>
-                            </v-row>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-            </v-row>
-        </div>
+                            <v-btn color="red-lighten-1" size="small" variant="flat" class="action-btn text-white ml-2"
+                                @click="clearBases">
+                                <v-icon size="small" class="mr-1">mdi-delete</v-icon>
+                                <span>ОЧИСТИТЬ</span>
+                            </v-btn>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
 </template>
 
@@ -624,5 +641,329 @@ async function readExcelFile(file) {
 </script>
 
 
+<style scoped>
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #f8fafc;
+    overflow: hidden;
+}
 
-<style scoped></style>
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(to right, #f5f7fa, #e1e5ea);
+    border-bottom: 1px solid #dde3ec;
+    height: 56px;
+    flex-shrink: 0; /* Предотвратит сжатие при нехватке места */
+}
+
+.app-title {
+    display: flex;
+    align-items: center;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.file-loaded {
+    background-color: rgba(56, 142, 60, 0.8) !important; /* Темно-зеленый для подтверждения загрузки */
+}
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100% - 56px);
+}
+
+/* Панель конфигурации вверху */
+.configuration-panel {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e0e6ed;
+    margin: 8px;
+    padding: 8px;
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0; /* Предотвратит сжатие при нехватке места */
+}
+
+.config-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Позволяет flex-контейнеру сжиматься */
+}
+
+.action-section {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    color: #1e3a5f;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+.section-title .v-icon {
+    margin-right: 4px;
+}
+
+.config-controls {
+    display: flex;
+    gap: 8px;
+    flex-grow: 1;
+}
+
+/* Основные панели */
+.panels-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.panels-row {
+    display: flex;
+    height: 50%;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e0e6ed;
+    overflow: hidden;
+    margin: 0 8px 8px 8px;
+    flex: 1;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.adding-basis {
+    width: 40%;
+    min-width: 300px;
+}
+
+.extended-bases {
+    flex: 1;
+}
+
+.bases-panel {
+    flex: 1;
+    height: 50%;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(to right, #e6f0fa, #d0e6fa);
+    border-bottom: 1px solid #c4d8e9;
+    font-weight: 500;
+    font-size: 15px;
+    color: #1e3a5f;
+    flex-shrink: 0; /* Предотвратит сжатие при нехватке места */
+}
+
+.panel-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    background-color: rgba(30, 58, 95, 0.1);
+    height: 20px;
+    min-width: 20px;
+    border-radius: 10px;
+    font-size: 12px;
+    padding: 0 6px;
+}
+
+.panel-actions {
+    display: flex;
+    margin-left: auto; /* Убедимся, что действия всегда справа */
+}
+
+.panel-content {
+    padding: 0.75rem;
+    overflow-y: auto;
+    overflow-x: hidden; /* Предотвращает горизонтальный скролл */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.bases-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.basis-function, .output-function, .variable {
+    flex: 1;
+}
+
+.degree, .output-degree, .depth {
+    width: 70px;
+}
+
+.control-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.action-btn {
+    flex: 1;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    height: 32px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.basis-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    overflow-x: hidden; /* Предотвращает горизонтальный скролл */
+    height: 100%;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.basis-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f2f7fc;
+    border: 1px solid #e2ecf7;
+    border-radius: 6px;
+    transition: all 0.2s;
+    width: 100%; /* Фиксированная ширина */
+    box-sizing: border-box; /* Учитывает padding в размере */
+}
+
+.basis-item:hover {
+    background-color: #e6f1fa;
+    transform: translateX(2px); /* Сдвиг вместо роста, который может вызвать скролл */
+}
+
+.basis-formula {
+    font-family: 'Roboto Mono', monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1; /* Занимает доступное пространство */
+    margin-right: 8px; /* Отступ от кнопки удаления */
+}
+
+.basis-preview {
+    flex: 1;
+    font-family: 'Roboto Mono', monospace;
+    padding: 0.75rem;
+    background-color: #f0f7ff;
+    border-radius: 8px;
+    border: 1px solid #d1e3fa;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden; /* Предотвращает горизонтальный скролл */
+    word-break: break-word;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.basis-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    overflow-x: hidden; /* Предотвращает горизонтальный скролл */
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+    margin-bottom: 0.75rem;
+    min-height: 0; /* Важно для работы flex и overflow в Firefox */
+}
+
+.success-highlight {
+    background-color: #f0fff5 !important;
+    border-color: #d1fadf !important;
+}
+
+.bases-actions {
+    display: flex;
+    margin-top: auto;
+    flex-shrink: 0; /* Предотвратит сжатие при нехватке места */
+}
+
+.no-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    text-align: center;
+    padding: 1rem;
+    height: 100%;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #d0d7de;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 960px) {
+    .configuration-panel {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .panels-row {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .adding-basis, .extended-bases {
+        width: auto;
+        margin-bottom: 8px;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+}
+</style>

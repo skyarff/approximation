@@ -1,5 +1,5 @@
 <template>
-    <div style="overflow: hidden; background: #262525; margin-top: 10px;">
+    <div style="overflow: hidden; background: #262525;">
 
 
 
@@ -16,7 +16,7 @@
         </div>
 
 
-        <div class="chart-div" style="height: calc(100vh - 102px);">
+        <div class="chart-div" style="height: calc(100vh - 92px);">
             <chart ref="chartRef" />
         </div>
     </div>
