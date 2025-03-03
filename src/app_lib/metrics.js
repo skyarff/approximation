@@ -3,8 +3,10 @@ import { basisFunctions } from './bases';
 function calculatePredicted(data, allBases) {
     const allBasesArr = Object.values(allBases);
 
-    return data.map((_, k) => {
-        return allBasesArr.reduce((sum, b) => {
+    let grade = []
+
+    const res = data.map((_, k) => {
+        return allBasesArr.reduce((sum, b, idx) => {
 
             let val = 1;
             for (let t = 0; t < b.variables.length; t++) {
@@ -17,11 +19,31 @@ function calculatePredicted(data, allBases) {
             if ('outputDegree' in b && b.outputDegree != 1)
                 val = Math.pow(val, b.outputDegree);
                 
+            if (!grade[idx]) grade.push({
+                val: b.weight * val,
+                idx,
+            });
+            else grade[idx].val += b.weight * val;
 
             return sum + b.weight * val;
 
         }, 0);
     });
+
+    grade.sort((a, b) => Math.abs(b.val) - Math.abs(a.val));
+
+
+    let percent = 1 / 3;
+
+
+
+    grade=grade.slice(0, grade.length * percent)
+
+
+    console.log('grade', grade)
+
+    return res
+    
 }
 
 function calculateR2(data, allBases, success = true, predicted) {
