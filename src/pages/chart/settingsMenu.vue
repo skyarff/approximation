@@ -107,7 +107,7 @@
 
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 import { computed } from 'vue';
 
 import { useChartStore } from '@/store/chart';
@@ -150,6 +150,7 @@ function apply() {
 
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
+
 
     chartStore.xKey = xKeys.value[props.settings.xVal].val;
     chartStore.sortChartData();

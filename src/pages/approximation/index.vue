@@ -570,18 +570,14 @@ async function setChartData() {
         data.sort((a, b) => a[xField] - b[xField]);
 
 
-        // chartStore.chartData = data;
-        // chartStore.xKey = xField;
-        // chartStore.yKeys = [yField, approximatedKey, diffKey];
-        // chartStore.newData = true;
-
-
-        Object.assign(chartStore, {
+        const payload = {
             chartData: data,
             xKey: xField,
             yKeys: [yField, approximatedKey, diffKey],
             newData: true
-        });
+        }
+
+        chartStore.setChartData(payload);
 
     } catch (error) {
         console.log(error)
