@@ -210,7 +210,7 @@
                     </div>
                     <div class="panel-content bases-content">
                         <!-- Список базисов -->
-                        <div class="basis-list-container" :class="{ 'success-highlight': successColor }">
+                        <div class="basis-list-container" :style="{ background: successColor }">
                             <div v-for="(basisKey, index) in Object.keys(allBases)" :key="index" class="basis-item">
                                 <div class="basis-formula">{{ `${allBases[basisKey].weight} ${(basisKey != '1' ? ` * ${basisKey}` : '')}` }}</div>
                                 <v-btn icon="mdi-close" density="compact" variant="text" color="red"
@@ -535,6 +535,8 @@ async function makeApproximation() {
         }
 
         result.value = await getApproximation(options);
+
+        console.log('result.value', result.value)
 
         setTimeout(() => {
             metrics.value = result.value.metrics.value;

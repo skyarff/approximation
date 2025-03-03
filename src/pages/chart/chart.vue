@@ -15,33 +15,16 @@ import { ref, computed, nextTick, defineExpose } from 'vue'
 import { onActivated, onBeforeUnmount } from 'vue'
 
 
-const chartDivOn = ref(true);
-let usedColors = [];
+const chartStore = useChartStore();
+const chartDiv = ref(null);
 
-let root = null;
+
 const seriesVisibility = ref({});
-
-
+let root = null;
 const self = {
     seriesVisibility,
     root
 }
-
-const chartDiv = ref(null);
-
-const chartStore = useChartStore();
-
-
-
-onActivated(() => {
-    if (chartStore.newData) {
-
-        callChart();
-        chartStore.newData = false;
-    }
-});
-
-
 
 const chartKeys = computed(() => {
     return {
@@ -49,6 +32,7 @@ const chartKeys = computed(() => {
         yKeys: chartStore.yKeys,
     }
 });
+
 
 function createChart(context, ref, data, chartKeys, pointChart = false, min, max) {
 
@@ -303,25 +287,32 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     series.appear(1000);
 };
 
-function isColorSimilar(color1, color2) {
-    // Конвертируем HEX в RGB
-    const hex2Rgb = (hex) => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return [r, g, b];
-    };
 
-    const [r1, g1, b1] = hex2Rgb(color1);
-    const [r2, g2, b2] = hex2Rgb(color2);
+const chartDivOn = ref(true);
+async function disposeAndCall(func, ...args) {
+    chartDivOn.value = false;
 
-    // Вычисляем разницу между цветами
-    const threshold = 50; // порог различия
-    return Math.abs(r1 - r2) < threshold &&
-        Math.abs(g1 - g2) < threshold &&
-        Math.abs(b1 - b2) < threshold;
+    await nextTick();
+    chartDivOn.value = true;
+    await nextTick();
+
+    func(...args);
 };
 
+function callChart(min, max) {
+    disposeAndCall(
+        createChart,
+        self,
+        chartDiv,
+        chartStore.chartData,
+        chartKeys,
+        chartStore.pointChart,
+        min, max
+    )
+};
+
+
+let usedColors = [];
 function getRandomColor() {
     let newColor;
     let attempts = 0;
@@ -360,29 +351,34 @@ function getRandomColor() {
     } while (true);
 };
 
-async function disposeAndCall(func, ...args) {
-    chartDivOn.value = false;
+function isColorSimilar(color1, color2) {
+    // Конвертируем HEX в RGB
+    const hex2Rgb = (hex) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return [r, g, b];
+    };
 
-    await nextTick();
+    const [r1, g1, b1] = hex2Rgb(color1);
+    const [r2, g2, b2] = hex2Rgb(color2);
 
-    chartDivOn.value = true;
-
-    await nextTick();
-
-    func(...args);
+    // Вычисляем разницу между цветами
+    const threshold = 50; // порог различия
+    return Math.abs(r1 - r2) < threshold &&
+        Math.abs(g1 - g2) < threshold &&
+        Math.abs(b1 - b2) < threshold;
 };
 
-function callChart(min, max) {
-    disposeAndCall(
-        createChart,
-        self,
-        chartDiv,
-        chartStore.chartData,
-        chartKeys,
-        chartStore.pointChart,
-        min, max
-    )
-};
+
+
+onActivated(() => {
+    if (chartStore.newData) {
+
+        callChart();
+        chartStore.newData = false;
+    }
+});
 
 onBeforeUnmount(() => {
     if (root) {

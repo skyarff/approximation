@@ -51,6 +51,5 @@ export const useChartStore = defineStore('chart', () => {
         
     }
 
-
     return { chartData, xKey, yKeys, pointChart, newData, switchPoint, sortChartData, setChartData };
 });
