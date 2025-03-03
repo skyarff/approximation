@@ -142,7 +142,7 @@
 
 
 <script setup>
-import { useSettingsStore } from '@/store_pinia/settings'
+import { useSettingsStore } from '@/store/settings'
 
 const settingsStore = useSettingsStore();
 

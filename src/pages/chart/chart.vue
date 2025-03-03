@@ -9,7 +9,7 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
-import { useChartStore } from '@/store_pinia/chart';
+import { useChartStore } from '@/store/chart';
 
 export default {
     name: 'chart',

@@ -265,13 +265,13 @@ import icons from '@/assets/icons';
 import { ref, reactive, toRefs } from 'vue';
 import { computed } from 'vue';
 
-import { useAppStore } from '@/store_pinia/app';
+import { useAppStore } from '@/store/app';
 const appStore = useAppStore();
 
-import { useChartStore } from '@/store_pinia/chart';
+import { useChartStore } from '@/store/chart';
 const chartStore = useChartStore();
 
-import { useSettingsStore } from '@/store_pinia/settings'
+import { useSettingsStore } from '@/store/settings'
 const settingsStore = useSettingsStore();
 
 

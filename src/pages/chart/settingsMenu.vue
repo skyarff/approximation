@@ -110,7 +110,7 @@
 import { ref, reactive } from 'vue';
 import { computed } from 'vue';
 
-import { useChartStore } from '@/store_pinia/chart';
+import { useChartStore } from '@/store/chart';
 const chartStore = useChartStore();
 
 const emit = defineEmits(['applySettings']);

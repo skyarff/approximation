@@ -32,7 +32,7 @@ import '@/assets/styles/defStyle.css';
 import '@/assets/styles/defBtn.css';
 
 
-import { useAppStore } from './store_pinia/app';
+import { useAppStore } from './store/app';
 const appStore = useAppStore();
 
 
