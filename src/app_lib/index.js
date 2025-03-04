@@ -1,5 +1,4 @@
 import { Array } from 'core-js';
-import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from './metrics';
 import { basisFunctions } from './bases';
 import WorkerPool from './workerPool';
 import PrecomputedValuesWorkerPool from './preCompWorkerPool';
@@ -181,21 +180,9 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   if (success) Object.values(allBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
-  const metrics = {};
-  setTimeout(() => {
-    console.time('metrics');
-    const predicted = calculatePredicted(data, allBases);
-    metrics.value = {
-      R2: calculateR2(data, allBases, success, predicted),
-      AIC: calculateAIC(data, allBases, success, predicted),
-      MSE: calculateMSE(data, allBases, success, predicted),
-    };
-    console.timeEnd('metrics');
-  },0);
-
   console.timeEnd('approximation');
 
-  return { matrix, weights, success, metrics, allBases };
+  return { matrix, weights, success, allBases };
 }
 
 export { getApproximation };

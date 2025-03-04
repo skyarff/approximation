@@ -1,7 +1,9 @@
 import { basisFunctions } from './bases';
 
 function calculatePredicted(data, allBases) {
+
     const allBasesArr = Object.values(allBases);
+
     allBasesArr.forEach(b => b.impact = 0);
 
     const res = data.map((_, k) => {
@@ -27,8 +29,6 @@ function calculatePredicted(data, allBases) {
         }, 0);
     }); 
 
-    console.log('allBases12', allBases);
-
 
     return res;
 }
@@ -37,8 +37,7 @@ function calculateR2(data, allBases, success = true, predicted) {
     if (!success) return null;
 
     const fields = Object.keys(data[0]);
-
-
+    
     if (!predicted) 
         predicted = calculatePredicted(data, allBases);
     

@@ -61,9 +61,13 @@
                             <span>Результат прогноза</span>
                         </div>
                         
-                        <div v-if="predictInfo.predictAns" class="result-container">
-                            <div class="result-value">{{ formatResult(predictInfo.predictAns) }}</div>
-                            <div class="result-label">прогнозируемое значение</div>
+                        <div v-if="predictInfo.predictAns !== ''" class="result-container">
+                            <div class="result-value" :class="{'error-result': isNaN(parseFloat(predictInfo.predictAns))}">
+                                {{ formatResult(predictInfo.predictAns) }}
+                            </div>
+                            <div class="result-label">
+                                {{ isNaN(parseFloat(predictInfo.predictAns)) ? 'невозможно рассчитать' : 'прогнозируемое значение' }}
+                            </div>
                         </div>
                         <div v-else class="empty-result">
                             <v-icon color="grey-lighten-1" size="large">mdi-chart-bell-curve</v-icon>
@@ -106,6 +110,7 @@ const props = defineProps({
     }
 });
 
+
 let menu = ref(false);
 let isCalculating = ref(false);
 
@@ -130,7 +135,7 @@ function formatResult(result) {
             minimumFractionDigits: 2
         }).format(numValue);
     }
-    return result;
+    return 'Ошибка расчета';
 }
 
 function resetForm() {
@@ -149,13 +154,20 @@ async function predict() {
         // Добавляем небольшую задержку для визуального отображения процесса расчета
         setTimeout(() => {
             try {
-                predictInfo.predictAns =
-                    calculatePredicted([predictInfo.predictData[0]], props.allBases)
-                        .map(ans => ans.toFixed(4))
-                        .join(', ');
+                const result = calculatePredicted([predictInfo.predictData[0]], props.allBases);
+                if (result && result.length > 0) {
+                    const value = result[0];
+                    if (isNaN(value) || !isFinite(value)) {
+                        predictInfo.predictAns = 'NaN';
+                    } else {
+                        predictInfo.predictAns = value.toFixed(4);
+                    }
+                } else {
+                    predictInfo.predictAns = 'NaN';
+                }
             } catch (error) {
                 console.error('Ошибка расчета:', error);
-                // Можно добавить обработку ошибок
+                predictInfo.predictAns = 'NaN';
             } finally {
                 isCalculating.value = false;
             }
@@ -204,8 +216,8 @@ defineExpose({
 
 .panel-content {
     padding: 16px;
+    max-height: 500px;
     overflow-y: auto;
-
     background-color: #fafbfc;
 }
 
@@ -288,6 +300,7 @@ defineExpose({
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border: 1px solid #e0e6ed;
     transition: all 0.3s ease;
+    min-height: 100px;
 }
 
 .result-value {
@@ -295,12 +308,20 @@ defineExpose({
     font-size: 24px;
     font-weight: 600;
     color: #1e3a5f;
+    word-break: break-word;
+    text-align: center;
+    max-width: 100%;
+}
+
+.error-result {
+    color: #d32f2f;
 }
 
 .result-label {
     font-size: 12px;
     color: #64748b;
     margin-top: 4px;
+    text-align: center;
 }
 
 .empty-result {
@@ -315,6 +336,7 @@ defineExpose({
     color: #64748b;
     text-align: center;
     font-size: 13px;
+    min-height: 100px;
 }
 
 .empty-result .v-icon {

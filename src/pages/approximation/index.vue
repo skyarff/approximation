@@ -194,18 +194,15 @@
 
                         <v-spacer />
 
-                        <v-select 
-            
-                            :disabled="!Number.isFinite(allBasesArr[0]?.impact)"
-                            style="max-width: 110px;" density="compact" hide-details variant="outlined"
-                            class="rounded-lg mr-4"
+                        <v-select :disabled="!Number.isFinite(allBasesArr[0]?.impact)" style="max-width: 110px;"
+                            density="compact" hide-details variant="outlined" class="rounded-lg mr-4"
                             v-model="variableImpact" :items="['all', ...dataInfo.fields.slice(1)]" item-title="field"
                             item-value="field" bg-color="white" />
 
 
-                        <v-text-field :disabled="!Number.isFinite(allBasesArr[0]?.impact)" :hide-details="true" variant="outlined"
-                            title="фильтр вклада" type="number" v-model="minImpact" class="param-input mr-4"
-                            style="max-width: 110px;">
+                        <v-text-field :disabled="!Number.isFinite(allBasesArr[0]?.impact)" :hide-details="true"
+                            variant="outlined" title="фильтр вклада" type="number" v-model="minImpact"
+                            class="param-input mr-4" style="max-width: 110px;">
                             <template #label>
                                 <div class="param-label">вклад</div>
                             </template>
@@ -224,15 +221,24 @@
                         <v-spacer />
 
                         <div class="panel-actions">
-                            <v-btn color="blue-lighten-2" size="x-small" variant="text" class="text-white mr-1"
-                                @click="copyBasesRepresentation">
-                                <v-icon size="small">mdi-content-copy</v-icon>
+                            
+
+                            <v-btn style="max-width: 130px;" :disabled="!result?.success"
+                                color="indigo-lighten-1" variant="flat" size="small" @click="calculateMetrics"
+                                class="text-white action-btn mr-4">
+                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                                <span>Расч. метрики</span>
                             </v-btn>
 
                             <v-btn color="blue-grey-lighten-1" size="x-small" variant="text" class="text-white"
                                 @click="metricsMenuRef.switchMenu()">
                                 <v-icon size="small">mdi-chart-box</v-icon>
                                 <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
+                            </v-btn>
+
+                            <v-btn color="blue-lighten-2" size="x-small" variant="text" class="text-white mr-1"
+                                @click="copyBasesRepresentation">
+                                <v-icon size="small">mdi-content-copy</v-icon>
                             </v-btn>
                         </div>
                     </div>
@@ -245,7 +251,8 @@
 
                                 <v-spacer />
                                 <div v-if="allBases[basisKey].impact">
-                                    вклад {{ allBases[basisKey].impact }}
+                                    <span class="text-caption text-grey mr-2">вклад</span>
+                                    <span class="basis-formula">{{ allBases[basisKey].impact }}</span>
                                 </div>
                                 <v-spacer />
 
@@ -290,10 +297,11 @@
 </template>
 
 <script setup>
+import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from '@/app_lib/metrics';
+
 import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
 import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
-import { calculatePredicted } from '@/app_lib/metrics';
 import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 import icons from '@/assets/icons';
@@ -455,11 +463,10 @@ function getExtendedBasisName(basis) {
 
 
 
-const dataInfo = reactive({
+const dataInfo = ref({
     data: [],
     fields: [],
 });
-
 
 
 const allBases = ref({});
@@ -473,7 +480,6 @@ const allBasesKeys = computed(() => {
 const allBasesArr = computed(() => {
     return Object.values(allBases.value);
 });
-
 
 function filterBasesByImapct() {
     const keys = Object.keys(allBases.value);
@@ -500,13 +506,13 @@ async function getExtBases() {
             filterBases();
         }
 
-        if (dataInfo.data.length > 0) {
+        if (dataInfo.value.data.length > 0) {
             const options = {
                 extendedBases: extendedBases.value,
                 allBases: allBases.value,
                 constant: settingsStore.numParams.constant,
                 stepPower: settingsStore.numParams.stepPower,
-                keys: dataInfo.fields,
+                keys: dataInfo.value.fields,
             }
 
             allBases.value = { ...getExtendedBases(options) };
@@ -524,7 +530,7 @@ async function getExtBases() {
     }
 };
 function filterBases() {
-    const fields = dataInfo.fields.slice(1);
+    const fields = dataInfo.value.fields.slice(1);
     for (let key of Object.keys(allBases.value)) {
         for (let variable of allBases.value[key].variables) {
             if (!fields.includes(variable)) {
@@ -569,6 +575,18 @@ const metrics = ref({
 });
 
 
+function calculateMetrics() {
+    const data = dataInfo.value.data;
+
+    const predicted = calculatePredicted(data, allBases.value);
+    metrics.value = {
+        R2: calculateR2(data, allBases.value, result.value.success, predicted),
+        AIC: calculateAIC(data, allBases.value, result.value.success, predicted),
+        MSE: calculateMSE(data, allBases.value, result.value.success, predicted),
+    };
+}
+
+
 
 const aproximationLoading = ref(false);
 async function makeApproximation() {
@@ -576,7 +594,7 @@ async function makeApproximation() {
         aproximationLoading.value = true;
 
         const options = {
-            data: dataInfo.data,
+            data: dataInfo.value.data,
             allBases: allBases.value,
             L1: settingsStore.numParams.L1,
             L2: settingsStore.numParams.L2,
@@ -588,11 +606,7 @@ async function makeApproximation() {
 
         console.log('result.value', result.value)
 
-        setTimeout(() => {
-            metrics.value = result.value.metrics.value;
-        }, 0)
-
-        // allBases.value = result.value.approximatedBases;
+         // allBases.value = result.value.approximatedBases;
 
     } catch (error) {
         console.log(error)
@@ -605,7 +619,7 @@ async function setChartData() {
     try {
         setChartDataLoading.value = true;
 
-        const { data, fields } = dataInfo;
+        const { data, fields } = dataInfo.value;
         const [yField, xField] = fields;
 
         const approximated = calculatePredicted(data, allBases.value);
@@ -644,9 +658,9 @@ async function fileUpload(event) {
     const docFile = event.target.files[0];
     if (docFile && docFile.name.endsWith('.xlsx')) {
         file.value = docFile;
-        dataInfo.data = await readExcelFile(file.value);
-        dataInfo.fields = Object.keys(dataInfo.data[0]);
-        customSettings.selectedVariable = dataInfo.fields[1];
+        dataInfo.value.data = await readExcelFile(file.value);
+        dataInfo.value.fields = Object.keys(dataInfo.value.data[0]);
+        customSettings.selectedVariable = dataInfo.value.fields[1];
     } else {
 
         appStore.showEvent({
