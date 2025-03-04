@@ -155,6 +155,8 @@ async function computeMatrix(data, allBasesArr) {
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
   console.time('approximation');
 
+  console.log('allBasesallBases',allBases )
+
   dataNormalization(data, normSmallValues, multiplicationFactor);
 
   const allBasesArr = Object.values(allBases);
@@ -174,26 +176,26 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
 
   const success = weights.every(w => Number.isFinite(w));
 
-  const approximatedBases = structuredClone(allBases);
 
-  if (success) Object.values(approximatedBases)
+
+  if (success) Object.values(allBases)
     .forEach((basis, index) => basis.weight = weights[index]);
 
   const metrics = {};
   setTimeout(() => {
     console.time('metrics');
-    const predicted = calculatePredicted(data, approximatedBases);
+    const predicted = calculatePredicted(data, allBases);
     metrics.value = {
-      R2: calculateR2(data, approximatedBases, success, predicted),
-      AIC: calculateAIC(data, approximatedBases, success, predicted),
-      MSE: calculateMSE(data, approximatedBases, success, predicted),
+      R2: calculateR2(data, allBases, success, predicted),
+      AIC: calculateAIC(data, allBases, success, predicted),
+      MSE: calculateMSE(data, allBases, success, predicted),
     };
     console.timeEnd('metrics');
   },0);
 
   console.timeEnd('approximation');
 
-  return { matrix, weights, success, metrics, approximatedBases };
+  return { matrix, weights, success, metrics, allBases };
 }
 
 export { getApproximation };
