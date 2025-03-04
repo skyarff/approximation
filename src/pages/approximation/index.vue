@@ -378,7 +378,8 @@ const funcSettings = reactive({
         { id: 12, val: 'abs', label: 'Модуль' },
         { id: 13, val: 'sinh', label: 'Гиперболический синус' },
         { id: 14, val: 'cosh', label: 'Гиперболический косинус' },
-        { id: 15, val: 'tanh', label: 'Гиперболический тангенс' }
+        { id: 15, val: 'tanh', label: 'Гиперболический тангенс' },
+        { id:16, val: '(2x + 3)', label: '2x + 3'}
     ],
     selectedFunction: '',
     selectedOutputFunction: '',

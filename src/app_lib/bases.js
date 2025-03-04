@@ -5,6 +5,8 @@ const basisFunctions = {
                 return () => 1;
             case '':
                 return x => x;
+            case '(2x + 3)':
+                return x => 2 * x + 3;
             case 'sqrt':
                 return x => Math.sqrt(x);
             case 'sin':
@@ -78,22 +80,22 @@ function getBasisKey(basis) {
         else
             name += ` * ${basis.variables[i]}^${basis.powers[i]}`;
     }
-        
+
     name = name.substring(3)
 
-    if (basis.outputFunc) 
+    if (basis.outputFunc)
         name = `${basis.outputFunc}(${name})`;
     if ('outputDegree' in basis && basis.outputDegree != 1) {
         if (!basis.outputFunc) name = `(${name})`;
         name = `${name}^${basis.outputDegree}`
     }
-        
+
 
     return name;
 
 }
 
-function getExtendedBases({keys = ['x'], extendedBases = ['1^1'], allBases = {}, constant = true, stepPower = 1} = {}) {
+function getExtendedBases({ keys = ['x'], extendedBases = ['1^1'], allBases = {}, constant = true, stepPower = 1 } = {}) {
 
     stepPower = parseFloat(stepPower);
 

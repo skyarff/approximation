@@ -6,6 +6,8 @@ const precomputedWorkerCode = `
           return () => 1;
         case '':
           return x => x;
+        case '(2x + 3)':
+          return x => 2 * x + 3;
         case 'sqrt':
           return x => Math.sqrt(x);
         case 'sin':
