@@ -5,49 +5,7 @@
             @change="fileUpload" style="display: none" ref="fileInput" />
 
         <!-- Верхняя панель -->
-        <header class="app-header">
-            <div class="app-title">
-                <v-icon icon="mdi-chart-areaspline" color="primary" class="mr-2" size="small" />
-                <span class="text-subtitle-2 font-weight-medium text-primary">Система аппроксимации</span>
-            </div>
 
-
-
-            <div class="action-buttons d-flex justify-end">
-                <v-tooltip text="Получить предсказание" location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn @click="predictMenuRef.switchMenu()" variant="tonal" color="indigo-lighten-4"
-                            v-bind="props">
-                            <component :is="icons.KeyIcon" :color="'#000'" />
-                            <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenuRef" />
-                        </v-btn>
-                    </template>
-                </v-tooltip>
-
-                <v-tooltip text="Установить данные в график" location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn class="mr-2" color="primary" variant="flat" @click="setChartData" v-bind="props">
-                            <v-icon left class="mr-1">mdi-chart-line</v-icon>
-                            <span>УСТАНОВИТЬ ДАННЫЕ</span>
-                            <v-progress-circular v-if="setChartDataLoading" indeterminate color="white" :size="16"
-                                :width="2" class="ml-2" />
-                        </v-btn>
-                    </template>
-                </v-tooltip>
-
-                <v-tooltip text="Загрузить данные из Excel файла" location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn color="success" variant="flat" class="mr-2" @click="$refs.fileInput.click()"
-                            v-bind="props" :class="{ 'file-loaded': file }">
-                            <v-icon left class="mr-1">mdi-file-upload</v-icon>
-                            <span>ЗАГРУЗИТЬ ДАННЫЕ</span>
-                            <v-icon v-if="file" class="ml-1" size="small">mdi-check-circle</v-icon>
-                        </v-btn>
-                    </template>
-                </v-tooltip>
-
-            </div>
-        </header>
 
         <!-- Основной контент -->
         <main class="app-content">
@@ -59,6 +17,7 @@
                         <span>Функция и параметры</span>
                     </div>
                     <div class="config-controls">
+
                         <div class="control-group basis-function">
                             <div class="control-label">Выберите функцию</div>
                             <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
@@ -76,6 +35,7 @@
                                 v-model="numParams.depth" :items="numParams.depths" item-title="val" item-value="val"
                                 bg-color="white" />
                         </div>
+
                     </div>
                 </div>
 
@@ -107,32 +67,73 @@
                 </div>
 
                 <div class="config-section action-section">
-                    <div class="action-buttons">
-                        <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
-                            @click="addExtendedBasis" class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
-                            <span>РАСШ. БАЗИС</span>
-                        </v-btn>
-                        <v-btn :disabled="!customSettings.customBasis.functions.length" color="blue-lighten-1"
-                            variant="flat" size="small" @click="addOutputFunc" class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
-                            <span>ВЫХ. ФУНКЦИЯ</span>
-                        </v-btn>
-                        <v-btn :disabled="!file" color="teal-lighten-1" variant="flat" size="small" @click="addVariable"
-                            class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-plus</v-icon>
-                            <span>ДОБАВИТЬ</span>
-                        </v-btn>
-                        <v-btn :disabled="!customSettings.customBasis.functions.length" color="amber-darken-1"
-                            variant="flat" size="small" @click="addCustomBasis" class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-database-plus</v-icon>
-                            <span>БАЗИС</span>
-                        </v-btn>
-                        <v-btn :disabled="!file" color="red-lighten-1" variant="flat" size="small"
-                            @click="clearCustomBasis" class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
-                            <span>ОБНУЛИТЬ</span>
-                        </v-btn>
+
+                    <div class="action-section-content">
+                        <!-- Верхний ряд с главными кнопками -->
+                        <div class="top-actions mb-2">
+                            <v-tooltip text="Получить предсказание" location="bottom">
+                                <template v-slot:activator="{ props }">
+                                    <v-btn @click="predictMenuRef.switchMenu()" variant="tonal" color="indigo-lighten-4"
+                                        v-bind="props" :class="['action-main-btn']">
+                                        <component :is="icons.KeyIcon" :color="'#000'" />
+                                        <predictMenu :allBases="allBases" :dataInfo="dataInfo" ref="predictMenuRef" />
+                                    </v-btn>
+                                </template>
+                            </v-tooltip>
+
+                            <v-tooltip text="Установить данные в график" location="bottom">
+                                <template v-slot:activator="{ props }">
+                                    <v-btn :class="['ml-2', 'action-main-btn']" color="primary" variant="flat"
+                                        @click="setChartData" v-bind="props">
+                                        <v-icon left class="mr-1">mdi-chart-line</v-icon>
+                                        <span>ДАННЫЕ</span>
+                                        <v-progress-circular v-if="setChartDataLoading" indeterminate color="white"
+                                            :size="16" :width="2" class="ml-2" />
+                                    </v-btn>
+                                </template>
+                            </v-tooltip>
+
+                            <v-tooltip text="Загрузить данные из Excel файла" location="bottom">
+                                <template v-slot:activator="{ props }">
+                                    <v-btn color="success" variant="flat"
+                                        :class="['ml-2', 'action-main-btn', { 'file-loaded': file }]"
+                                        @click="$refs.fileInput.click()" v-bind="props">
+                                        <v-icon left class="mr-1">mdi-file-upload</v-icon>
+                                        <span>ЗАГРУЗИТЬ</span>
+                                        <v-icon v-if="file" class="ml-1" size="small">mdi-check-circle</v-icon>
+                                    </v-btn>
+                                </template>
+                            </v-tooltip>
+                        </div>
+
+                        <!-- Нижний ряд с вторичными кнопками -->
+                        <div class="bottom-actions">
+                            <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
+                                @click="addExtendedBasis" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                                <span>РАСШ. БАЗИС</span>
+                            </v-btn>
+                            <v-btn :disabled="!customSettings.customBasis.functions.length" color="blue-lighten-1"
+                                variant="flat" size="small" @click="addOutputFunc" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
+                                <span>ВЫХ. ФУНКЦИЯ</span>
+                            </v-btn>
+                            <v-btn :disabled="!file" color="teal-lighten-1" variant="flat" size="small"
+                                @click="addVariable" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+                                <span>ДОБАВИТЬ</span>
+                            </v-btn>
+                            <v-btn :disabled="!customSettings.customBasis.functions.length" color="amber-darken-1"
+                                variant="flat" size="small" @click="addCustomBasis" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-database-plus</v-icon>
+                                <span>БАЗИС</span>
+                            </v-btn>
+                            <v-btn :disabled="!file" color="red-lighten-1" variant="flat" size="small"
+                                @click="clearCustomBasis" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
+                                <span>ОБНУЛИТЬ</span>
+                            </v-btn>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -194,11 +195,14 @@
 
                         <v-spacer />
 
+                        <div>
+                            <span class="text-caption text-grey mr-4">Удалить базисы</span>
+                        </div>
+
                         <v-select :disabled="!Number.isFinite(allBasesArr[0]?.impact)" style="max-width: 110px;"
                             density="compact" hide-details variant="outlined" class="rounded-lg mr-4"
                             v-model="variableImpact" :items="['all', ...dataInfo.fields.slice(1)]" item-title="field"
                             item-value="field" bg-color="white" />
-
 
                         <v-text-field :disabled="!Number.isFinite(allBasesArr[0]?.impact)" :hide-details="true"
                             variant="outlined" title="фильтр вклада" type="number" v-model="minImpact"
@@ -221,23 +225,23 @@
                         <v-spacer />
 
                         <div class="panel-actions">
-                            
 
-                            <v-btn style="max-width: 130px;" :disabled="!result?.success"
-                                color="indigo-lighten-1" variant="flat" size="small" @click="calculateMetrics"
+
+                            <v-btn style="max-width: 130px;" :disabled="!result?.success" color="indigo-lighten-1"
+                                variant="flat" size="small" @click="calculateMetrics"
                                 class="text-white action-btn mr-4">
                                 <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
                                 <span>Расч. метрики</span>
                             </v-btn>
 
-                            <v-btn color="blue-grey-lighten-1" size="x-small" variant="text" class="text-white"
-                                @click="metricsMenuRef.switchMenu()">
+                            <v-btn :disabled="!allBasesKeys.length" color="blue-grey-lighten-1" size="x-small"
+                                variant="text" class="text-white" @click="metricsMenuRef.switchMenu()">
                                 <v-icon size="small">mdi-chart-box</v-icon>
                                 <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
                             </v-btn>
 
-                            <v-btn color="blue-lighten-2" size="x-small" variant="text" class="text-white mr-1"
-                                @click="copyBasesRepresentation">
+                            <v-btn :disabled="!allBasesKeys.length" color="blue-lighten-2" size="x-small" variant="text"
+                                class="text-white mr-1" @click="copyBasesRepresentation">
                                 <v-icon size="small">mdi-content-copy</v-icon>
                             </v-btn>
                         </div>
@@ -606,7 +610,7 @@ async function makeApproximation() {
 
         console.log('result.value', result.value)
 
-         // allBases.value = result.value.approximatedBases;
+        // allBases.value = result.value.approximatedBases;
 
     } catch (error) {
         console.log(error)
@@ -622,7 +626,7 @@ async function setChartData() {
         const { data, fields } = dataInfo.value;
         const [yField, xField] = fields;
 
-        const approximated = calculatePredicted(data, allBases.value);
+        const approximated = calculatePredicted(data, allBases.value, false);
         const approximatedKey = `${yField} (approximated)`;
         const diffKey = `${yField} (difference)`;
 
@@ -786,7 +790,7 @@ async function readExcelFile(file) {
 .config-controls {
     display: flex;
     gap: 8px;
-    flex-grow: 1;
+    /* flex-grow: 1; */
 }
 
 /* Основные панели */
@@ -821,8 +825,7 @@ async function readExcelFile(file) {
 }
 
 .adding-basis {
-    width: 40%;
-    min-width: 300px;
+    max-width: 38.2%;
 }
 
 .extended-bases {
@@ -1028,6 +1031,58 @@ async function readExcelFile(file) {
     border: 1px dashed #d0d7de;
 }
 
+
+
+.action-section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0.75rem;
+    background-color: #f9fafc;
+    border-radius: 6px;
+    border: 1px solid #e8edf4;
+}
+
+.action-section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.top-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.bottom-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.action-main-btn {
+    padding: 0 12px !important;
+    height: 36px !important;
+    flex: 1;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.action-btn {
+    flex: 1;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    height: 32px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
 /* Адаптивность для маленьких экранов */
 @media (max-width: 960px) {
     .configuration-panel {
@@ -1040,7 +1095,6 @@ async function readExcelFile(file) {
         height: auto;
     }
 
-    .adding-basis,
     .extended-bases {
         width: auto;
         margin-bottom: 8px;

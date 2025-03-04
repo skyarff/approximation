@@ -1,10 +1,11 @@
 import { basisFunctions } from './bases';
 
-function calculatePredicted(data, allBases) {
+function calculatePredicted(data, allBases, metrics = true) {
 
     const allBasesArr = Object.values(allBases);
 
-    allBasesArr.forEach(b => b.impact = 0);
+    if (metrics)
+        allBasesArr.forEach(b => b.impact = 0);
 
     const res = data.map((_, k) => {
         return allBasesArr.reduce((sum, b) => {
@@ -21,8 +22,11 @@ function calculatePredicted(data, allBases) {
                 val = Math.pow(val, b.outputDegree);
 
 
-            if (b.impact) b.impact += b.weight * val;
-            else b.impact = b.weight * val;
+            if (metrics) {
+                if (b.impact) b.impact += b.weight * val;
+                else b.impact = b.weight * val;
+            }
+            
 
             return sum + b.weight * val;
 
