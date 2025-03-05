@@ -1,39 +1,9 @@
 <template>
     <div>
-      <h1 class="text-center text-xl font-bold mb-4">Визуализация параболоида y = a·x² + b·z²</h1>
       <Chart ref="chartRef" />
       
       <div class="controls mt-4">
-        <v-expansion-panels>
-          <v-expansion-panel>
-            <v-expansion-panel-title>
-              Управление параметрами
-            </v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <div class="px-4 py-2">
-                <v-slider
-                  v-model="paramA"
-                  label="Параметр a"
-                  :min="0.1"
-                  :max="2"
-                  :step="0.1"
-                  thumb-label
-                  @update:model-value="updateChart"
-                ></v-slider>
-                
-                <v-slider
-                  v-model="paramB"
-                  label="Параметр b"
-                  :min="0.1"
-                  :max="2"
-                  :step="0.1"
-                  thumb-label
-                  @update:model-value="updateChart"
-                ></v-slider>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
+
         
         <!-- Кнопки управления вращением -->
         <div class="rotation-controls mt-4">
@@ -100,43 +70,7 @@
           Используйте мышь для произвольного вращения, колесико для масштабирования
         </div>
         
-        <v-card class="mt-4">
-          <v-card-title class="text-center">Обозначения</v-card-title>
-          <v-card-text>
-            <div class="d-flex flex-wrap justify-space-around">
-              <div class="d-flex align-center">
-                <div style="width: 20px; height: 3px; background-color: #FF0000; margin-right: 4px;"></div>
-                <span class="font-weight-bold red--text">→</span>
-                <span class="ml-1">Ось X (вправо)</span>
-              </div>
-              <div class="d-flex align-center">
-                <div style="width: 20px; height: 3px; background-color: #0000FF; margin-right: 4px;"></div>
-                <span class="font-weight-bold blue--text">⊙</span>
-                <span class="ml-1">Ось Y (на вас)</span>
-              </div>
-              <div class="d-flex align-center">
-                <div style="width: 20px; height: 3px; background-color: #00FF00; margin-right: 4px;"></div>
-                <span class="font-weight-bold green--text">↑</span>
-                <span class="ml-1">Ось Z (вверх)</span>
-              </div>
-            </div>
-            
-            <div class="d-flex flex-wrap justify-space-around mt-4">
-              <div class="d-flex align-center">
-                <span class="inline-block" style="width: 12px; height: 12px; background-color: #FF5252; margin-right: 4px;"></span>
-                <span>Точки параболоида</span>
-              </div>
-              <div class="d-flex align-center">
-                <span class="inline-block" style="width: 12px; height: 12px; background-color: #0000FF; opacity: 0.5; margin-right: 4px;"></span>
-                <span>Плоскость XZ (y=0)</span>
-              </div>
-              <div class="d-flex align-center">
-                <span class="inline-block" style="width: 12px; height: 12px; background-color: #00FF00; opacity: 0.5; margin-right: 4px;"></span>
-                <span>Плоскость XY (z=0)</span>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
+
       </div>
     </div>
   </template>

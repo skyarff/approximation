@@ -8,35 +8,170 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { useChartStore } from '@/store/chart';
-  import { ref, onMounted, onBeforeUnmount } from 'vue';
+  import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
   
   const chartDiv = ref(null);
   const chartStore = useChartStore();
   
-  // Параметры для параболоида
+  // Параметры для параболоида (используются только если нет данных)
   let a = 1;  // коэффициент при x²
   let b = 1;  // коэффициент при y²
   const resolution = 50;  // разрешение (количество точек) сетки
   
-  let scene, camera, renderer, controls;
-  let paraboloid, group;
+  // Параметры осей
+  const axisLength = 8; // Увеличиваем длину осей
+  const axisTickStep = 1; // Шаг между отметками на осях
   
-  // Создание параболоида с точками (поменяли Y и Z)
+  let scene, camera, renderer, controls;
+  let pointsObject, group;
+  let gridXY, gridXZ, gridYZ; // Ссылки на сетки вместо цветных плоскостей
+  
+  // Получаем данные из хранилища и нормализуем их
+  const normalizedData = computed(() => {
+    // Проверяем, есть ли данные
+    if (!chartStore.chartData || chartStore.chartData.length === 0) {
+      return [];
+    }
+  
+    // Определяем первый элемент, чтобы понять структуру данных
+    const firstItem = chartStore.chartData[0];
+    const keys = Object.keys(firstItem);
+  
+    // Создаем нормализованные данные
+    return chartStore.chartData.map(item => {
+      // Если есть ключи x, y1, y2 и структура как в примере
+      if (keys.includes('x')) {
+        // Если есть y1, но нет y2, то это 1 входная и 1 выходная
+        if (keys.includes('y1') && !keys.includes('y2')) {
+          return { x: 0, y: item.y1, z: item.x };
+        }
+        // Если есть и y1, и y2, то y1 - выходная (z), y2 - первая входная (y), x - вторая входная (x)
+        else if (keys.includes('y1') && keys.includes('y2')) {
+          return { x: item.x, y: item.y2, z: item.y1 };
+        }
+        // Если есть только x, то x - выходная (z), добавляем y=0
+        else {
+          return { x: 0, y: 0, z: item.x };
+        }
+      }
+      // Если другая структура или неполные данные
+      else {
+        const result = { x: 0, y: 0, z: 0 };
+        
+        // Заполняем объект имеющимися данными
+        for (const key in item) {
+          if (key.toLowerCase() === 'x') result.x = item[key];
+          else if (key.toLowerCase() === 'y') result.y = item[key];
+          else if (key.toLowerCase() === 'z') result.z = item[key];
+        }
+        
+        return result;
+      }
+    });
+  });
+  
+  // Функция для включения/выключения видимости сеток
+  const toggleGrids = (showXY = true, showXZ = true, showYZ = true) => {
+    if (gridXY) gridXY.visible = showXY;
+    if (gridXZ) gridXZ.visible = showXZ;
+    if (gridYZ) gridYZ.visible = showYZ;
+    
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  };
+  
+  // Создание точек из данных
+  const createPointsFromData = () => {
+    // Удаляем предыдущий объект, если он существует
+    if (pointsObject) {
+      group.remove(pointsObject);
+    }
+    
+    // Получаем нормализованные данные
+    const points = normalizedData.value;
+    
+    // Если данных нет, используем формулу параболоида
+    if (points.length === 0) {
+      createParaboloidWithPoints();
+      return;
+    }
+    
+    // Материал для точек
+    const material = new THREE.PointsMaterial({
+      color: 0xFF5252,
+      size: 0.2,  // Увеличиваем размер точек для лучшей видимости
+      sizeAttenuation: true
+    });
+    
+    // Создаем геометрию для всех точек
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(points.length * 3);
+    
+    // Находим минимальные и максимальные значения для масштабирования
+    const ranges = {
+      x: { min: Infinity, max: -Infinity },
+      y: { min: Infinity, max: -Infinity },
+      z: { min: Infinity, max: -Infinity }
+    };
+    
+    points.forEach(point => {
+      ranges.x.min = Math.min(ranges.x.min, point.x);
+      ranges.x.max = Math.max(ranges.x.max, point.x);
+      ranges.y.min = Math.min(ranges.y.min, point.y);
+      ranges.y.max = Math.max(ranges.y.max, point.y);
+      ranges.z.min = Math.min(ranges.z.min, point.z);
+      ranges.z.max = Math.max(ranges.z.max, point.z);
+    });
+    
+    const scales = {
+      x: ranges.x.max - ranges.x.min !== 0 ? 6 / (ranges.x.max - ranges.x.min) : 1,
+      y: ranges.y.max - ranges.y.min !== 0 ? 6 / (ranges.y.max - ranges.y.min) : 1,
+      z: ranges.z.max - ranges.z.min !== 0 ? 6 / (ranges.z.max - ranges.z.min) : 1
+    };
+    
+    const offsets = {
+      x: (ranges.x.max + ranges.x.min) / 2,
+      y: (ranges.y.max + ranges.y.min) / 2,
+      z: (ranges.z.max + ranges.z.min) / 2
+    };
+    
+    // Заполняем массив позиций с масштабированием
+    points.forEach((point, i) => {
+      positions[i * 3] = (point.x - offsets.x) * scales.x;
+      positions[i * 3 + 1] = (point.y - offsets.y) * scales.y;
+      positions[i * 3 + 2] = (point.z - offsets.z) * scales.z;
+    });
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    
+    // Создаем объект точек и добавляем его в группу
+    pointsObject = new THREE.Points(geometry, material);
+    // Важно: отключаем автоматическое вращение
+    pointsObject.rotation.set(0, 0, 0);
+    group.add(pointsObject);
+    
+    // Сразу обновляем рендер после добавления точек
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  };
+  
+  // Создание параболоида с точками (для случая, когда нет данных)
   const createParaboloidWithPoints = () => {
     // Удаляем предыдущий объект, если он существует
-    if (paraboloid) {
-      group.remove(paraboloid);
+    if (pointsObject) {
+      group.remove(pointsObject);
     }
     
     // Генерируем точки для параболоида y = a*x² + b*z²
-    // (поменяли y и z в формуле)
     const points = [];
     const step = 0.1; // Более мелкий шаг для лучшей детализации
     const range = 3.0; // Диапазон значений x и z
     
     for (let x = -range; x <= range; x += step) {
       for (let z = -range; z <= range; z += step) {
-        const y = a * x * x + b * z * z; // Формула параболоида (поменяли y и z)
+        const y = a * x * x + b * z * z; // Формула параболоида
         points.push({ x, y, z });
       }
     }
@@ -62,10 +197,10 @@
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
     // Создаем объект точек и добавляем его в группу
-    paraboloid = new THREE.Points(geometry, material);
+    pointsObject = new THREE.Points(geometry, material);
     // Важно: отключаем автоматическое вращение
-    paraboloid.rotation.set(0, 0, 0);
-    group.add(paraboloid);
+    pointsObject.rotation.set(0, 0, 0);
+    group.add(pointsObject);
     
     // Сразу обновляем рендер после добавления параболоида
     if (renderer && scene && camera) {
@@ -149,11 +284,11 @@
     directionalLight.position.set(1, 1, 1).normalize();
     scene.add(directionalLight);
     
-    // Добавляем оси координат и стрелки
-    function createAxisArrow(direction, color, length = 4) {
-      const arrowGroup = new THREE.Group();
+    // Функция для создания оси с делениями и подписями
+    function createAxisWithTicks(direction, color, length = axisLength) {
+      const axisGroup = new THREE.Group();
       
-      // Создаем линию оси
+      // Создаем основную линию оси
       const lineGeometry = new THREE.BufferGeometry();
       const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
       
@@ -171,7 +306,7 @@
       
       lineGeometry.setFromPoints(axisPoints);
       const line = new THREE.Line(lineGeometry, lineMaterial);
-      arrowGroup.add(line);
+      axisGroup.add(line);
       
       // Создаем стрелку (конус) на конце оси
       const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
@@ -189,27 +324,64 @@
         cone.rotation.x = Math.PI / 2;
       }
       
-      arrowGroup.add(cone);
-      return arrowGroup;
+      axisGroup.add(cone);
+      
+      // Добавляем деления и подписи на оси
+      const tickSize = 0.1;
+      const tickMaterial = new THREE.LineBasicMaterial({ color: color });
+      
+      for (let i = axisTickStep; i < length; i += axisTickStep) {
+        const tickGeometry = new THREE.BufferGeometry();
+        const tickPoints = [];
+        
+        if (direction === 'x') {
+          tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
+          tickPoints.push(new THREE.Vector3(i, tickSize, 0));
+          
+          // Добавляем подпись для этого деления
+          const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.3, 0), 0.6);
+          axisGroup.add(label);
+        } else if (direction === 'y') {
+          tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
+          tickPoints.push(new THREE.Vector3(tickSize, i, 0));
+          
+          // Добавляем подпись для этого деления
+          const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.3, i, 0), 0.6);
+          axisGroup.add(label);
+        } else if (direction === 'z') {
+          tickPoints.push(new THREE.Vector3(0, -tickSize, i));
+          tickPoints.push(new THREE.Vector3(0, tickSize, i));
+          
+          // Добавляем подпись для этого деления
+          const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.3, i), 0.6);
+          axisGroup.add(label);
+        }
+        
+        tickGeometry.setFromPoints(tickPoints);
+        const tick = new THREE.Line(tickGeometry, tickMaterial);
+        axisGroup.add(tick);
+      }
+      
+      return axisGroup;
     }
     
-    // Создаем и добавляем оси со стрелками
-    const xAxis = createAxisArrow('x', 0xFF0000); // Красная ось X
-    const yAxis = createAxisArrow('y', 0x0000FF); // Синяя ось Y (поменяли цвет на синий)
-    const zAxis = createAxisArrow('z', 0x00FF00); // Зеленая ось Z (поменяли цвет на зеленый)
+    // Создаем и добавляем оси со шкалами
+    const xAxis = createAxisWithTicks('x', 0xFF0000); // Красная ось X
+    const yAxis = createAxisWithTicks('y', 0x0000FF); // Синяя ось Y
+    const zAxis = createAxisWithTicks('z', 0x00FF00); // Зеленая ось Z
     
     group.add(xAxis);
     group.add(yAxis);
     group.add(zAxis);
     
     // Добавляем направления отрицательных осей (более тонкие линии)
-    function createNegativeAxisLine(direction, color, length = 4) {
+    function createNegativeAxisLine(direction, color, length = axisLength / 2) {
       const lineGeometry = new THREE.BufferGeometry();
       // Используем более светлый оттенок для отрицательных осей
       const lineMaterial = new THREE.LineBasicMaterial({ 
         color: color, 
         linewidth: 1,
-        opacity: 0.7,
+        opacity: 0.5, // Уменьшаем непрозрачность
         transparent: true
       });
       
@@ -256,57 +428,37 @@
       return sprite;
     }
     
-    const xLabel = createTextSprite('X →', '#FF0000', new THREE.Vector3(4.5, 0, 0), 1.2);
-    const yLabel = createTextSprite('Y ⊙', '#00FF00', new THREE.Vector3(0, 0, 4.5), 1.2); // Изменили на синий Y
-    const zLabel = createTextSprite('Z ↑', '#0000FF', new THREE.Vector3(0, 4.5, 0), 1.2); // Изменили на зеленый Z
+    const xLabel = createTextSprite('X →', '#FF0000', new THREE.Vector3(axisLength + 0.5, 0, 0), 1.2);
+    const yLabel = createTextSprite('Y ⊙', '#0000FF', new THREE.Vector3(0, axisLength + 0.5, 0), 1.2);
+    const zLabel = createTextSprite('Z ↑', '#00FF00', new THREE.Vector3(0, 0, axisLength + 0.5), 1.2);
     
     group.add(xLabel);
     group.add(yLabel);
     group.add(zLabel);
     
-    // Добавляем плоскость XY (уже есть как сетка)
-    const gridHelper = new THREE.GridHelper(10, 10);
-    group.add(gridHelper);
+    // Добавляем сетку для плоскости XY (очень прозрачная)
+    gridXY = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+    gridXY.material.opacity = 0.07; // Делаем сетку очень прозрачной
+    gridXY.material.transparent = true;
+    group.add(gridXY);
     
-    // Создаем и добавляем плоскость XZ с измененным цветом
-    const planeXZGeometry = new THREE.PlaneGeometry(10, 10);
-    const planeXZMaterial = new THREE.MeshBasicMaterial({ 
-      color: 0x2196F3, // Синий цвет (поменяли цвет)
-      transparent: true,
-      opacity: 0.2,
-      side: THREE.DoubleSide
-    });
-    const planeXZ = new THREE.Mesh(planeXZGeometry, planeXZMaterial);
-    planeXZ.rotation.x = Math.PI / 2; // Поворачиваем на 90 градусов вокруг оси X
-    planeXZ.position.y = 0; // Размещаем на оси Y = 0
-    group.add(planeXZ);
+    // Создаем и добавляем сетку для плоскости XZ
+    gridXZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+    gridXZ.rotation.x = Math.PI / 2;
+    gridXZ.material.opacity = 0.07; // Делаем сетку очень прозрачной
+    gridXZ.material.transparent = true;
+    group.add(gridXZ);
     
-    // Создаем и добавляем плоскость YZ с измененным цветом
-    const planeYZGeometry = new THREE.PlaneGeometry(10, 10);
-    const planeYZMaterial = new THREE.MeshBasicMaterial({ 
-      color: 0x4CAF50, // Зеленый цвет (поменяли цвет)
-      transparent: true,
-      opacity: 0.2,
-      side: THREE.DoubleSide
-    });
-    const planeYZ = new THREE.Mesh(planeYZGeometry, planeYZMaterial);
-    planeYZ.rotation.y = Math.PI / 2; // Поворачиваем на 90 градусов вокруг оси Y
-    planeYZ.position.x = 0; // Размещаем на оси X = 0
-    group.add(planeYZ);
+    // Создаем и добавляем сетку для плоскости YZ
+    gridYZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+    gridYZ.rotation.x = Math.PI / 2;
+    gridYZ.rotation.z = Math.PI / 2;
+    gridYZ.material.opacity = 0.07; // Делаем сетку очень прозрачную
+    gridYZ.material.transparent = true;
+    group.add(gridYZ);
     
-    // Добавляем линии координатной сетки для плоскости YZ
-    const yzGridHelper = new THREE.GridHelper(10, 10);
-    yzGridHelper.rotation.x = Math.PI / 2;
-    yzGridHelper.rotation.z = Math.PI / 2;
-    group.add(yzGridHelper);
-    
-    // Добавляем линии координатной сетки для плоскости XZ
-    const xzGridHelper = new THREE.GridHelper(10, 10);
-    xzGridHelper.rotation.x = Math.PI / 2;
-    group.add(xzGridHelper);
-    
-    // Создаем параболоид
-    createParaboloidWithPoints();
+    // Создаем точки из данных или параболоид, если данных нет
+    createPointsFromData();
     
     // Обработка взаимодействия с мышью для вращения
     let isDragging = false;
@@ -365,9 +517,31 @@
     renderer.domElement.addEventListener('rotateZ', handleRotateZ);
     renderer.domElement.addEventListener('resetRotation', handleResetRotation);
     
+    // Обработчик двойного щелчка для переключения видимости сеток
+    renderer.domElement.addEventListener('dblclick', () => {
+      // Циклический переход между режимами отображения сеток
+      if (gridXY.visible && gridXZ.visible && gridYZ.visible) {
+        // Показываем только сетку YZ (для лучшего просмотра параболы)
+        toggleGrids(false, false, true);
+      } else if (!gridXY.visible && !gridXZ.visible && gridYZ.visible) {
+        // Показываем все сетки
+        toggleGrids(true, true, true);
+      } else {
+        // Скрываем все сетки
+        toggleGrids(false, false, false);
+      }
+    });
+    
     // Делаем первоначальный рендер сцены
     renderer.render(scene, camera);
   };
+  
+  // Наблюдаем за изменениями в данных
+  watch(() => chartStore.chartData, () => {
+    if (scene && group) {
+      createPointsFromData();
+    }
+  }, { deep: true });
   
   // Обновление размеров при изменении размера окна
   const handleResize = () => {
@@ -399,6 +573,7 @@
       renderer.domElement.removeEventListener('rotateY', handleRotateY);
       renderer.domElement.removeEventListener('rotateZ', handleRotateZ);
       renderer.domElement.removeEventListener('resetRotation', handleResetRotation);
+      renderer.domElement.removeEventListener('dblclick', () => {});
       
       // Удаляем слушатели событий для мыши
       renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -434,10 +609,16 @@
     updateParaboloid: (newA, newB) => {
       a = newA;
       b = newB;
-      if (scene && group && paraboloid) {
-        createParaboloidWithPoints();
+      if (scene && group && pointsObject) {
+        // Проверяем, есть ли данные в chartStore
+        if (chartStore.chartData && chartStore.chartData.length > 0) {
+          createPointsFromData();
+        } else {
+          createParaboloidWithPoints();
+        }
       }
-    }
+    },
+    toggleGrids // Экспортируем функцию для возможности управления сетками извне
   });
   </script>
   
