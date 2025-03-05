@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div ref="chartDiv" style="width: 100%; height: 500px;"></div>
+        <div ref="chartDiv" style="width: 100%; height: calc(100vh - 301.4px);"></div>
     </div>
 </template>
 
@@ -13,7 +13,7 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 const chartDiv = ref(null);
 const chartStore = useChartStore();
 
-const axisLength = 1000; // Увеличиваем длину осей
+const axisLength = 500; // Увеличиваем длину осей
 const axisTickStep = 1; // Шаг между отметками на осях
 
 let scene, camera, renderer, controls;
@@ -63,7 +63,7 @@ const createPointsFromData = () => {
     
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
-        size: 0.15,
+        size: 0.2,
         sizeAttenuation: true
     });
     const valGeometry = new THREE.BufferGeometry();
@@ -78,7 +78,7 @@ const createPointsFromData = () => {
 
     const approximatedDataMaterial = new THREE.PointsMaterial({
         color: '#FF0000',
-        size: 0.1,
+        size: 0.2,
         sizeAttenuation: true
     });
     const vallAppGeometry = new THREE.BufferGeometry();
