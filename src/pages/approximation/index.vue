@@ -20,7 +20,7 @@
 
                         <div class="control-group basis-function">
                             <div class="control-label">Выберите функцию</div>
-                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
+                            <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
                                 :item-title="item => `${item.val} (${item.label})`" item-value="val" bg-color="white" />
                         </div>
@@ -47,7 +47,7 @@
                     <div class="config-controls">
                         <div class="control-group output-function">
                             <div class="control-label">Выходная функция</div>
-                            <v-select density="compact" hide-details variant="outlined" class="rounded-lg"
+                            <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
                                 :item-title="item => `${item.val} (${item.label})`" item-value="val" bg-color="white" />
                         </div>

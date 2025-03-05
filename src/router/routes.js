@@ -5,9 +5,14 @@ export const routes = [
     component: () => import('@/pages/approximation/index.vue')  // Обратите внимание на () =>
   },
   {
-    path: '/chart',
-    name: 'График',
-    component: () => import('@/pages/chart/index.vue')  // Обратите внимание на () =>
+    path: '/chart2D',
+    name: '2d графика',
+    component: () => import('@/pages/chart2D/index.vue')  // Обратите внимание на () =>
+  },
+  {
+    path: '/chart3D',
+    name: '3d графика',
+    component: () => import('@/pages/chart3D/index.vue')  // Обратите внимание на () =>
   },
   {
     path: '/settings',

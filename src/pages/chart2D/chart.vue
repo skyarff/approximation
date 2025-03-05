@@ -140,12 +140,9 @@ function createChart(context, ref, data, chartKeys, pointChart = false, min, max
 
     const { xKey, yKeys } = chartKeys.value;
 
-    console.log('xKey', xKey)
-
 
     if (min == 0) min = '';
     if (max == 0) max = '';
-
 
 
     const options = {
