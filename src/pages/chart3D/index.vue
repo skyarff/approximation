@@ -84,11 +84,6 @@
   const paramB = ref(1);
   const rotationSteps = ref(15);
   
-  const updateChart = () => {
-    if (chartRef.value) {
-      chartRef.value.updateParaboloid(paramA.value, paramB.value);
-    }
-  };
   
   // Функции вращения по осям
   const rotateX = (degrees) => {
@@ -119,10 +114,7 @@
     }
   };
   
-  onMounted(() => {
-    // Инициализация при монтировании
-    updateChart();
-  });
+
   </script>
   
   <style scoped>
