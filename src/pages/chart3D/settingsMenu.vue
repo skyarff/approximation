@@ -64,14 +64,14 @@
                             <div class="range-controls">
                                 <div class="range-input">
                                     <v-text-field 
-                                        v-model="settingsClone.min" 
+                                        v-model="settingsClone.negAxis" 
                                         hide-details
                                         density="compact"
                                         variant="outlined"
                                         bg-color="white"
                                         class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Минимум</div>
+                                            <div class="setting-label">Нег. ось</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
@@ -83,14 +83,14 @@
                                 
                                 <div class="range-input">
                                     <v-text-field 
-                                        v-model="settingsClone.max" 
+                                        v-model="settingsClone.posAxis" 
                                         hide-details
                                         density="compact"
                                         variant="outlined"
                                         bg-color="white"
                                         class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Максимум</div>
+                                            <div class="setting-label">Пол. ось</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-up-bold</v-icon>
@@ -113,31 +113,6 @@
                         </div>
                     </div>
 
-                    <!-- Display Options -->
-                    <div class="settings-section display-section">
-                        <div class="section-title">
-                            <v-icon size="small" color="#1e3a5f">mdi-chart-scatter-plot</v-icon>
-                            <span>Тип визуализации</span>
-                        </div>
-                        
-                        <div class="setting-body">
-                            <div class="display-options">
-                                <div class="display-option" :class="{ 'active': !chartStore.pointChart2D }" @click="chartStore.pointChart2D = false">
-                                    <div class="option-icon">
-                                        <v-icon>mdi-chart-line</v-icon>
-                                    </div>
-                                    <div class="option-label">Линейный</div>
-                                </div>
-                                
-                                <div class="display-option" :class="{ 'active': chartStore.pointChart2D }" @click="chartStore.pointChart2D = true">
-                                    <div class="option-icon">
-                                        <v-icon>mdi-chart-scatter-plot</v-icon>
-                                    </div>
-                                    <div class="option-label">Точечный</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <v-divider></v-divider>
@@ -214,10 +189,10 @@ function apply() {
 };
 
 function resetRange() {
-    props.settings.min = '';
-    props.settings.max = '';
-    settingsClone.value.min = '';
-    settingsClone.value.max = '';
+    props.settings.negAxis = '';
+    props.settings.posAxis = '';
+    settingsClone.value.negAxis = '';
+    settingsClone.value.posAxis = '';
     emit('applySettings');
 };
 

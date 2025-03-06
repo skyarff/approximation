@@ -20,14 +20,23 @@ import { ref, reactive } from 'vue';
 import chart from './chart.vue';
 import settingsMenu from './settingsMenu.vue';
 
+import { useChartStore } from '@/store/chart';
+const chartStore = useChartStore();
+
 const chartRef = ref(null);
 const settingsRef = ref(null);
 
 const settings = reactive({
-    min: '',
-    max: '',
-    xVal: 0
+    posAxis: '',
+    negAxis: '',
+    xVal: 0,
+    xVals: ['x1', 'x2']
 });
+
+
+function apply() {
+    chartRef.value.callChart(settings.posAxis, settings.negAxis);
+}
 
 </script>
 

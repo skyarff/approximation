@@ -40,8 +40,10 @@ export const useChartStore = defineStore('chart', () => {
 
     const xKeys = ref(['x']);
     const pointChart3D = ref(true);
-    function switchPoint() {
+    const grid3D = ref(true);
+    function switchPoint3D() {
         pointChart3D.value = !pointChart3D.value;
+        console.log('pointChart3D.value', pointChart3D.value)
     }
 
 
@@ -56,5 +58,5 @@ export const useChartStore = defineStore('chart', () => {
         chartData.value = [...chartData.value].sort((a, b) => a[xKey.value] - b[xKey.value]);
     }
 
-    return { chartData, xKey, yKeys, pointChart2D, pointChart3D, newData, switchPoint, sortChartData, setChartData };
+    return { chartData, xKey, yKeys, pointChart2D, newData, pointChart3D, grid3D, switchPoint, switchPoint3D, sortChartData, setChartData };
 });

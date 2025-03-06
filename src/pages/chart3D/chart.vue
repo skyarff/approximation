@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div ref="chartDiv" style="width: 100%; height: calc(100vh - 48px);"></div>
+        <div v-if="chartDivOn" ref="chartDiv" style="width: 100%; height: calc(100vh - 48px);"></div>
     </div>
 </template>
 
@@ -8,13 +8,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useChartStore } from '@/store/chart';
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 
 const chartDiv = ref(null);
 const chartStore = useChartStore();
 
 const axisLength = 200;
 const axisTickStep = 5;
+
+
 
 let scene, camera, renderer, controls;
 let group;
@@ -25,27 +27,19 @@ let primaryLines, approximatedLines;
 
 let handleKeyDown;
 
-const toggleGrids = (flag) => {
-    gridXY.visible = flag;
-    gridXZ.visible = flag;
-    gridYZ.visible = flag;
+const toggleGrids = () => {
+    gridXY.visible = chartStore.grid3D;
+    gridXZ.visible = chartStore.grid3D;
+    gridYZ.visible = chartStore.grid3D;
 
     if (renderer && scene && camera) renderer.render(scene, camera);
 };
 
 const toggleConnectPoints = () => {
-    if (primaryLines) {
-        group.remove(primaryLines);
-        primaryLines = null;
-    }
 
-    if (approximatedLines) {
-        group.remove(approximatedLines);
-        approximatedLines = null;
-    }
-
-    console.log('???pointChart3D', chartStore.pointChart3D)
     if (chartStore.pointChart3D) {
+        console.log('1')
+
         if (valPointsObject) {
             const positions = valPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
@@ -61,7 +55,6 @@ const toggleConnectPoints = () => {
             group.add(primaryLines);
         }
 
-        // Создаем линии для второго набора данных
         if (vallAppPointsObject) {
             const positions = vallAppPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
@@ -76,9 +69,20 @@ const toggleConnectPoints = () => {
             approximatedLines = new THREE.Line(lineGeometry, lineMaterial);
             group.add(approximatedLines);
         }
+    } else {
+        console.log('2')
+        if (primaryLines) {
+            group.remove(primaryLines);
+            primaryLines = null;
+        }
+
+        if (approximatedLines) {
+            group.remove(approximatedLines);
+            approximatedLines = null;
+        }
     }
 
-    // Обновляем сцену
+
     if (renderer && scene && camera) {
         renderer.render(scene, camera);
     }
@@ -168,49 +172,42 @@ const handleResetRotation = () => {
     }
 };
 
-// Создание сцены и настройка камеры и рендерера
-const initThree = () => {
+
+const initThree = (posAxis, negAxis) => {
     if (!chartDiv.value) return;
 
-    // Создаем сцену
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
 
-    // Создаем группу для всех объектов
     group = new THREE.Group();
     scene.add(group);
 
-    // Настраиваем камеру
     const width = chartDiv.value.clientWidth;
     const height = chartDiv.value.clientHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(7, 7, 7);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(20, 20, 20);
 
-    // Настраиваем рендерер
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     chartDiv.value.appendChild(renderer.domElement);
 
-    // Добавляем управление камерой
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Добавляем возможность смещения камеры
     controls.enablePan = true;
-    controls.panSpeed = 1.0; // Скорость панорамирования
-    controls.screenSpacePanning = true; // Перемещение в плоскости экрана, а не только горизонтально
+    controls.panSpeed = 1.0;
+    controls.screenSpacePanning = true;
 
-    // Настройка кнопок мыши
+
     controls.mouseButtons = {
         LEFT: THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.PAN
     };
 
-    // Добавляем обработчик для панорамирования с клавиатуры
+
     handleKeyDown = (e) => {
         const panSpeed = 5;
         const panVector = new THREE.Vector3();
@@ -228,6 +225,30 @@ const initThree = () => {
             case 'ArrowDown':
                 panVector.set(0, -panSpeed, 0);
                 break;
+            case 'a':
+            case 'A':
+                panVector.set(-panSpeed, 0, 0);
+                break;
+            case 'd':
+            case 'D':
+                panVector.set(panSpeed, 0, 0);
+                break;
+            case 'w':
+            case 'W':
+                panVector.set(0, 0, -panSpeed);
+                break;
+            case 's':
+            case 'S':
+                panVector.set(0, 0, panSpeed);
+                break;
+
+            case 'Control':
+                panVector.set(0, -panSpeed, 0);
+                break;
+            case ' ':
+                panVector.set(0, panSpeed, 0);
+                break;
+
             default:
                 return;
         }
@@ -246,7 +267,13 @@ const initThree = () => {
         renderer.render(scene, camera);
     });
 
-    function createAxisWithTicks(direction, color, length = axisLength) {
+
+    
+
+    createPointsFromData();
+
+    const posAxis_ = posAxis ? posAxis : axisLength;
+    function createAxisWithTicks(direction, color, length = posAxis_) {
         const axisGroup = new THREE.Group();
 
         const lineGeometry = new THREE.BufferGeometry();
@@ -326,10 +353,10 @@ const initThree = () => {
     group.add(yAxis);
     group.add(zAxis);
 
-    function createNegativeAxisLine(direction, color, length = axisLength) {
+    const negAxis_ = negAxis ? negAxis : axisLength;
+    function createNegativeAxisLine(direction, color, length = negAxis_) {
         const axisGroup = new THREE.Group();
 
-        // Создаем основную линию оси
         const lineGeometry = new THREE.BufferGeometry();
         const lineMaterial = new THREE.LineBasicMaterial({
             color: color,
@@ -385,25 +412,7 @@ const initThree = () => {
             const tick = new THREE.Line(tickGeometry, tickMaterial);
             axisGroup.add(tick);
         }
-
-        // Добавляем стрелку на конце оси
-        const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
-        const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
-        const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-
-        if (direction === 'x') {
-            cone.position.set(-length, 0, 0);
-            cone.rotation.z = Math.PI / 2; // Поворачиваем стрелку в противоположную сторону
-        } else if (direction === 'y') {
-            cone.position.set(0, -length, 0);
-            cone.rotation.z = Math.PI; // Поворачиваем стрелку вниз
-        } else if (direction === 'z') {
-            cone.position.set(0, 0, -length);
-            cone.rotation.x = -Math.PI / 2; // Поворачиваем стрелку в противоположную сторону
-        }
-
-        axisGroup.add(cone);
-
+        
         return axisGroup;
     }
 
@@ -462,9 +471,9 @@ const initThree = () => {
         return sprite;
     }
 
-    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(axisLength + 1.5, 0, 0), 10);
-    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, axisLength + 1.5, 0), 10);
-    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, axisLength + 1.5), 10);
+    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(2.5, 0, 0), 4);
+    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, 2.5, 0), 4);
+    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, 2.5), 4);
 
 
 
@@ -472,44 +481,85 @@ const initThree = () => {
     group.add(yLabel);
     group.add(zLabel);
 
-    gridXY = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+
+
+    const gridLength = Math.max(posAxis_, negAxis_) * 2
+    gridXY = new THREE.GridHelper(gridLength, gridLength);
     gridXY.material.opacity = 0.055;
     gridXY.material.transparent = true;
     group.add(gridXY);
 
-    gridXZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+    gridXZ = new THREE.GridHelper(gridLength, gridLength);
     gridXZ.rotation.x = Math.PI / 2;
     gridXZ.material.opacity = 0.06;
     gridXZ.material.transparent = true;
     group.add(gridXZ);
 
-    gridYZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
+    gridYZ = new THREE.GridHelper(gridLength, gridLength);
     gridYZ.rotation.x = Math.PI / 2;
     gridYZ.rotation.z = Math.PI / 2;
     gridYZ.material.opacity = 0.06;
     gridYZ.material.transparent = true;
     group.add(gridYZ);
 
-    createPointsFromData();
+    
     toggleConnectPoints();
+    toggleGrids();
 
+    let menuTemp = true;
     renderer.domElement.addEventListener('dblclick', () => {
-        toggleGrids(!gridXY.visible);
+
+        if (menuTemp) {
+            chartStore.grid3D = !chartStore.grid3D;
+            toggleGrids();
+            menuTemp = false;
+        } else {
+            chartStore.pointChart3D = !chartStore.pointChart3D;
+            toggleConnectPoints();
+            menuTemp = true;
+        }
+
+
     });
 
     renderer.render(scene, camera);
 };
 
+
+
 watch(() => chartStore.chartData, () => {
     if (scene && group) {
+        if (primaryLines) {
+            group.remove(primaryLines);
+            primaryLines.geometry.dispose();
+            primaryLines.material.dispose();
+        }
+
+        if (approximatedLines) {
+            group.remove(approximatedLines);
+            approximatedLines.geometry.dispose();
+            approximatedLines.material.dispose();
+        }
+
+        if (valPointsObject) {
+            group.remove(valPointsObject);
+            valPointsObject.geometry.dispose();
+            valPointsObject.material.dispose();
+        }
+
+        if (vallAppPointsObject) {
+            group.remove(vallAppPointsObject);
+            vallAppPointsObject.geometry.dispose();
+            vallAppPointsObject.material.dispose();
+        }
+
+
+
         createPointsFromData();
     }
 }, { deep: true });
 
 
-watch(() => chartStore.pointChart3D, () => {
-    toggleConnectPoints();
-});
 
 const handleResize = () => {
     if (!chartDiv.value || !camera || !renderer) return;
@@ -529,12 +579,11 @@ onMounted(() => {
     window.addEventListener('resize', handleResize);
 });
 
-onBeforeUnmount(() => {
+function disposeThree() {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('keydown', handleKeyDown);
 
     if (chartDiv.value && renderer && renderer.domElement) {
-
 
         renderer.domElement.removeEventListener('rotateX', handleRotateX);
         renderer.domElement.removeEventListener('rotateY', handleRotateY);
@@ -574,15 +623,41 @@ onBeforeUnmount(() => {
             }
         });
     }
+}
+
+
+const chartDivOn = ref(true);
+async function disposeAndCall(func, ...args) {
+    disposeThree();
+
+    chartDivOn.value = false;
+
+    await nextTick();
+    chartDivOn.value = true;
+    await nextTick();
+
+    func(...args);
+};
+
+function callChart(posAxis, negAxis) {
+    disposeAndCall(
+        initThree,
+        posAxis,
+        negAxis
+    )
+};
+
+
+onBeforeUnmount(() => {
+    disposeThree();
 });
 
-// Экспортируем методы для использования извне компонента
+
 defineExpose({
-    toggleGrids, // Экспортируем функцию для возможности управления сетками извне
-    toggleConnectPoints // Экспортируем функцию для соединения точек
+    toggleGrids,
+    toggleConnectPoints,
+    callChart
 });
 </script>
 
-<style scoped>
-/* Можете добавить стили здесь */
-</style>
+<style scoped></style>
