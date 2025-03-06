@@ -1,5 +1,14 @@
 <template>
-    <div>
+    <div style="position: relative;">
+
+        <div style="position: absolute; top: 20px; right: 20px;">
+            <v-btn>
+                <span>
+                    settings
+                </span>
+            </v-btn>
+        </div>
+
         <chart ref="chartRef" />
 
         

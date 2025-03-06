@@ -19,7 +19,10 @@ const axisTickStep = 5;
 let scene, camera, renderer, controls;
 let group;
 let gridXY, gridXZ, gridYZ;
+
 let valPointsObject, vallAppPointsObject;
+let primaryLines, approximatedLines;
+
 let handleKeyDown;
 
 const toggleGrids = (flag) => {
@@ -30,22 +33,67 @@ const toggleGrids = (flag) => {
     if (renderer && scene && camera) renderer.render(scene, camera);
 };
 
+const toggleConnectPoints = () => {
+    if (primaryLines) {
+        group.remove(primaryLines);
+        primaryLines = null;
+    }
+
+    if (approximatedLines) {
+        group.remove(approximatedLines);
+        approximatedLines = null;
+    }
+
+    console.log('???pointChart3D', chartStore.pointChart3D)
+    if (chartStore.pointChart3D) {
+        if (valPointsObject) {
+            const positions = valPointsObject.geometry.attributes.position.array;
+            const lineGeometry = new THREE.BufferGeometry();
+            lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: '#0000FF',
+                opacity: 0.7,
+                transparent: true
+            });
+
+            primaryLines = new THREE.Line(lineGeometry, lineMaterial);
+            group.add(primaryLines);
+        }
+
+        // Создаем линии для второго набора данных
+        if (vallAppPointsObject) {
+            const positions = vallAppPointsObject.geometry.attributes.position.array;
+            const lineGeometry = new THREE.BufferGeometry();
+            lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: '#FF0000',
+                opacity: 0.7,
+                transparent: true
+            });
+
+            approximatedLines = new THREE.Line(lineGeometry, lineMaterial);
+            group.add(approximatedLines);
+        }
+    }
+
+    // Обновляем сцену
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
+};
 
 const createPointsFromData = () => {
-
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
     const tempArr = new Float32Array(chartStore.chartData.length * 3);
     let primaryData = null;
     let approximatedData = null;
-    
+
     const keys = Object.keys(chartStore.chartData[0]);
-    const yKeys = {
-        val: keys[0],
-        valApp: keys[keys.length - 2],
-        valDiff: keys[keys.length - 1],
-    }
+
     const xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
 
     for (let i = 0; i < chartStore.chartData.length; i++) {
@@ -55,9 +103,9 @@ const createPointsFromData = () => {
 
     primaryData = structuredClone(tempArr);
     for (let i = 0; i < chartStore.chartData.length; i++) {
-        primaryData[i * 3 + 2] = chartStore.chartData[i][yKeys.val];
+        primaryData[i * 3 + 2] = chartStore.chartData[i][chartStore.yKeys[0]];
     }
-    
+
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
         size: 0.25,
@@ -67,10 +115,10 @@ const createPointsFromData = () => {
     valGeometry.setAttribute('position', new THREE.BufferAttribute(primaryData, 3));
     valPointsObject = new THREE.Points(valGeometry, primaryDataMaterial);
     group.add(valPointsObject);
-    
+
     approximatedData = structuredClone(tempArr);
     for (let i = 0; i < chartStore.chartData.length; i++) {
-        approximatedData[i * 3 + 2] = chartStore.chartData[i][yKeys.valApp];
+        approximatedData[i * 3 + 2] = chartStore.chartData[i][chartStore.yKeys[1]];
     }
 
     const approximatedDataMaterial = new THREE.PointsMaterial({
@@ -82,6 +130,7 @@ const createPointsFromData = () => {
     vallAppGeometry.setAttribute('position', new THREE.BufferAttribute(approximatedData, 3));
     vallAppPointsObject = new THREE.Points(vallAppGeometry, approximatedDataMaterial);
     group.add(vallAppPointsObject);
+
 
     if (renderer && scene && camera) {
         renderer.render(scene, camera);
@@ -111,7 +160,6 @@ const handleRotateZ = (e) => {
         renderer.render(scene, camera);
     }
 };
-
 
 const handleResetRotation = () => {
     if (group) {
@@ -149,7 +197,7 @@ const initThree = () => {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    
+
     // Добавляем возможность смещения камеры
     controls.enablePan = true;
     controls.panSpeed = 1.0; // Скорость панорамирования
@@ -166,7 +214,7 @@ const initThree = () => {
     handleKeyDown = (e) => {
         const panSpeed = 5;
         const panVector = new THREE.Vector3();
-        
+
         switch (e.key) {
             case 'ArrowLeft':
                 panVector.set(-panSpeed, 0, 0);
@@ -183,13 +231,12 @@ const initThree = () => {
             default:
                 return;
         }
-        
 
         panVector.applyQuaternion(camera.quaternion);
-        
+
         camera.position.add(panVector);
         controls.target.add(panVector);
-        
+
         controls.update();
         renderer.render(scene, camera);
     };
@@ -199,10 +246,8 @@ const initThree = () => {
         renderer.render(scene, camera);
     });
 
-
     function createAxisWithTicks(direction, color, length = axisLength) {
         const axisGroup = new THREE.Group();
-
 
         const lineGeometry = new THREE.BufferGeometry();
         const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
@@ -222,12 +267,10 @@ const initThree = () => {
         const line = new THREE.Line(lineGeometry, lineMaterial);
         axisGroup.add(line);
 
-
         const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
         const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
         const cone = new THREE.Mesh(coneGeometry, coneMaterial);
 
-        
         if (direction === 'x') {
             cone.position.set(length, 0, 0);
             cone.rotation.z = -Math.PI / 2;
@@ -240,7 +283,6 @@ const initThree = () => {
 
         axisGroup.add(cone);
 
-  
         const tickSize = 0.2;
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
@@ -278,14 +320,16 @@ const initThree = () => {
 
     const xAxis = createAxisWithTicks('x', 0xFF0000);
     const yAxis = createAxisWithTicks('y', 0x0000FF);
-    const zAxis = createAxisWithTicks('z', 0x00FF00); 
+    const zAxis = createAxisWithTicks('z', 0x00FF00);
 
     group.add(xAxis);
     group.add(yAxis);
     group.add(zAxis);
 
-
     function createNegativeAxisLine(direction, color, length = axisLength) {
+        const axisGroup = new THREE.Group();
+
+        // Создаем основную линию оси
         const lineGeometry = new THREE.BufferGeometry();
         const lineMaterial = new THREE.LineBasicMaterial({
             color: color,
@@ -306,13 +350,71 @@ const initThree = () => {
         }
 
         lineGeometry.setFromPoints(axisPoints);
-        return new THREE.Line(lineGeometry, lineMaterial);
+        const line = new THREE.Line(lineGeometry, lineMaterial);
+        axisGroup.add(line);
+
+        // Добавляем деления и метки
+        const tickSize = 0.2;
+        const tickMaterial = new THREE.LineBasicMaterial({ color: color });
+
+        for (let i = -axisTickStep; i > -length; i -= axisTickStep) {
+            const tickGeometry = new THREE.BufferGeometry();
+            const tickPoints = [];
+
+            if (direction === 'x') {
+                tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
+                tickPoints.push(new THREE.Vector3(i, tickSize, 0));
+
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.75, 0), 2.3);
+                axisGroup.add(label);
+            } else if (direction === 'y') {
+                tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
+                tickPoints.push(new THREE.Vector3(tickSize, i, 0));
+
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.75, i, 0), 2.3);
+                axisGroup.add(label);
+            } else if (direction === 'z') {
+                tickPoints.push(new THREE.Vector3(0, -tickSize, i));
+                tickPoints.push(new THREE.Vector3(0, tickSize, i));
+
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.75, i), 2.3);
+                axisGroup.add(label);
+            }
+
+            tickGeometry.setFromPoints(tickPoints);
+            const tick = new THREE.Line(tickGeometry, tickMaterial);
+            axisGroup.add(tick);
+        }
+
+        // Добавляем стрелку на конце оси
+        const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
+        const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
+        const cone = new THREE.Mesh(coneGeometry, coneMaterial);
+
+        if (direction === 'x') {
+            cone.position.set(-length, 0, 0);
+            cone.rotation.z = Math.PI / 2; // Поворачиваем стрелку в противоположную сторону
+        } else if (direction === 'y') {
+            cone.position.set(0, -length, 0);
+            cone.rotation.z = Math.PI; // Поворачиваем стрелку вниз
+        } else if (direction === 'z') {
+            cone.position.set(0, 0, -length);
+            cone.rotation.x = -Math.PI / 2; // Поворачиваем стрелку в противоположную сторону
+        }
+
+        axisGroup.add(cone);
+
+        return axisGroup;
     }
 
 
-    group.add(createNegativeAxisLine('x', 0xFF0000));
-    group.add(createNegativeAxisLine('y', 0x0000FF));
-    group.add(createNegativeAxisLine('z', 0x00FF00));
+    const negXAxis = createNegativeAxisLine('x', 0xFF0000);
+    const negYAxis = createNegativeAxisLine('y', 0x0000FF);
+    const negZAxis = createNegativeAxisLine('z', 0x00FF00);
+
+    group.add(negXAxis);
+    group.add(negYAxis);
+    group.add(negZAxis);
 
     // Добавляем подписи осей с поменянными обозначениями
     function createTextSprite(text, color, position, size = 1.0) {
@@ -321,9 +423,9 @@ const initThree = () => {
         canvas.height = 512;
 
         const context = canvas.getContext('2d');
-        
+
         context.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         // Use a larger, bolder font with better anti-aliasing
         context.font = 'Bold 120px Roboto';
         context.fillStyle = color;
@@ -331,13 +433,13 @@ const initThree = () => {
         context.lineWidth = 4;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        
+
         // Add a subtle text shadow for depth
         context.shadowColor = 'rgba(0,0,0,0.5)';
         context.shadowBlur = 6;
         context.shadowOffsetX = 2;
         context.shadowOffsetY = 2;
-        
+
         // Draw the text
         context.strokeText(text, 256, 256);
         context.fillText(text, 256, 256);
@@ -346,13 +448,13 @@ const initThree = () => {
         // Enable mipmapping and anisotropic filtering for sharper text
         texture.minFilter = THREE.LinearMipMapLinearFilter;
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        
-        const spriteMaterial = new THREE.SpriteMaterial({ 
+
+        const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
             depthWrite: false
         });
-        
+
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.position.copy(position);
         sprite.scale.set(size, size, size);
@@ -360,21 +462,20 @@ const initThree = () => {
         return sprite;
     }
 
-
     const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(axisLength + 1.5, 0, 0), 10);
     const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, axisLength + 1.5, 0), 10);
     const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, axisLength + 1.5), 10);
+
+
 
     group.add(xLabel);
     group.add(yLabel);
     group.add(zLabel);
 
-
     gridXY = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridXY.material.opacity = 0.055;
     gridXY.material.transparent = true;
     group.add(gridXY);
-
 
     gridXZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridXZ.rotation.x = Math.PI / 2;
@@ -382,7 +483,6 @@ const initThree = () => {
     gridXZ.material.transparent = true;
     group.add(gridXZ);
 
-   
     gridYZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridYZ.rotation.x = Math.PI / 2;
     gridYZ.rotation.z = Math.PI / 2;
@@ -390,9 +490,8 @@ const initThree = () => {
     gridYZ.material.transparent = true;
     group.add(gridYZ);
 
-
     createPointsFromData();
-
+    toggleConnectPoints();
 
     renderer.domElement.addEventListener('dblclick', () => {
         toggleGrids(!gridXY.visible);
@@ -401,7 +500,6 @@ const initThree = () => {
     renderer.render(scene, camera);
 };
 
-
 watch(() => chartStore.chartData, () => {
     if (scene && group) {
         createPointsFromData();
@@ -409,6 +507,9 @@ watch(() => chartStore.chartData, () => {
 }, { deep: true });
 
 
+watch(() => chartStore.pointChart3D, () => {
+    toggleConnectPoints();
+});
 
 const handleResize = () => {
     if (!chartDiv.value || !camera || !renderer) return;
@@ -423,19 +524,18 @@ const handleResize = () => {
     renderer.render(scene, camera);
 };
 
-
 onMounted(() => {
     initThree();
     window.addEventListener('resize', handleResize);
 });
-
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('keydown', handleKeyDown);
 
     if (chartDiv.value && renderer && renderer.domElement) {
-        // Удаляем слушатели событий для кнопок вращения
+
+
         renderer.domElement.removeEventListener('rotateX', handleRotateX);
         renderer.domElement.removeEventListener('rotateY', handleRotateY);
         renderer.domElement.removeEventListener('rotateZ', handleRotateZ);
@@ -443,6 +543,18 @@ onBeforeUnmount(() => {
         renderer.domElement.removeEventListener('dblclick', () => { });
     }
 
+    // Удаляем линии, если они существуют
+    if (primaryLines) {
+        group.remove(primaryLines);
+        primaryLines.geometry.dispose();
+        primaryLines.material.dispose();
+    }
+
+    if (approximatedLines) {
+        group.remove(approximatedLines);
+        approximatedLines.geometry.dispose();
+        approximatedLines.material.dispose();
+    }
 
     if (controls) controls.dispose();
     if (renderer) renderer.dispose();
@@ -466,7 +578,8 @@ onBeforeUnmount(() => {
 
 // Экспортируем методы для использования извне компонента
 defineExpose({
-    toggleGrids // Экспортируем функцию для возможности управления сетками извне
+    toggleGrids, // Экспортируем функцию для возможности управления сетками извне
+    toggleConnectPoints // Экспортируем функцию для соединения точек
 });
 </script>
 

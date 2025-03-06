@@ -34,7 +34,7 @@ const chartKeys = computed(() => {
 });
 
 
-function createChart(context, ref, data, chartKeys, pointChart = false, min, max) {
+function createChart(context, ref, data, chartKeys, pointChart2D = false, min, max) {
 
     const root = am5.Root.new(ref.value);
     root._logo.dispose();
@@ -154,7 +154,7 @@ function createChart(context, ref, data, chartKeys, pointChart = false, min, max
         legend,
         min,
         max,
-        pointChart
+        pointChart2D
     }
 
 
@@ -173,7 +173,7 @@ function createChart(context, ref, data, chartKeys, pointChart = false, min, max
     context.root = root;
 };
 
-function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointChart, min, max, yKey, xKey, index } = {}) {
+function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointChart2D, min, max, yKey, xKey, index } = {}) {
     const color = getRandomColor();
 
     const yRenderer = am5xy.AxisRendererY.new(root, {
@@ -256,7 +256,7 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     }
 
 
-    if (pointChart) {
+    if (pointChart2D) {
         series.setAll({
             stroke: undefined,
         });
@@ -303,7 +303,7 @@ function callChart(min, max) {
         chartDiv,
         chartStore.chartData,
         chartKeys,
-        chartStore.pointChart,
+        chartStore.pointChart2D,
         min, max
     )
 };

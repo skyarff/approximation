@@ -28,28 +28,33 @@ export const useChartStore = defineStore('chart', () => {
         ]
     );
 
-    const xKey = ref('x');
+    
     const yKeys = ref(['y1', 'y (approximated)', 'y (difference)']);
-    const pointChart = ref(false);
-    const newData = ref(true);
 
+    const xKey = ref('x');
+    const newData = ref(true);
+    const pointChart2D = ref(false);
     function switchPoint() {
-        pointChart.value = !pointChart.value;
+        pointChart2D.value = !pointChart2D.value;
+    }
+
+    const xKeys = ref(['x']);
+    const pointChart3D = ref(true);
+    function switchPoint() {
+        pointChart3D.value = !pointChart3D.value;
     }
 
 
     function setChartData(payload) {
         chartData.value = payload.chartData;
         xKey.value = payload.xKey;
-        yKeys.value = payload.yKeys
+        yKeys.value = payload.yKeys;
         newData.value = true;
     }
 
     function sortChartData() {
         chartData.value = [...chartData.value].sort((a, b) => a[xKey.value] - b[xKey.value]);
-
-
     }
 
-    return { chartData, xKey, yKeys, pointChart, newData, switchPoint, sortChartData, setChartData };
+    return { chartData, xKey, yKeys, pointChart2D, pointChart3D, newData, switchPoint, sortChartData, setChartData };
 });
