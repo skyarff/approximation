@@ -503,7 +503,7 @@ function getExtendedBasisName(basis) {
 
 onMounted(() => {
     const extendedBasesFromLS = JSON.parse(localStorage.getItem('extendedBases'));
-    if (extendedBasesFromLS.length)
+    if (extendedBasesFromLS && extendedBasesFromLS.length)
         extendedBases.value = new Set(extendedBasesFromLS);
 });
 
