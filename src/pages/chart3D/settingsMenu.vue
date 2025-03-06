@@ -16,7 +16,6 @@
                 </div>
 
                 <div class="panel-content">
-                    <!-- X-Axis Configuration -->
                     <div class="settings-section x-axis-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-axis-x-arrow-lock</v-icon>
@@ -123,14 +122,14 @@
                         
                         <div class="setting-body">
                             <div class="display-options">
-                                <div class="display-option" :class="{ 'active': !chartStore.pointChart }" @click="chartStore.pointChart = false">
+                                <div class="display-option" :class="{ 'active': !chartStore.pointChart2D }" @click="chartStore.pointChart2D = false">
                                     <div class="option-icon">
                                         <v-icon>mdi-chart-line</v-icon>
                                     </div>
                                     <div class="option-label">Линейный</div>
                                 </div>
                                 
-                                <div class="display-option" :class="{ 'active': chartStore.pointChart }" @click="chartStore.pointChart = true">
+                                <div class="display-option" :class="{ 'active': chartStore.pointChart2D }" @click="chartStore.pointChart2D = true">
                                     <div class="option-icon">
                                         <v-icon>mdi-chart-scatter-plot</v-icon>
                                     </div>
