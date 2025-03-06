@@ -13,29 +13,26 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 const chartDiv = ref(null);
 const chartStore = useChartStore();
 
-const axisLength = 500; // Увеличиваем длину осей
-const axisTickStep = 1; // Шаг между отметками на осях
+const axisLength = 200;
+const axisTickStep = 5;
 
 let scene, camera, renderer, controls;
 let group;
 let gridXY, gridXZ, gridYZ;
 let valPointsObject, vallAppPointsObject;
-let handleKeyDown; // Добавляем ссылку на функцию обработки клавиш
+let handleKeyDown;
 
-// Функция для включения/выключения видимости сеток
-const toggleGrids = (showXY = true, showXZ = true, showYZ = true) => {
-    if (gridXY) gridXY.visible = showXY;
-    if (gridXZ) gridXZ.visible = showXZ;
-    if (gridYZ) gridYZ.visible = showYZ;
+const toggleGrids = (flag) => {
+    gridXY.visible = flag;
+    gridXZ.visible = flag;
+    gridYZ.visible = flag;
 
-    if (renderer && scene && camera) {
-        renderer.render(scene, camera);
-    }
+    if (renderer && scene && camera) renderer.render(scene, camera);
 };
 
-// Создание точек из данных
+
 const createPointsFromData = () => {
- 
+
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
@@ -115,7 +112,7 @@ const handleRotateZ = (e) => {
     }
 };
 
-// Обработчик для сброса вращения
+
 const handleResetRotation = () => {
     if (group) {
         group.rotation.set(0, 0, 0);
@@ -167,68 +164,52 @@ const initThree = () => {
 
     // Добавляем обработчик для панорамирования с клавиатуры
     handleKeyDown = (e) => {
-        const panSpeed = 5; // Скорость панорамирования
-        const panVector = new THREE.Vector3(); // Вектор для панорамирования
+        const panSpeed = 5;
+        const panVector = new THREE.Vector3();
         
         switch (e.key) {
             case 'ArrowLeft':
-                // Смещение влево
                 panVector.set(-panSpeed, 0, 0);
                 break;
             case 'ArrowRight':
-                // Смещение вправо
                 panVector.set(panSpeed, 0, 0);
                 break;
             case 'ArrowUp':
-                // Смещение вверх
                 panVector.set(0, panSpeed, 0);
                 break;
             case 'ArrowDown':
-                // Смещение вниз
                 panVector.set(0, -panSpeed, 0);
                 break;
             default:
-                return; // Выходим, если нажата не стрелка
+                return;
         }
         
-        // Преобразуем вектор в локальное пространство камеры
+
         panVector.applyQuaternion(camera.quaternion);
         
-        // Перемещаем камеру и точку, на которую она смотрит
         camera.position.add(panVector);
         controls.target.add(panVector);
         
-        // Обновляем контроллер и рендерим сцену
         controls.update();
         renderer.render(scene, camera);
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Необходимо обновлять сцену при изменении управления
     controls.addEventListener('change', () => {
         renderer.render(scene, camera);
     });
 
-    // Добавляем базовое освещение
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(1, 1, 1).normalize();
-    scene.add(directionalLight);
-
-    // Функция для создания оси с делениями и подписями
     function createAxisWithTicks(direction, color, length = axisLength) {
         const axisGroup = new THREE.Group();
 
-        // Создаем основную линию оси
+
         const lineGeometry = new THREE.BufferGeometry();
         const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
 
         const axisPoints = [];
         axisPoints.push(new THREE.Vector3(0, 0, 0));
 
-        // Устанавливаем конечную точку в зависимости от направления
         if (direction === 'x') {
             axisPoints.push(new THREE.Vector3(length, 0, 0));
         } else if (direction === 'y') {
@@ -241,12 +222,12 @@ const initThree = () => {
         const line = new THREE.Line(lineGeometry, lineMaterial);
         axisGroup.add(line);
 
-        // Создаем стрелку (конус) на конце оси
+
         const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
         const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
         const cone = new THREE.Mesh(coneGeometry, coneMaterial);
 
-        // Размещаем и ориентируем конус в зависимости от направления
+        
         if (direction === 'x') {
             cone.position.set(length, 0, 0);
             cone.rotation.z = -Math.PI / 2;
@@ -259,8 +240,8 @@ const initThree = () => {
 
         axisGroup.add(cone);
 
-        // Добавляем деления и подписи на оси
-        const tickSize = 0.1;
+  
+        const tickSize = 0.2;
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
         for (let i = axisTickStep; i < length; i += axisTickStep) {
@@ -271,22 +252,19 @@ const initThree = () => {
                 tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
                 tickPoints.push(new THREE.Vector3(i, tickSize, 0));
 
-                // Добавляем подпись для этого деления - увеличенного размера
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.6, 0), 1.0);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.75, 0), 2.3);
                 axisGroup.add(label);
             } else if (direction === 'y') {
                 tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
                 tickPoints.push(new THREE.Vector3(tickSize, i, 0));
 
-                // Добавляем подпись для этого деления - увеличенного размера
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.6, i, 0), 1.0);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.75, i, 0), 2.3);
                 axisGroup.add(label);
             } else if (direction === 'z') {
                 tickPoints.push(new THREE.Vector3(0, -tickSize, i));
                 tickPoints.push(new THREE.Vector3(0, tickSize, i));
 
-                // Добавляем подпись для этого деления - увеличенного размера
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.6, i), 1.0);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.75, i), 2.3);
                 axisGroup.add(label);
             }
 
@@ -298,23 +276,21 @@ const initThree = () => {
         return axisGroup;
     }
 
-    // Создаем и добавляем оси со шкалами
-    const xAxis = createAxisWithTicks('x', 0xFF0000); // Красная ось X
-    const yAxis = createAxisWithTicks('y', 0x0000FF); // Синяя ось Y
-    const zAxis = createAxisWithTicks('z', 0x00FF00); // Зеленая ось Z
+    const xAxis = createAxisWithTicks('x', 0xFF0000);
+    const yAxis = createAxisWithTicks('y', 0x0000FF);
+    const zAxis = createAxisWithTicks('z', 0x00FF00); 
 
     group.add(xAxis);
     group.add(yAxis);
     group.add(zAxis);
 
-    // Добавляем направления отрицательных осей (более тонкие линии)
-    function createNegativeAxisLine(direction, color, length = axisLength / 2) {
+
+    function createNegativeAxisLine(direction, color, length = axisLength) {
         const lineGeometry = new THREE.BufferGeometry();
-        // Используем более светлый оттенок для отрицательных осей
         const lineMaterial = new THREE.LineBasicMaterial({
             color: color,
             linewidth: 1,
-            opacity: 0.5, // Уменьшаем непрозрачность
+            opacity: 1,
             transparent: true
         });
 
@@ -333,24 +309,23 @@ const initThree = () => {
         return new THREE.Line(lineGeometry, lineMaterial);
     }
 
-    // Добавляем отрицательные оси с поменянными цветами
-    group.add(createNegativeAxisLine('x', 0xFF9999)); // Светло-красная отрицательная ось X
-    group.add(createNegativeAxisLine('y', 0x9999FF)); // Светло-синяя отрицательная ось Y
-    group.add(createNegativeAxisLine('z', 0x99FF99)); // Светло-зеленая отрицательная ось Z
+
+    group.add(createNegativeAxisLine('x', 0xFF0000));
+    group.add(createNegativeAxisLine('y', 0x0000FF));
+    group.add(createNegativeAxisLine('z', 0x00FF00));
 
     // Добавляем подписи осей с поменянными обозначениями
     function createTextSprite(text, color, position, size = 1.0) {
         const canvas = document.createElement('canvas');
-        canvas.width = 512; // Larger canvas for higher resolution
+        canvas.width = 512;
         canvas.height = 512;
 
         const context = canvas.getContext('2d');
         
-        // Clear the canvas with a transparent background
         context.clearRect(0, 0, canvas.width, canvas.height);
         
         // Use a larger, bolder font with better anti-aliasing
-        context.font = 'Bold 120px Arial';
+        context.font = 'Bold 120px Roboto';
         context.fillStyle = color;
         context.strokeStyle = '#FFFFFF'; // Adding white outline for better visibility
         context.lineWidth = 4;
@@ -375,7 +350,7 @@ const initThree = () => {
         const spriteMaterial = new THREE.SpriteMaterial({ 
             map: texture,
             transparent: true,
-            depthWrite: false // Prevents z-fighting with other elements
+            depthWrite: false
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
@@ -385,47 +360,42 @@ const initThree = () => {
         return sprite;
     }
 
-    // Create larger axis labels with increased size parameter
-    const xLabel = createTextSprite('X →', '#FF0000', new THREE.Vector3(axisLength + 1.5, 0, 0), 2.5);
-    const yLabel = createTextSprite('Y ⊙', '#0000FF', new THREE.Vector3(0, axisLength + 1.5, 0), 2.5);
-    const zLabel = createTextSprite('Z ↑', '#00FF00', new THREE.Vector3(0, 0, axisLength + 1.5), 2.5);
+
+    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(axisLength + 1.5, 0, 0), 10);
+    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, axisLength + 1.5, 0), 10);
+    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, axisLength + 1.5), 10);
 
     group.add(xLabel);
     group.add(yLabel);
     group.add(zLabel);
 
-    // Добавляем сетку для плоскости XY (очень прозрачная)
+
     gridXY = new THREE.GridHelper(axisLength * 2, axisLength * 2);
-    gridXY.material.opacity = 0.055; // Делаем сетку очень прозрачной
+    gridXY.material.opacity = 0.055;
     gridXY.material.transparent = true;
     group.add(gridXY);
 
-    // Создаем и добавляем сетку для плоскости XZ
+
     gridXZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridXZ.rotation.x = Math.PI / 2;
-    gridXZ.material.opacity = 0.06; // Делаем сетку очень прозрачной
+    gridXZ.material.opacity = 0.06;
     gridXZ.material.transparent = true;
     group.add(gridXZ);
 
-    // Создаем и добавляем сетку для плоскости YZ
+   
     gridYZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridYZ.rotation.x = Math.PI / 2;
     gridYZ.rotation.z = Math.PI / 2;
-    gridYZ.material.opacity = 0.06; // Делаем сетку очень прозрачной
+    gridYZ.material.opacity = 0.06;
     gridYZ.material.transparent = true;
     group.add(gridYZ);
 
 
     createPointsFromData();
 
-    renderer.domElement.addEventListener('rotateX', handleRotateX);
-    renderer.domElement.addEventListener('rotateY', handleRotateY);
-    renderer.domElement.addEventListener('rotateZ', handleRotateZ);
-    renderer.domElement.addEventListener('resetRotation', handleResetRotation);
-
 
     renderer.domElement.addEventListener('dblclick', () => {
-        toggleGrids(!gridXY.visible, !gridXZ.visible, !gridYZ.visible);
+        toggleGrids(!gridXY.visible);
     });
 
     renderer.render(scene, camera);
@@ -438,7 +408,8 @@ watch(() => chartStore.chartData, () => {
     }
 }, { deep: true });
 
-// Обновление размеров при изменении размера окна
+
+
 const handleResize = () => {
     if (!chartDiv.value || !camera || !renderer) return;
 
@@ -461,7 +432,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize);
-    window.removeEventListener('keydown', handleKeyDown); // Удаляем обработчик клавиш
+    window.removeEventListener('keydown', handleKeyDown);
 
     if (chartDiv.value && renderer && renderer.domElement) {
         // Удаляем слушатели событий для кнопок вращения
@@ -470,14 +441,8 @@ onBeforeUnmount(() => {
         renderer.domElement.removeEventListener('rotateZ', handleRotateZ);
         renderer.domElement.removeEventListener('resetRotation', handleResetRotation);
         renderer.domElement.removeEventListener('dblclick', () => { });
-
-        // Удаляем слушатели событий для мыши
-        renderer.domElement.removeEventListener('mousedown', handleMouseDown);
-        renderer.domElement.removeEventListener('mousemove', handleMouseMove);
-        renderer.domElement.removeEventListener('wheel', handleWheel);
     }
 
-    window.removeEventListener('mouseup', handleMouseUp);
 
     if (controls) controls.dispose();
     if (renderer) renderer.dispose();
