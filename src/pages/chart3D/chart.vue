@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div ref="chartDiv" style="width: 100%; height: calc(100vh - 301.4px);"></div>
+        <div ref="chartDiv" style="width: 100%; height: calc(100vh - 48px);"></div>
     </div>
 </template>
 
@@ -396,14 +396,14 @@ const initThree = () => {
 
     // Добавляем сетку для плоскости XY (очень прозрачная)
     gridXY = new THREE.GridHelper(axisLength * 2, axisLength * 2);
-    gridXY.material.opacity = 0.07; // Делаем сетку очень прозрачной
+    gridXY.material.opacity = 0.055; // Делаем сетку очень прозрачной
     gridXY.material.transparent = true;
     group.add(gridXY);
 
     // Создаем и добавляем сетку для плоскости XZ
     gridXZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridXZ.rotation.x = Math.PI / 2;
-    gridXZ.material.opacity = 0.07; // Делаем сетку очень прозрачной
+    gridXZ.material.opacity = 0.06; // Делаем сетку очень прозрачной
     gridXZ.material.transparent = true;
     group.add(gridXZ);
 
@@ -411,90 +411,27 @@ const initThree = () => {
     gridYZ = new THREE.GridHelper(axisLength * 2, axisLength * 2);
     gridYZ.rotation.x = Math.PI / 2;
     gridYZ.rotation.z = Math.PI / 2;
-    gridYZ.material.opacity = 0.07; // Делаем сетку очень прозрачной
+    gridYZ.material.opacity = 0.06; // Делаем сетку очень прозрачной
     gridYZ.material.transparent = true;
     group.add(gridYZ);
 
-    // Создаем точки из данных или параболоид, если данных нет
+
     createPointsFromData();
 
-    // Обработка взаимодействия с мышью для вращения
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
-
-    const handleMouseDown = (e) => {
-        isDragging = true;
-        previousMousePosition = {
-            x: e.clientX,
-            y: e.clientY
-        };
-    };
-
-    const handleMouseMove = (e) => {
-        if (!isDragging) return;
-
-        const deltaMove = {
-            x: e.clientX - previousMousePosition.x,
-            y: e.clientY - previousMousePosition.y
-        };
-
-        // Применяем вращение к группе в зависимости от движения мыши
-        group.rotation.y += deltaMove.x * 0.01;
-        group.rotation.x += deltaMove.y * 0.01;
-
-        previousMousePosition = {
-            x: e.clientX,
-            y: e.clientY
-        };
-
-        renderer.render(scene, camera);
-    };
-
-    const handleMouseUp = () => {
-        isDragging = false;
-    };
-
-    // Обработка масштабирования колёсиком мыши
-    const handleWheel = (e) => {
-        e.preventDefault();
-
-        // Ограничиваем масштабирование
-        camera.position.z = Math.max(2, Math.min(15, camera.position.z + e.deltaY * 0.01));
-        renderer.render(scene, camera);
-    };
-
-    // Добавляем обработчики событий
-    renderer.domElement.addEventListener('mousedown', handleMouseDown);
-    renderer.domElement.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    renderer.domElement.addEventListener('wheel', handleWheel, { passive: false });
-
-    // Регистрируем обработчики для кнопок вращения
     renderer.domElement.addEventListener('rotateX', handleRotateX);
     renderer.domElement.addEventListener('rotateY', handleRotateY);
     renderer.domElement.addEventListener('rotateZ', handleRotateZ);
     renderer.domElement.addEventListener('resetRotation', handleResetRotation);
 
-    // Обработчик двойного щелчка для переключения видимости сеток
+
     renderer.domElement.addEventListener('dblclick', () => {
-        // Циклический переход между режимами отображения сеток
-        if (gridXY.visible && gridXZ.visible && gridYZ.visible) {
-            // Показываем только сетку YZ (для лучшего просмотра параболы)
-            toggleGrids(false, false, true);
-        } else if (!gridXY.visible && !gridXZ.visible && gridYZ.visible) {
-            // Показываем все сетки
-            toggleGrids(true, true, true);
-        } else {
-            // Скрываем все сетки
-            toggleGrids(false, false, false);
-        }
+        toggleGrids(!gridXY.visible, !gridXZ.visible, !gridYZ.visible);
     });
 
-    // Делаем первоначальный рендер сцены
     renderer.render(scene, camera);
 };
 
-// Наблюдаем за изменениями в данных
+
 watch(() => chartStore.chartData, () => {
     if (scene && group) {
         createPointsFromData();
@@ -515,13 +452,13 @@ const handleResize = () => {
     renderer.render(scene, camera);
 };
 
-// Хук для инициализации сцены после монтирования компонента
+
 onMounted(() => {
     initThree();
     window.addEventListener('resize', handleResize);
 });
 
-// Хук для очистки ресурсов перед размонтированием компонента
+
 onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('keydown', handleKeyDown); // Удаляем обработчик клавиш
@@ -553,7 +490,6 @@ onBeforeUnmount(() => {
                 if (object.material.isMaterial) {
                     object.material.dispose();
                 } else {
-                    // Если материал является массивом
                     for (const material of object.material) {
                         material.dispose();
                     }
