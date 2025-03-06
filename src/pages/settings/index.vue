@@ -14,14 +14,8 @@
                 <!-- L1 регуляризация -->
                 <div class="setting-row">
                     <div class="input-container">
-                        <v-text-field 
-                            :hide-details="true" 
-                            variant="outlined" 
-                            title="L1 регуляризация" 
-                            type="number"
-                            v-model="settingsStore.numParams.L1"
-                            class="param-input"
-                        >
+                        <v-text-field :hide-details="true" variant="outlined" title="L1 регуляризация" type="number"
+                            v-model="settingsStore.numParams.L1" class="param-input">
                             <template #label>
                                 <div class="param-label">L1</div>
                             </template>
@@ -34,18 +28,12 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <!-- L2 регуляризация -->
                 <div class="setting-row">
                     <div class="input-container">
-                        <v-text-field 
-                            :hide-details="true" 
-                            variant="outlined" 
-                            title="L2 регуляризация" 
-                            type="number"
-                            v-model="settingsStore.numParams.L2"
-                            class="param-input"
-                        >
+                        <v-text-field :hide-details="true" variant="outlined" title="L2 регуляризация" type="number"
+                            v-model="settingsStore.numParams.L2" class="param-input">
                             <template #label>
                                 <div class="param-label">L2</div>
                             </template>
@@ -74,14 +62,9 @@
                 <!-- Коэффициент умножения -->
                 <div class="setting-row">
                     <div class="input-container">
-                        <v-text-field 
-                            :hide-details="true" 
-                            variant="outlined"
-                            title="Нормализация входных значений *multiplicationFactor" 
-                            type="number"
-                            v-model="settingsStore.numParams.multiplicationFactor"
-                            class="param-input"
-                        >
+                        <v-text-field :hide-details="true" variant="outlined"
+                            title="Нормализация входных значений *multiplicationFactor" type="number"
+                            v-model="settingsStore.numParams.multiplicationFactor" class="param-input">
                             <template #label>
                                 <div class="param-label">Коэф. умножения</div>
                             </template>
@@ -93,16 +76,12 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <!-- Нормализация малых значений -->
                 <div class="setting-row">
                     <div class="input-container checkbox-container">
-                        <v-checkbox 
-                            :hide-details="true" 
-                            color="primary"
-                            v-model="settingsStore.numParams.normSmallValues"
-                            class="param-checkbox"
-                        >
+                        <v-checkbox :hide-details="true" color="primary"
+                            v-model="settingsStore.numParams.normSmallValues" class="param-checkbox">
                             <template #label>
                                 <div class="param-label">Нормализация малых значений</div>
                             </template>
@@ -110,7 +89,8 @@
                     </div>
                     <div class="description-container">
                         <p class="description-text">
-                            Слишком малые по модулю значения (в том числе 0), будут заменены на приемлемо малое значение.
+                            Слишком малые по модулю значения (в том числе 0), будут заменены на приемлемо малое
+                            значение.
                         </p>
                     </div>
                 </div>
@@ -118,7 +98,7 @@
         </v-card>
 
         <!-- Блок построения базисов -->
-        <v-card elevation="0" rounded="xl" class="settings-card">
+        <v-card elevation="0" rounded="xl" class="settings-card mb-6">
             <div class="card-header-wrapper">
                 <v-card-title class="settings-card-title">
                     <div class="icon-wrapper tertiary-icon">
@@ -131,14 +111,8 @@
                 <!-- Степенной шаг -->
                 <div class="setting-row">
                     <div class="input-container">
-                        <v-text-field 
-                            :hide-details="true" 
-                            variant="outlined" 
-                            title="Шаг построения степеней базисов"
-                            type="number" 
-                            v-model="settingsStore.numParams.stepPower"
-                            class="param-input"
-                        >
+                        <v-text-field :hide-details="true" variant="outlined" title="Шаг построения степеней базисов"
+                            type="number" v-model="settingsStore.numParams.stepPower" class="param-input">
                             <template #label>
                                 <div class="param-label">Степенной шаг</div>
                             </template>
@@ -150,17 +124,12 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <!-- Наличие константы -->
                 <div class="setting-row">
                     <div class="input-container checkbox-container">
-                        <v-checkbox 
-                            :hide-details="true" 
-                            color="primary"
-                            hint="Наличие константы"
-                            v-model="settingsStore.numParams.constant"
-                            class="param-checkbox"
-                        >
+                        <v-checkbox :hide-details="true" color="primary" hint="Наличие константы"
+                            v-model="settingsStore.numParams.constant" class="param-checkbox">
                             <template #label>
                                 <div class="param-label">Наличие константы</div>
                             </template>
@@ -174,6 +143,12 @@
                 </div>
             </v-card-text>
         </v-card>
+
+        <v-btn color="red-lighten-1" size="small" variant="flat" class="action-btn text-white ml-2"
+            @click="settingsStore.clearNumParams">
+            <v-icon size="small" class="mr-1">mdi-delete</v-icon>
+            <span>ОЧИСТИТЬ</span>
+        </v-btn>
     </div>
 </template>
 
@@ -182,6 +157,7 @@
 import { useSettingsStore } from '@/store/settings'
 
 const settingsStore = useSettingsStore();
+
 </script>
 
 
@@ -323,18 +299,18 @@ const settingsStore = useSettingsStore();
     .setting-row {
         flex-direction: column;
     }
-    
+
     .input-container {
         flex: 0 0 100%;
         max-width: 100%;
         margin-right: 0;
         margin-bottom: 0.75rem;
     }
-    
+
     .description-container {
         padding-top: 0;
     }
-    
+
     .settings-container {
         padding: 1rem;
     }
