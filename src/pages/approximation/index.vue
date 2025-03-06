@@ -164,18 +164,36 @@
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-view-list</v-icon>
                             <span>Расширенные базисы</span>
-                            <div class="panel-counter" v-if="extendedBases.length">
-                                {{ extendedBases.length }}
+                            <div class="panel-counter" v-if="extendedBases.size">
+                                {{ extendedBases.size }}
                             </div>
+
+                            <v-spacer></v-spacer>
+
+                
+
+                            <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="indigo-lighten-1" variant="flat" size="small"
+                                @click="extendedBases.clear()" class="text-white action-btn mr-4">
+                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                                <span>ОЧИСТИТЬ</span>
+                            </v-btn>
+
+                            <v-btn style="max-width: 120px;" color="teal-lighten-1" variant="flat" size="small"
+                                @click="rememberExtendedBases" class="text-white action-btn">
+                                <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+                                <span>ЗАПОМНИТЬ</span>
+                            </v-btn>
+
                         </div>
                         <div class="panel-content">
                             <div class="basis-list">
                                 <div v-for="(basis, index) in extendedBases" :key="index" class="basis-item">
                                     <div class="basis-formula">{{ getExtendedBasisName(basis) }}</div>
                                     <v-btn icon="mdi-close" density="compact" variant="text" color="red"
-                                        @click="extendedBases.splice(index, 1)" size="x-small"></v-btn>
+                                        @click="extendedBases.delete(basis)"
+                                        size="x-small"></v-btn>
                                 </div>
-                                <div v-if="!extendedBases.length" class="no-data-message">
+                                <div v-if="!extendedBases.size" class="no-data-message">
                                     <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-database-off</v-icon>
                                     <div>Нет расширенных базисов</div>
                                 </div>
@@ -272,6 +290,7 @@
                         <!-- Панель кнопок управления -->
                         <div class="bases-actions">
                             <v-btn color="green-darken-1" size="small" variant="flat" class="action-btn text-white"
+                                :disabled="!file"
                                 @click="makeApproximation">
                                 <v-progress-circular v-if="aproximationLoading" indeterminate color="white" :size="16"
                                     :width="2" class="mr-1" />
@@ -288,6 +307,7 @@
                             </v-btn>
 
                             <v-btn color="red-lighten-1" size="small" variant="flat" class="action-btn text-white ml-2"
+                                :disabled="!file"
                                 @click="clearBases">
                                 <v-icon size="small" class="mr-1">mdi-delete</v-icon>
                                 <span>ОЧИСТИТЬ</span>
@@ -311,7 +331,7 @@ import metricsMenu from './metricsMenu.vue';
 import icons from '@/assets/icons';
 
 import { ref, reactive, toRefs } from 'vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 import { useAppStore } from '@/store/app';
 const appStore = useAppStore();
@@ -439,10 +459,10 @@ function addOutputFunc() {
 
 
 
-const extendedBases = ref(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']);
+const extendedBases = ref(new Set(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']));
 function addExtendedBasis() {
     if (funcSettings.outputDegree) {
-        extendedBases.value.push(
+        extendedBases.value.add(
             `${numParams.depth}${funcSettings.selectedFunction}^${numParams.degree}/${funcSettings.selectedOutputFunction}^${funcSettings.outputDegree}`);
     }
 
@@ -480,6 +500,16 @@ function getExtendedBasisName(basis) {
 
     return name;
 };
+
+onMounted(() => {
+    const extendedBasesFromLS = JSON.parse(localStorage.getItem('extendedBases'));
+    if (extendedBasesFromLS.length)
+        extendedBases.value = new Set(extendedBasesFromLS);
+});
+
+function rememberExtendedBases() {
+    localStorage.setItem('extendedBases', JSON.stringify(Array.from(extendedBases.value)));
+}
 
 
 
@@ -528,7 +558,7 @@ async function getExtBases() {
 
         if (dataInfo.value.data.length > 0) {
             const options = {
-                extendedBases: extendedBases.value,
+                extendedBases: Array.from(extendedBases.value),
                 allBases: allBases.value,
                 constant: settingsStore.numParams.constant,
                 stepPower: settingsStore.numParams.stepPower,
@@ -543,7 +573,7 @@ async function getExtBases() {
             });
         }
     } catch (error) {
-
+        console.error(error)
     } finally {
         getBasesLoading.value = false;
         console.log('basis_123', allBases.value)

@@ -63,7 +63,7 @@ const createPointsFromData = () => {
     
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
-        size: 0.2,
+        size: 0.25,
         sizeAttenuation: true
     });
     const valGeometry = new THREE.BufferGeometry();
@@ -78,7 +78,7 @@ const createPointsFromData = () => {
 
     const approximatedDataMaterial = new THREE.PointsMaterial({
         color: '#FF0000',
-        size: 0.2,
+        size: 0.25,
         sizeAttenuation: true
     });
     const vallAppGeometry = new THREE.BufferGeometry();
