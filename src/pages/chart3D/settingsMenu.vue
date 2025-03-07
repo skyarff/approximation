@@ -11,8 +11,8 @@
                         <span class="text-subtitle-2 font-weight-medium">Настройки отображения</span>
                     </div>
                     <v-spacer></v-spacer>
-                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" 
-                        @click="menu = false" size="x-small"></v-btn>
+                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" @click="menu = false"
+                        size="x-small"></v-btn>
                 </div>
 
                 <div class="panel-content">
@@ -21,19 +21,12 @@
                             <v-icon size="small" color="#1e3a5f">mdi-axis-x-arrow-lock</v-icon>
                             <span>Ось X (абсцисса)</span>
                         </div>
-                        
+
                         <div class="setting-body">
 
-                            <v-autocomplete 
-                                v-model="settingsClone.x2Val" 
-                                item-title="val" 
-                                item-value="val" 
-                                :items="chartStore.xKeys"
-                                density="compact"
-                                hide-details
-                                variant="outlined"
-                                bg-color="white"
-                                class="rounded-lg mb-3">
+                            <v-autocomplete v-model="settingsClone.x2Val" item-title="val" item-value="val"
+                                :items="chartStore.xKeys" density="compact" hide-details variant="outlined"
+                                bg-color="white" class="rounded-lg mb-3">
                                 <template #label>
                                     <div class="setting-label">Переменная по оси Y</div>
                                 </template>
@@ -52,16 +45,9 @@
                                 </template>
                             </v-autocomplete>
 
-                            <v-autocomplete 
-                                v-model="settingsClone.x1Val" 
-                                item-title="val" 
-                                item-value="val"
-                                :items="[...chartStore.xKeys, '-']"
-                                density="compact"
-                                hide-details
-                                variant="outlined"
-                                bg-color="white"
-                                class="rounded-lg">
+                            <v-autocomplete v-model="settingsClone.x1Val" item-title="val" item-value="val"
+                                :items="[...chartStore.xKeys, '-']" density="compact" hide-details variant="outlined"
+                                bg-color="white" class="rounded-lg">
                                 <template #label>
                                     <div class="setting-label">Переменная по оси X</div>
                                 </template>
@@ -80,64 +66,50 @@
                                 </template>
                             </v-autocomplete>
 
-                            
+
                         </div>
                     </div>
-                    
+
                     <div class="settings-section range-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
                             <span>Диапазон данных</span>
                         </div>
-                        
+
                         <div class="setting-body">
                             <div class="range-controls">
-                                
-                                
+
+
                                 <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.posAxis" 
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
+                                    <v-text-field v-model="settingsClone.posAxis" hide-details density="compact"
+                                        variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Пол. ось</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-up-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-up-bold</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
                                 <div class="range-separator">—</div>
                                 <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.negAxis" 
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
+                                    <v-text-field v-model="settingsClone.negAxis" hide-details density="compact"
+                                        variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Нег. ось</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-down-bold</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
-                                
+
                             </div>
-                            
-                            <v-btn 
-                                @click="resetRange" 
-                                size="small" 
-                                variant="text" 
-                                color="grey-darken-1"
-                                class="reset-btn mt-1 px-2"
-                                density="comfortable"
-                                block>
+
+                            <v-btn @click="resetRange" size="small" variant="text" color="grey-darken-1"
+                                class="reset-btn mt-1 px-2" density="comfortable" block>
                                 <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
                                 Сбросить диапазон
                             </v-btn>
@@ -149,27 +121,42 @@
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
                             <span>Шаг сетки</span>
                         </div>
-                        
+
                         <div class="setting-body">
                             <div class="range-controls">
                                 <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.gridStep" 
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
+                                    <v-text-field v-model="settingsClone.gridStep" hide-details density="compact"
+                                        variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Шаг сетки</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-down-bold</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
                             </div>
-                            
+
+
+                        </div>
+                    </div>
+
+                    <div class="settings-section legend-section mb-0">
+                        <div class="section-title">
+                            <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
+                            <span>Легенда графика</span>
+                        </div>
+
+                        <div class="setting-body legend-container">
+                            <div class="legend-item">
+                                <div class="color-box blue-box"></div>
+                                <span class="legend-text">Исходные данные</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="color-box red-box"></div>
+                                <span class="legend-text">Аппроксимированные данные</span>
+                            </div>
                         </div>
                     </div>
 
@@ -178,21 +165,11 @@
                 <v-divider></v-divider>
 
                 <div class="panel-footer">
-                    <v-btn
-                        color="grey"
-                        variant="text"
-                        size="small"
-                        @click="menu = false"
-                        class="cancel-btn">
+                    <v-btn color="grey" variant="text" size="small" @click="menu = false" class="cancel-btn">
                         Отмена
                     </v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn 
-                        color="primary" 
-                        variant="flat" 
-                        size="small" 
-                        @click="apply()" 
-                        prepend-icon="mdi-check"
+                    <v-btn color="primary" variant="flat" size="small" @click="apply()" prepend-icon="mdi-check"
                         class="apply-btn">
                         Применить
                     </v-btn>
@@ -204,7 +181,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import { computed } from 'vue';
 
 import { useChartStore } from '@/store/chart';
 const chartStore = useChartStore();
@@ -394,7 +370,8 @@ defineExpose({
     border-top: 1px solid #f0f0f0;
 }
 
-.apply-btn, .cancel-btn {
+.apply-btn,
+.cancel-btn {
     text-transform: none;
     font-size: 13px;
     font-weight: 500;
@@ -407,5 +384,62 @@ defineExpose({
 /* Additional styles for better visual cues */
 .v-text-field:focus-within {
     box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
+}
+
+.legend-section {
+    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f5f7fa;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.section-title span {
+    margin-left: 8px;
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.legend-container {
+    padding: 12px 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.color-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.blue-box {
+    background-color: #0000FF;
+    /* box-shadow: 0 0 4px rgba(0, 0, 255, 0.5); */
+}
+
+.red-box {
+    background-color: #FF0000;
+    /* box-shadow: 0 0 4px rgba(255, 0, 0, 0.5); */
+}
+
+.legend-text {
+    font-size: 14px;
+    color: #37474f;
 }
 </style>
