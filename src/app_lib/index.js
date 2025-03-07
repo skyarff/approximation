@@ -1,5 +1,3 @@
-import { Array } from 'core-js';
-import WorkerPool from './workerPool';
 import PrecomputedValuesWorkerPool from './preCompWorkerPool';
 import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
 import { computeMatrixWithC } from '@/app_lib_wasm/buildMatrix';
@@ -27,14 +25,11 @@ function serializeObject(obj, name = 'basisFunctions') {
   
   for (const key in obj) {
       if (typeof obj[key] === 'function') {
-          // Преобразуем функцию в строку, сохраняя её определение
           result += `  ${key}: ${obj[key].toString()},\n`;
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          // Рекурсивно обрабатываем вложенные объекты
           const nestedObj = serializeObject(obj[key], '').replace('const  = ', '');
           result += `  ${key}: ${nestedObj},\n`;
       } else {
-          // Для примитивных типов используем JSON.stringify
           result += `  ${key}: ${JSON.stringify(obj[key])},\n`;
       }
   }
@@ -99,8 +94,6 @@ async function computeMatrix(data, allBasesArr) {
 
   const precomputedValues = [];
 
-  
-
 
   try {
     const results = await Promise.all(preChunks.map(chunk =>
@@ -124,7 +117,6 @@ async function computeMatrix(data, allBasesArr) {
   }
 
 
-  console.log('Переключение на C-версию формирования матрицы');
   const outPutKey = Object.keys(data[0])[0];
   const outputData = data.map(item => ({
     [outPutKey]: item[outPutKey]
