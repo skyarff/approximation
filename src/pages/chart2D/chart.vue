@@ -17,6 +17,7 @@ import { onActivated, onBeforeUnmount } from 'vue'
 
 const chartStore = useChartStore();
 const chartDiv = ref(null);
+let chartData = [];
 
 
 const seriesVisibility = ref({});
@@ -36,6 +37,7 @@ const chartKeys = computed(() => {
 
 function createChart(context, ref, data, chartKeys, pointChart2D = false, min, max) {
 
+    
     const root = am5.Root.new(ref.value);
     root._logo.dispose();
     root.setThemes([am5themes_Dark.new(root)]);
@@ -98,6 +100,9 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
         })
     );
 
+    const { xKey, yKeys } = chartKeys.value;
+    data.sort((a, b) => a[xKey] - b[xKey]);
+
     xAxis.data.setAll(data);
 
     const legend = chart.children.push(
@@ -138,8 +143,7 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
     });
 
 
-    const { xKey, yKeys } = chartKeys.value;
-
+    
 
     if (min == 0) min = '';
     if (max == 0) max = '';
@@ -301,7 +305,7 @@ function callChart(min, max) {
         createChart,
         self,
         chartDiv,
-        chartStore.chartData,
+        chartData,
         chartKeys,
         chartStore.pointChart2D,
         min, max
@@ -371,7 +375,7 @@ function isColorSimilar(color1, color2) {
 
 onActivated(() => {
     if (chartStore.newData) {
-
+        chartData = [...chartStore.chartData];
         callChart();
         chartStore.newData = false;
     }

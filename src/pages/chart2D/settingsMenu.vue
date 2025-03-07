@@ -209,8 +209,6 @@ function apply() {
         props.settings[key] = settingsClone.value[key];
 
     chartStore.xKey = xKeys.value[props.settings.xVal].val;
-    chartStore.sortChartData();
-
     emit('applySettings');
 };
 

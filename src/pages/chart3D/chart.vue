@@ -12,7 +12,7 @@ import { ref, onBeforeUnmount, nextTick, onActivated } from 'vue';
 
 const chartDiv = ref(null);
 const chartStore = useChartStore();
-
+let chartData = [];
 
 
 
@@ -90,27 +90,34 @@ const createPointsFromData = (x1Val, x2Val) => {
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
-    const tempArr = new Float32Array(chartStore.chartData.length * 3);
-    let primaryData = null;
-    let approximatedData = null;
-
-    const keys = Object.keys(chartStore.chartData[0]);
+    const keys = Object.keys(chartData[0]);
     let xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
-
 
     if (x2Val) xKeys[0] = x2Val;
     if (x1Val) xKeys[1] = x1Val;
 
     if (x1Val == '-') xKeys = xKeys.slice(0, 1)
 
-    for (let i = 0; i < chartStore.chartData.length; i++) {
-        tempArr[i * 3] = xKeys.length > 1 ? chartStore.chartData[i][xKeys[1]] : 0;
-        tempArr[i * 3 + 1] = chartStore.chartData[i][xKeys[0]];
+
+    chartData.sort((a, b) => a[xKeys[0]] - b[xKeys[0]]);
+    if (xKeys.length > 1)
+        chartData.sort((a, b) => a[xKeys[1]] - b[xKeys[1]]);
+
+
+    const tempArr = new Float32Array(chartData.length * 3);
+    let primaryData = null;
+    let approximatedData = null;
+
+    
+
+    for (let i = 0; i < chartData.length; i++) {
+        tempArr[i * 3] = xKeys.length > 1 ? chartData[i][xKeys[1]] : 0;
+        tempArr[i * 3 + 1] = chartData[i][xKeys[0]];
     }
 
     primaryData = structuredClone(tempArr);
-    for (let i = 0; i < chartStore.chartData.length; i++) {
-        primaryData[i * 3 + 2] = chartStore.chartData[i][chartStore.yKeys[0]];
+    for (let i = 0; i < chartData.length; i++) {
+        primaryData[i * 3 + 2] = chartData[i][chartStore.yKeys[0]];
     }
 
     const primaryDataMaterial = new THREE.PointsMaterial({
@@ -124,8 +131,8 @@ const createPointsFromData = (x1Val, x2Val) => {
     group.add(valPointsObject);
 
     approximatedData = structuredClone(tempArr);
-    for (let i = 0; i < chartStore.chartData.length; i++) {
-        approximatedData[i * 3 + 2] = chartStore.chartData[i][chartStore.yKeys[1]];
+    for (let i = 0; i < chartData.length; i++) {
+        approximatedData[i * 3 + 2] = chartData[i][chartStore.yKeys[1]];
     }
 
     const approximatedDataMaterial = new THREE.PointsMaterial({
@@ -205,6 +212,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
     const width = chartDiv.value.clientWidth;
     const height = chartDiv.value.clientHeight;
+
 
     let { min, max } = createPointsFromData(x1Val, x2Val);
     const longSight = (Math.abs(max) + Math.abs(min)) * 2;
@@ -551,6 +559,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
 onActivated(() => {
     if (chartStore.newData3D) {
+        chartData = [...chartStore.chartData];
         callChart();
         chartStore.newData3D = false;
     }
