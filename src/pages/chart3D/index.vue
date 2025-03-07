@@ -16,7 +16,7 @@
 
 <script setup>
 import icons from '@/assets/icons'
-import { ref, reactive } from 'vue';
+import { ref, reactive, onActivated } from 'vue';
 import chart from './chart.vue';
 import settingsMenu from './settingsMenu.vue';
 
@@ -26,12 +26,19 @@ const chartStore = useChartStore();
 const chartRef = ref(null);
 const settingsRef = ref(null);
 
+
+
 const settings = reactive({
     posAxis: '',
     negAxis: '',
     gridStep: '',
     x1Val: chartStore.xKeys[1] ?? '-',
-    x2Val: chartStore.xKeys[0],
+    x2Val: chartStore.xKeys[0] ?? '-',
+});
+
+onActivated(() => {
+    settings.x1Val = chartStore.xKeys[1] ?? '-';
+    settings.x2Val = chartStore.xKeys[0] ?? '-';
 });
 
 

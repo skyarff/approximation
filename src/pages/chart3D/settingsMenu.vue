@@ -28,7 +28,7 @@
                                 v-model="settingsClone.x2Val" 
                                 item-title="val" 
                                 item-value="val" 
-                                :items="xKeys"
+                                :items="chartStore.xKeys"
                                 density="compact"
                                 hide-details
                                 variant="outlined"
@@ -56,7 +56,7 @@
                                 v-model="settingsClone.x1Val" 
                                 item-title="val" 
                                 item-value="val"
-                                :items="[...xKeys, '-']"
+                                :items="[...chartStore.xKeys, '-']"
                                 density="compact"
                                 hide-details
                                 variant="outlined"
@@ -229,16 +229,6 @@ function switchMenu() {
 
 let settingsClone = ref({});
 
-const xKeys = computed(() => {
-    return Object.keys(chartStore.chartData[0])
-        .filter(key => !chartStore.yKeys.includes(key))
-        .map((key, index) => {
-            return {
-                id: index,
-                val: key
-            }
-        })
-});
 
 
 function apply() {

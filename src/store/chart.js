@@ -55,7 +55,7 @@ export const useChartStore = defineStore('chart', () => {
         yKeys.value = payload.yKeys;
         newData.value = true;
         newData3D.value = true;
-        
+        console.log('newData3D.value', newData3D.value)
     }
 
     function sortChartData() {
