@@ -672,6 +672,8 @@ async function setChartData() {
         const { data, fields } = dataInfo.value;
         const [yField, xField] = fields;
 
+        console.log('fields', fields, xField)
+
         const approximated = calculatePredicted(data, allBases.value, false);
         const approximatedKey = `${yField} (approximated)`;
         const diffKey = `${yField} (difference)`;
@@ -687,6 +689,7 @@ async function setChartData() {
         const payload = {
             chartData: data,
             xKey: xField,
+            xKeys: fields.slice(1, fields.length),
             yKeys: [yField, approximatedKey, diffKey],
             newData: true
         }

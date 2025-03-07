@@ -23,18 +23,19 @@
                         </div>
                         
                         <div class="setting-body">
+
                             <v-autocomplete 
-                                v-model="settingsClone.xVal" 
+                                v-model="settingsClone.x2Val" 
                                 item-title="val" 
-                                item-value="id" 
+                                item-value="val" 
                                 :items="xKeys"
                                 density="compact"
                                 hide-details
                                 variant="outlined"
                                 bg-color="white"
-                                class="rounded-lg mb-2">
+                                class="rounded-lg mb-3">
                                 <template #label>
-                                    <div class="setting-label">Переменная по оси X</div>
+                                    <div class="setting-label">Переменная по оси Y</div>
                                 </template>
                                 <template #prepend-inner>
                                     <v-icon size="x-small" color="primary" class="mr-2">mdi-arrow-right-bold</v-icon>
@@ -50,6 +51,36 @@
                                     </v-list-item>
                                 </template>
                             </v-autocomplete>
+
+                            <v-autocomplete 
+                                v-model="settingsClone.x1Val" 
+                                item-title="val" 
+                                item-value="val"
+                                :items="[...xKeys, '-']"
+                                density="compact"
+                                hide-details
+                                variant="outlined"
+                                bg-color="white"
+                                class="rounded-lg">
+                                <template #label>
+                                    <div class="setting-label">Переменная по оси X</div>
+                                </template>
+                                <template #prepend-inner>
+                                    <v-icon size="x-small" color="primary" class="mr-2 ">mdi-arrow-right-bold</v-icon>
+                                </template>
+                                <template #item="{ item, props }">
+                                    <v-list-item density="compact" v-bind="props">
+                                        <template #prepend>
+                                            <v-icon size="x-small" color="primary">mdi-chart-timeline-variant</v-icon>
+                                        </template>
+                                        <template #title>
+                                            <span class="text-body-2">{{ item.title }}</span>
+                                        </template>
+                                    </v-list-item>
+                                </template>
+                            </v-autocomplete>
+
+                            
                         </div>
                     </div>
                     
@@ -192,6 +223,8 @@ function switchMenu() {
     if (menu.value) {
         settingsClone.value = structuredClone(props.settings);
     }
+
+    console.log('settingsClone.value', settingsClone.value)
 };
 
 let settingsClone = ref({});
@@ -207,12 +240,11 @@ const xKeys = computed(() => {
         })
 });
 
+
 function apply() {
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
-    chartStore.xKey = xKeys.value[props.settings.xVal].val;
-    chartStore.sortChartData();
 
     emit('applySettings');
 };

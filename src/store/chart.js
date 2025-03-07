@@ -51,14 +51,16 @@ export const useChartStore = defineStore('chart', () => {
     function setChartData(payload) {
         chartData.value = payload.chartData;
         xKey.value = payload.xKey;
+        xKeys.value = payload.xKeys;
         yKeys.value = payload.yKeys;
         newData.value = true;
         newData3D.value = true;
+        
     }
 
     function sortChartData() {
         chartData.value = [...chartData.value].sort((a, b) => a[xKey.value] - b[xKey.value]);
     }
 
-    return { chartData, xKey, yKeys, pointChart2D, newData, pointChart3D, grid3D, newData3D, switchPoint, switchPoint3D, sortChartData, setChartData };
+    return { chartData, xKey, xKeys, yKeys, pointChart2D, newData, pointChart3D, grid3D, newData3D, switchPoint, switchPoint3D, sortChartData, setChartData };
 });

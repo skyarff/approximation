@@ -87,7 +87,7 @@ const toggleConnectPoints = () => {
     }
 };
 
-const createPointsFromData = () => {
+const createPointsFromData = (x1Val, x2Val) => {
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
@@ -96,8 +96,13 @@ const createPointsFromData = () => {
     let approximatedData = null;
 
     const keys = Object.keys(chartStore.chartData[0]);
+    let xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
 
-    const xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
+
+    if (x2Val) xKeys[0] = x2Val;
+    if (x1Val) xKeys[1] = x1Val;
+
+    if (x1Val == '-') xKeys = xKeys.slice(0, 1)
 
     for (let i = 0; i < chartStore.chartData.length; i++) {
         tempArr[i * 3] = xKeys.length > 1 ? chartStore.chartData[i][xKeys[1]] : 0;
@@ -188,8 +193,10 @@ const handleResetRotation = () => {
 };
 
 
-const initThree = (posAxis, negAxis, gridStep) => {
+const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     if (!chartDiv.value) return;
+
+
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -283,8 +290,8 @@ const initThree = (posAxis, negAxis, gridStep) => {
     });
 
     if (gridStep) axisTickStep = Number(gridStep);
-    let { min, max } = createPointsFromData();
 
+    let { min, max } = createPointsFromData(x1Val, x2Val);
     max = max > 0 ? max : 0;
     const posAxis_ = posAxis ? posAxis : max;
     function createAxisWithTicks(direction, color, length = posAxis_) {
@@ -442,7 +449,7 @@ const initThree = (posAxis, negAxis, gridStep) => {
     group.add(negYAxis);
     group.add(negZAxis);
 
-    // Добавляем подписи осей с поменянными обозначениями
+
     function createTextSprite(text, color, position, size = 1.0) {
         const canvas = document.createElement('canvas');
         canvas.width = 512;
@@ -552,23 +559,9 @@ onActivated(() => {
 });
 
 
-const handleResize = () => {
-    if (!chartDiv.value || !camera || !renderer) return;
-
-    const width = chartDiv.value.clientWidth;
-    const height = chartDiv.value.clientHeight;
-
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(width, height);
-    renderer.render(scene, camera);
-};
-
 
 
 function disposeThree() {
-    window.removeEventListener('resize', handleResize);
     window.removeEventListener('keydown', handleKeyDown);
 
     if (chartDiv.value && renderer && renderer.domElement) {
