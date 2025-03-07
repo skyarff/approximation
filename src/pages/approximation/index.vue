@@ -384,6 +384,7 @@ const customSettings = reactive({
 });
 const funcSettings = reactive({
     basisFunctions: [
+        { id: 0, val: 'ufRomaTest', label: 'Идентичность' },
         { id: 1, val: '', label: 'Идентичность' },
         { id: 2, val: 'sqrt', label: 'Квадратный корень' },
         { id: 3, val: 'sin', label: 'Синус' },
