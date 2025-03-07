@@ -141,25 +141,6 @@
 
                         </div>
                     </div>
-
-                    <div class="settings-section legend-section mb-0">
-                        <div class="section-title">
-                            <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
-                            <span>Легенда графика</span>
-                        </div>
-
-                        <div class="setting-body legend-container">
-                            <div class="legend-item">
-                                <div class="color-box blue-box"></div>
-                                <span class="legend-text">Исходные данные</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-box red-box"></div>
-                                <span class="legend-text">Аппроксимированные данные</span>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
                 <v-divider></v-divider>
@@ -384,62 +365,5 @@ defineExpose({
 /* Additional styles for better visual cues */
 .v-text-field:focus-within {
     box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
-}
-
-.legend-section {
-    margin-bottom: 16px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: #f5f7fa;
-    border-bottom: 1px solid #e0e6ed;
-}
-
-.section-title span {
-    margin-left: 8px;
-    font-weight: 600;
-    color: #1e3a5f;
-}
-
-.legend-container {
-    padding: 12px 16px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.legend-item:last-child {
-    margin-bottom: 0;
-}
-
-.color-box {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    margin-right: 10px;
-}
-
-.blue-box {
-    background-color: #0000FF;
-    /* box-shadow: 0 0 4px rgba(0, 0, 255, 0.5); */
-}
-
-.red-box {
-    background-color: #FF0000;
-    /* box-shadow: 0 0 4px rgba(255, 0, 0, 0.5); */
-}
-
-.legend-text {
-    font-size: 14px;
-    color: #37474f;
 }
 </style>

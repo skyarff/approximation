@@ -36,8 +36,6 @@ const toggleGrids = () => {
 const toggleConnectPoints = () => {
 
     if (chartStore.pointChart3D) {
-        console.log('1')
-
         if (valPointsObject) {
             const positions = valPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
@@ -52,7 +50,6 @@ const toggleConnectPoints = () => {
             primaryLines = new THREE.Line(lineGeometry, lineMaterial);
             group.add(primaryLines);
         }
-
         if (vallAppPointsObject) {
             const positions = vallAppPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
@@ -68,25 +65,54 @@ const toggleConnectPoints = () => {
             group.add(approximatedLines);
         }
     } else {
-        console.log('2')
         if (primaryLines) {
             group.remove(primaryLines);
             primaryLines = null;
         }
-
         if (approximatedLines) {
             group.remove(approximatedLines);
             approximatedLines = null;
         }
     }
 
-
     if (renderer && scene && camera) {
         renderer.render(scene, camera);
     }
 };
 
+
+let switcher = 0;
+const toggleDataVisible = () => {
+    if (valPointsObject) {
+        if (switcher == 2) {
+            valPointsObject.visible = true;
+            if (primaryLines) primaryLines.visible = true;
+        } else if (switcher == 0) {
+            valPointsObject.visible = false;
+            if (primaryLines) primaryLines.visible = false;
+        }
+    }
+
+    if (vallAppPointsObject) {
+        if (switcher == 3) {
+            vallAppPointsObject.visible = true;
+            if (approximatedLines) approximatedLines.visible = true;
+        } else if (switcher == 1) {
+            vallAppPointsObject.visible = false;
+            if (approximatedLines)approximatedLines.visible = false;
+        }
+    }
+
+    switcher = (switcher + 1) % 4;
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
+};
+
+
+
 const createPointsFromData = (x1Val, x2Val) => {
+
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
@@ -104,11 +130,11 @@ const createPointsFromData = (x1Val, x2Val) => {
         chartData.sort((a, b) => a[xKeys[1]] - b[xKeys[1]]);
 
 
-    const tempArr = new Float32Array(chartData.length * 3);
     let primaryData = null;
     let approximatedData = null;
+    let tempArr;
 
-    
+    tempArr = new Float32Array(chartData.length * 3);
 
     for (let i = 0; i < chartData.length; i++) {
         tempArr[i * 3] = xKeys.length > 1 ? chartData[i][xKeys[1]] : 0;
@@ -153,56 +179,25 @@ const createPointsFromData = (x1Val, x2Val) => {
 
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
-    for (let i = 0; i < primaryData.length; i++) {
-        if (primaryData[i] < min) min = primaryData[i];
-        if (approximatedData[i] < min) min = approximatedData[i];
 
+
+    for (let i = 0; i < primaryData?.length; i++) {
+        if (primaryData[i] < min) min = primaryData[i];
         if (primaryData[i] > max) max = primaryData[i];
+
+        if (approximatedData[i] < min) min = approximatedData[i];
         if (approximatedData[i] > max) max = approximatedData[i];
     }
-
 
     return {
         min, max
     }
 };
 
-const handleRotateX = (e) => {
-    if (group) {
-        const radians = (e.detail.degrees * Math.PI) / 180;
-        group.rotation.x += radians;
-        renderer.render(scene, camera);
-    }
-};
-
-const handleRotateY = (e) => {
-    if (group) {
-        const radians = (e.detail.degrees * Math.PI) / 180;
-        group.rotation.y += radians;
-        renderer.render(scene, camera);
-    }
-};
-
-const handleRotateZ = (e) => {
-    if (group) {
-        const radians = (e.detail.degrees * Math.PI) / 180;
-        group.rotation.z += radians;
-        renderer.render(scene, camera);
-    }
-};
-
-const handleResetRotation = () => {
-    if (group) {
-        group.rotation.set(0, 0, 0);
-        renderer.render(scene, camera);
-    }
-};
 
 
 const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     if (!chartDiv.value) return;
-
-    
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -214,7 +209,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     const height = chartDiv.value.clientHeight;
 
 
-    let { min, max } = createPointsFromData(x1Val, x2Val);
+    let { min, max } = createPointsFromData(x1Val, x2Val,);
     const longSight = (Math.abs(max) + Math.abs(min)) * 2;
 
     let axisTickStep = Math.round(longSight / 75);
@@ -223,6 +218,8 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
     camera.position.set(20, 20, 20);
+    camera.up.set(0, 0, 1);
+
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
@@ -250,45 +247,59 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         const panVector = new THREE.Vector3();
 
         switch (e.key) {
-            case 'ArrowLeft':
-                panVector.set(-panSpeed, 0, 0);
-                break;
-            case 'ArrowRight':
-                panVector.set(panSpeed, 0, 0);
-                break;
-            case 'ArrowUp':
-                panVector.set(0, panSpeed, 0);
-                break;
-            case 'ArrowDown':
-                panVector.set(0, -panSpeed, 0);
-                break;
-            case 'a':
-            case 'A':
-                panVector.set(-panSpeed, 0, 0);
-                break;
-            case 'd':
-            case 'D':
-                panVector.set(panSpeed, 0, 0);
-                break;
-            case 'w':
-            case 'W':
-                panVector.set(0, 0, -panSpeed);
-                break;
-            case 's':
-            case 'S':
-                panVector.set(0, 0, panSpeed);
-                break;
 
-            case 'Control':
-                panVector.set(0, -panSpeed, 0);
-                break;
-            case ' ':
-                panVector.set(0, panSpeed, 0);
-                break;
+        case 'ArrowLeft':
+            panVector.set(-panSpeed, 0, 0);
+            break;
+        case 'ArrowRight':
+            panVector.set(panSpeed, 0, 0);
+            break;
+        case 'ArrowUp':
+            panVector.set(0, panSpeed, 0);
+            break;
+        case 'ArrowDown':
+            panVector.set(0, -panSpeed, 0);
+            break;
+            
 
-            default:
-                return;
-        }
+        case 'a':
+        case 'A':
+        case 'ф':
+        case 'Ф':
+            panVector.set(-panSpeed, 0, 0);
+            break;
+            
+        case 'd':
+        case 'D':
+        case 'в':
+        case 'В':
+            panVector.set(panSpeed, 0, 0);
+            break;
+            
+        case 'w':
+        case 'W':
+        case 'ц':
+        case 'Ц':
+            panVector.set(0, 0, -panSpeed);
+            break;
+            
+        case 's':
+        case 'S':
+        case 'ы':
+        case 'Ы':
+            panVector.set(0, 0, panSpeed);
+            break;
+        
+        case 'Control':
+            panVector.set(0, -panSpeed, 0);
+            break;
+        case ' ':
+            panVector.set(0, panSpeed, 0);
+            break;
+
+        default:
+            return;
+    }
 
         panVector.applyQuaternion(camera.quaternion);
 
@@ -306,19 +317,22 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
     let letterSize = longSight / 75;
     let tickSize = longSight / 1000;
-    let yOffset = -longSight / 280;
+    let verticalOffset = -longSight / 280;
+    let labelOffset = longSight / 400;
+    let labelSize = longSight / 20;
     if (gridStep) {
         letterSize *= gridStep / axisTickStep;
         tickSize *= gridStep / axisTickStep;
-        yOffset *= gridStep / axisTickStep;
+        verticalOffset *= gridStep / axisTickStep;
+        labelOffset *= gridStep / axisTickStep;
+        labelSize *= gridStep / axisTickStep;
         axisTickStep = Number(gridStep);
     }
 
 
-    
     max = max > 0 ? max : 0;
-    const posAxis_ = posAxis ? posAxis : max;
-    function createAxisWithTicks(direction, color, length = posAxis_) {
+    const posAxis_ = Number(posAxis ? posAxis : max);
+    function createAxisWithTicks(direction, color, length, sign = 1) {
         const axisGroup = new THREE.Group();
 
         const lineGeometry = new THREE.BufferGeometry();
@@ -328,42 +342,44 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         axisPoints.push(new THREE.Vector3(0, 0, 0));
 
         if (direction === 'x') {
-            axisPoints.push(new THREE.Vector3(length, 0, 0));
+            axisPoints.push(new THREE.Vector3(length * sign, 0, 0));
         } else if (direction === 'y') {
-            axisPoints.push(new THREE.Vector3(0, length, 0));
+            axisPoints.push(new THREE.Vector3(0, length * sign, 0));
         } else if (direction === 'z') {
-            axisPoints.push(new THREE.Vector3(0, 0, length));
+            axisPoints.push(new THREE.Vector3(0, 0, length * sign));
         }
 
         lineGeometry.setFromPoints(axisPoints);
         const line = new THREE.Line(lineGeometry, lineMaterial);
         axisGroup.add(line);
 
-     
+
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
-        
+
         for (let i = axisTickStep; i < length; i += axisTickStep) {
+
+
             const tickGeometry = new THREE.BufferGeometry();
             const tickPoints = [];
 
             if (direction === 'x') {
-                tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
-                tickPoints.push(new THREE.Vector3(i, tickSize, 0));
+                tickPoints.push(new THREE.Vector3(i * sign, 0, -tickSize));
+                tickPoints.push(new THREE.Vector3(i * sign, 0, tickSize));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, yOffset, 0), letterSize);
+                const label = createTextSprite(`${i * sign}`, '#000', new THREE.Vector3(i * sign, 0, verticalOffset), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'y') {
-                tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
-                tickPoints.push(new THREE.Vector3(tickSize, i, 0));
+                tickPoints.push(new THREE.Vector3(0, i * sign, -tickSize));
+                tickPoints.push(new THREE.Vector3(0, i * sign, tickSize));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(yOffset, i, 0), letterSize);
+                const label = createTextSprite(`${i * sign}`, '#000', new THREE.Vector3(0, i * sign, verticalOffset), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'z') {
-                tickPoints.push(new THREE.Vector3(0, -tickSize, i));
-                tickPoints.push(new THREE.Vector3(0, tickSize, i));
+                tickPoints.push(new THREE.Vector3(-tickSize * sign, 0, i));
+                tickPoints.push(new THREE.Vector3(tickSize * sign, 0, i));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, yOffset, i), letterSize);
+                const label = createTextSprite(`${i * sign}`, '#000', new THREE.Vector3(0, verticalOffset, i * sign), letterSize);
                 axisGroup.add(label);
             }
 
@@ -375,9 +391,9 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         return axisGroup;
     }
 
-    const xAxis = createAxisWithTicks('x', 0xFF0000);
-    const yAxis = createAxisWithTicks('y', 0x0000FF);
-    const zAxis = createAxisWithTicks('z', 0x00FF00);
+    const xAxis = createAxisWithTicks('x', '#FF0000', posAxis_);
+    const yAxis = createAxisWithTicks('y', '#00FF00', posAxis_);
+    const zAxis = createAxisWithTicks('z', '#0000FF', posAxis_);
 
     group.add(xAxis);
     group.add(yAxis);
@@ -385,71 +401,10 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
 
     min = min < 0 ? min : 0;
-    const negAxis_ = negAxis ? negAxis : -min;
-    function createNegativeAxisLine(direction, color, length = negAxis_) {
-        const axisGroup = new THREE.Group();
-
-        const lineGeometry = new THREE.BufferGeometry();
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: color,
-            linewidth: 1,
-            opacity: 1,
-            transparent: true
-        });
-
-        const axisPoints = [];
-        axisPoints.push(new THREE.Vector3(0, 0, 0));
-
-        if (direction === 'x') {
-            axisPoints.push(new THREE.Vector3(-length, 0, 0));
-        } else if (direction === 'y') {
-            axisPoints.push(new THREE.Vector3(0, -length, 0));
-        } else if (direction === 'z') {
-            axisPoints.push(new THREE.Vector3(0, 0, -length));
-        }
-
-        lineGeometry.setFromPoints(axisPoints);
-        const line = new THREE.Line(lineGeometry, lineMaterial);
-        axisGroup.add(line);
-
-        const tickMaterial = new THREE.LineBasicMaterial({ color: color });
-
-        for (let i = -axisTickStep; i > -length; i -= axisTickStep) {
-            const tickGeometry = new THREE.BufferGeometry();
-            const tickPoints = [];
-
-            if (direction === 'x') {
-                tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
-                tickPoints.push(new THREE.Vector3(i, tickSize, 0));
-
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, yOffset, 0), letterSize);
-                axisGroup.add(label);
-            } else if (direction === 'y') {
-                tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
-                tickPoints.push(new THREE.Vector3(tickSize, i, 0));
-
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(yOffset, i, 0), letterSize);
-                axisGroup.add(label);
-            } else if (direction === 'z') {
-                tickPoints.push(new THREE.Vector3(0, -tickSize, i));
-                tickPoints.push(new THREE.Vector3(0, tickSize, i));
-
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, yOffset, i), letterSize);
-                axisGroup.add(label);
-            }
-
-            tickGeometry.setFromPoints(tickPoints);
-            const tick = new THREE.Line(tickGeometry, tickMaterial);
-            axisGroup.add(tick);
-        }
-        
-        return axisGroup;
-    }
-
-
-    const negXAxis = createNegativeAxisLine('x', 0xFF0000);
-    const negYAxis = createNegativeAxisLine('y', 0x0000FF);
-    const negZAxis = createNegativeAxisLine('z', 0x00FF00);
+    const negAxis_ = Number(negAxis ? negAxis : -min);
+    const negXAxis = createAxisWithTicks('x', '#FF0000', negAxis_, -1);
+    const negYAxis = createAxisWithTicks('y', '#00FF00', negAxis_, -1);
+    const negZAxis = createAxisWithTicks('z', '#0000FF', negAxis_, -1);
 
     group.add(negXAxis);
     group.add(negYAxis);
@@ -465,26 +420,14 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Use a larger, bolder font with better anti-aliasing
-        context.font = 'Bold 120px Roboto';
+        context.font = '120px Roboto';
         context.fillStyle = color;
-        context.strokeStyle = '#FFFFFF'; // Adding white outline for better visibility
-        context.lineWidth = 4;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
 
-        // Add a subtle text shadow for depth
-        context.shadowColor = 'rgba(0,0,0,0.5)';
-        context.shadowBlur = 6;
-        context.shadowOffsetX = 2;
-        context.shadowOffsetY = 2;
-
-        // Draw the text
-        context.strokeText(text, 256, 256);
         context.fillText(text, 256, 256);
 
         const texture = new THREE.CanvasTexture(canvas);
-        // Enable mipmapping and anisotropic filtering for sharper text
         texture.minFilter = THREE.LinearMipMapLinearFilter;
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
@@ -501,16 +444,15 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         return sprite;
     }
 
-    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(posAxis_ + longSight / 200, 0, 0), longSight / 20);
-    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, posAxis_ + longSight / 200, 0), longSight / 20);
-    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, posAxis_ + longSight / 200), longSight / 20);
 
+    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(posAxis_ + labelOffset, 0, 0), labelSize);
+    const yLabel = createTextSprite('Y', '#00FF00', new THREE.Vector3(0, posAxis_ + labelOffset, 0), labelSize);
+    const zLabel = createTextSprite('Z', '#0000FF', new THREE.Vector3(0, 0, posAxis_ + labelOffset), labelSize);
 
 
     group.add(xLabel);
     group.add(yLabel);
     group.add(zLabel);
-
 
 
     const gridLength = Math.max(posAxis_, negAxis_) * 2
@@ -532,13 +474,18 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     gridYZ.material.transparent = true;
     group.add(gridYZ);
 
-    
+
     toggleConnectPoints();
     toggleGrids();
 
-    let menuTemp = true;
-    renderer.domElement.addEventListener('dblclick', () => {
 
+    let menuTemp = true;
+
+    renderer.domElement.addEventListener('dblclick', () => {
+        toggleDataVisible();
+    });
+
+    renderer.domElement.addEventListener('contextmenu', () => {
         if (menuTemp) {
             chartStore.grid3D = !chartStore.grid3D;
             toggleGrids();
@@ -548,13 +495,11 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
             toggleConnectPoints();
             menuTemp = true;
         }
-
-
     });
+
 
     renderer.render(scene, camera);
 };
-
 
 
 onActivated(() => {
@@ -566,21 +511,14 @@ onActivated(() => {
 });
 
 
-
-
 function disposeThree() {
     window.removeEventListener('keydown', handleKeyDown);
 
     if (chartDiv.value && renderer && renderer.domElement) {
-
-        renderer.domElement.removeEventListener('rotateX', handleRotateX);
-        renderer.domElement.removeEventListener('rotateY', handleRotateY);
-        renderer.domElement.removeEventListener('rotateZ', handleRotateZ);
-        renderer.domElement.removeEventListener('resetRotation', handleResetRotation);
         renderer.domElement.removeEventListener('dblclick', () => { });
+        renderer.domElement.removeEventListener('contextmenu', () => { });
     }
 
-    // Удаляем линии, если они существуют
     if (primaryLines) {
         group.remove(primaryLines);
         primaryLines.geometry.dispose();

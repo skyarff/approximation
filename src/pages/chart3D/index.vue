@@ -48,7 +48,7 @@ function apply() {
         settings.negAxis, 
         settings.gridStep,
         settings.x1Val,
-        settings.x2Val
+        settings.x2Val,
     );
 }
 

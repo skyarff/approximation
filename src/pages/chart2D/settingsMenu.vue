@@ -114,7 +114,7 @@
                         </div>
                     </div>
 
-                    <!-- Display Options -->
+   
                     <div class="settings-section display-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-scatter-plot</v-icon>
