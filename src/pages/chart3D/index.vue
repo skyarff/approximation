@@ -29,13 +29,14 @@ const settingsRef = ref(null);
 const settings = reactive({
     posAxis: '',
     negAxis: '',
+    gridStep: '',
     xVal: 0,
     xVals: ['x1', 'x2']
 });
 
 
 function apply() {
-    chartRef.value.callChart(settings.posAxis, settings.negAxis);
+    chartRef.value.callChart(settings.posAxis, settings.negAxis, settings.gridStep);
 }
 
 </script>

@@ -8,14 +8,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useChartStore } from '@/store/chart';
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { ref, onBeforeUnmount, nextTick, onActivated } from 'vue';
 
 const chartDiv = ref(null);
 const chartStore = useChartStore();
 
-const axisLength = 200;
-const axisTickStep = 5;
 
+let axisTickStep = 5;
 
 
 let scene, camera, renderer, controls;
@@ -139,6 +138,22 @@ const createPointsFromData = () => {
     if (renderer && scene && camera) {
         renderer.render(scene, camera);
     }
+
+
+    let min = Number.MAX_VALUE;
+    let max = Number.MIN_VALUE;
+    for (let i = 0; i < primaryData.length; i++) {
+        if (primaryData[i] < min) min = primaryData[i];
+        if (approximatedData[i] < min) min = approximatedData[i];
+
+        if (primaryData[i] > max) max = primaryData[i];
+        if (approximatedData[i] > max) max = approximatedData[i];
+    }
+
+
+    return {
+        min, max
+    }
 };
 
 const handleRotateX = (e) => {
@@ -173,7 +188,7 @@ const handleResetRotation = () => {
 };
 
 
-const initThree = (posAxis, negAxis) => {
+const initThree = (posAxis, negAxis, gridStep) => {
     if (!chartDiv.value) return;
 
     scene = new THREE.Scene();
@@ -267,12 +282,11 @@ const initThree = (posAxis, negAxis) => {
         renderer.render(scene, camera);
     });
 
+    if (gridStep) axisTickStep = Number(gridStep);
+    let { min, max } = createPointsFromData();
 
-    
-
-    createPointsFromData();
-
-    const posAxis_ = posAxis ? posAxis : axisLength;
+    max = max > 0 ? max : 0;
+    const posAxis_ = posAxis ? posAxis : max;
     function createAxisWithTicks(direction, color, length = posAxis_) {
         const axisGroup = new THREE.Group();
 
@@ -313,6 +327,7 @@ const initThree = (posAxis, negAxis) => {
         const tickSize = 0.2;
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
+        
         for (let i = axisTickStep; i < length; i += axisTickStep) {
             const tickGeometry = new THREE.BufferGeometry();
             const tickPoints = [];
@@ -353,7 +368,9 @@ const initThree = (posAxis, negAxis) => {
     group.add(yAxis);
     group.add(zAxis);
 
-    const negAxis_ = negAxis ? negAxis : axisLength;
+
+    min = min < 0 ? min : 0;
+    const negAxis_ = negAxis ? negAxis : -min;
     function createNegativeAxisLine(direction, color, length = negAxis_) {
         const axisGroup = new THREE.Group();
 
@@ -527,38 +544,12 @@ const initThree = (posAxis, negAxis) => {
 
 
 
-watch(() => chartStore.chartData, () => {
-    if (scene && group) {
-        if (primaryLines) {
-            group.remove(primaryLines);
-            primaryLines.geometry.dispose();
-            primaryLines.material.dispose();
-        }
-
-        if (approximatedLines) {
-            group.remove(approximatedLines);
-            approximatedLines.geometry.dispose();
-            approximatedLines.material.dispose();
-        }
-
-        if (valPointsObject) {
-            group.remove(valPointsObject);
-            valPointsObject.geometry.dispose();
-            valPointsObject.material.dispose();
-        }
-
-        if (vallAppPointsObject) {
-            group.remove(vallAppPointsObject);
-            vallAppPointsObject.geometry.dispose();
-            vallAppPointsObject.material.dispose();
-        }
-
-
-
-        createPointsFromData();
+onActivated(() => {
+    if (chartStore.newData3D) {
+        callChart();
+        chartStore.newData3D = false;
     }
-}, { deep: true });
-
+});
 
 
 const handleResize = () => {
@@ -574,10 +565,7 @@ const handleResize = () => {
     renderer.render(scene, camera);
 };
 
-onMounted(() => {
-    initThree();
-    window.addEventListener('resize', handleResize);
-});
+
 
 function disposeThree() {
     window.removeEventListener('resize', handleResize);
@@ -628,10 +616,10 @@ function disposeThree() {
 
 const chartDivOn = ref(true);
 async function disposeAndCall(func, ...args) {
+
     disposeThree();
 
     chartDivOn.value = false;
-
     await nextTick();
     chartDivOn.value = true;
     await nextTick();
@@ -639,11 +627,10 @@ async function disposeAndCall(func, ...args) {
     func(...args);
 };
 
-function callChart(posAxis, negAxis) {
+function callChart(...args) {
     disposeAndCall(
         initThree,
-        posAxis,
-        negAxis
+        ...args
     )
 };
 

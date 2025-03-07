@@ -53,7 +53,6 @@
                         </div>
                     </div>
                     
-                    <!-- Range Settings -->
                     <div class="settings-section range-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
@@ -62,24 +61,7 @@
                         
                         <div class="setting-body">
                             <div class="range-controls">
-                                <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.negAxis" 
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
-                                        <template #label>
-                                            <div class="setting-label">Нег. ось</div>
-                                        </template>
-                                        <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
-                                        </template>
-                                    </v-text-field>
-                                </div>
                                 
-                                <div class="range-separator">—</div>
                                 
                                 <div class="range-input">
                                     <v-text-field 
@@ -97,6 +79,24 @@
                                         </template>
                                     </v-text-field>
                                 </div>
+                                <div class="range-separator">—</div>
+                                <div class="range-input">
+                                    <v-text-field 
+                                        v-model="settingsClone.negAxis" 
+                                        hide-details
+                                        density="compact"
+                                        variant="outlined"
+                                        bg-color="white"
+                                        class="rounded-lg">
+                                        <template #label>
+                                            <div class="setting-label">Нег. ось</div>
+                                        </template>
+                                        <template #prepend-inner>
+                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
+                                        </template>
+                                    </v-text-field>
+                                </div>
+                                
                             </div>
                             
                             <v-btn 
@@ -110,6 +110,35 @@
                                 <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
                                 Сбросить диапазон
                             </v-btn>
+                        </div>
+                    </div>
+
+                    <div class="settings-section range-section">
+                        <div class="section-title">
+                            <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
+                            <span>Шаг сетки</span>
+                        </div>
+                        
+                        <div class="setting-body">
+                            <div class="range-controls">
+                                <div class="range-input">
+                                    <v-text-field 
+                                        v-model="settingsClone.gridStep" 
+                                        hide-details
+                                        density="compact"
+                                        variant="outlined"
+                                        bg-color="white"
+                                        class="rounded-lg">
+                                        <template #label>
+                                            <div class="setting-label">Шаг сетки</div>
+                                        </template>
+                                        <template #prepend-inner>
+                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
+                                        </template>
+                                    </v-text-field>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
 
