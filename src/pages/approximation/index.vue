@@ -15,14 +15,23 @@
                     <div class="section-title">
                         <v-icon size="small" color="#1e3a5f">mdi-function</v-icon>
                         <span>Функция и параметры</span>
+
+
+                        <v-spacer></v-spacer>
+                        <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
+
+
                     </div>
                     <div class="config-controls">
 
                         <div class="control-group basis-function">
+
+
+                            
                             <div class="control-label">Выберите функцию</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val} (${item.label})`" item-value="val" bg-color="white" />
+                                :item-title="item => `${item.val.split('|')[0]} (${item.label})`" item-value="val" bg-color="white" />
                         </div>
                         <div class="control-group degree">
                             <div class="control-label">Степень</div>
@@ -49,7 +58,7 @@
                             <div class="control-label">Выходная функция</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val} (${item.label})`" item-value="val" bg-color="white" />
+                                :item-title="item => `${item.val.split('|')[0]} (${item.label})`" item-value="val" bg-color="white" />
                         </div>
                         <div class="control-group output-degree">
                             <div class="control-label">Степень</div>
@@ -328,6 +337,7 @@ import { getApproximation } from '@/app_lib/index';
 import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
 import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
+import functionMenu from './functionMenu.vue';
 import icons from '@/assets/icons';
 
 import { ref, reactive, toRefs } from 'vue';
@@ -345,7 +355,24 @@ const settingsStore = useSettingsStore();
 
 const predictMenuRef = ref(null);
 const metricsMenuRef = ref(null);
+const functionMenuRef = ref(null);
 
+function updateFunctionList() {
+    // Получаем пользовательские функции из localStorage
+    const savedFunctions = localStorage.getItem('customFunctions');
+    if (savedFunctions) {
+        const customFunctions = JSON.parse(savedFunctions);
+        
+        // Обновляем список функций, добавляя пользовательские
+        funcSettings.basisFunctions = [
+            ...funcSettings.basisFunctions.filter(f => !f.id.toString().startsWith('custom_')),
+            ...customFunctions.map(f => ({
+                ...f,
+                id: `custom_${f.id}` // Добавляем префикс, чтобы избежать конфликтов ID
+            }))
+        ];
+    }
+}
 
 
 const numParams = reactive({
@@ -384,7 +411,8 @@ const customSettings = reactive({
 });
 const funcSettings = reactive({
     basisFunctions: [
-        { id: 0, val: 'ufRomaTest', label: 'Идентичность' },
+        { id: 0, val: 'ufSIN|return Math.sin(x)', label: 'TEST' },
+        { id: 0.1, val: 'ufX|return x', label: 'TEST' },
         { id: 1, val: '', label: 'Идентичность' },
         { id: 2, val: 'sqrt', label: 'Квадратный корень' },
         { id: 3, val: 'sin', label: 'Синус' },
@@ -506,6 +534,8 @@ onMounted(() => {
     const extendedBasesFromLS = JSON.parse(localStorage.getItem('extendedBases'));
     if (extendedBasesFromLS && extendedBasesFromLS.length)
         extendedBases.value = new Set(extendedBasesFromLS);
+
+    updateFunctionList();
 });
 
 function rememberExtendedBases() {

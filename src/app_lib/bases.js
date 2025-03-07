@@ -1,5 +1,10 @@
 const basisFunctions = {
     getFunction: (funcKey) => {
+
+        if (funcKey.startsWith('uf')) {
+            return new Function('x', funcKey.split('|')[1]);
+          }
+
         switch (funcKey) {
             case '1':
                 return () => 1;
@@ -97,8 +102,6 @@ const basisFunctions = {
                 return x => {
                     return 0.5 * Math.sin(x) + 0.3 * Math.sin(2 * x) + 0.1 * Math.sin(3 * x);
                 };
-            case funcKey.startsWith('uf'):
-                new Function('x', 'console.log("userFunc!") return x')();
             default:
                 return x => x;
         }

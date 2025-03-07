@@ -33,16 +33,13 @@ function serializeObject(obj, name = 'basisFunctions') {
           result += `  ${key}: ${JSON.stringify(obj[key])},\n`;
       }
   }
-  
   result += `};`;
   return result;
 }
 
 
-
 async function computeMatrix(data, allBasesArr) {
-  console.log('Предвычисления');
-
+  
   const simplifyBasisArray = (allBasesArr) => {
     return allBasesArr.map(basis => ({
       variables: basis.variables.slice(),
