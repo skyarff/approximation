@@ -14,7 +14,6 @@ const chartDiv = ref(null);
 const chartStore = useChartStore();
 
 
-let axisTickStep = 5;
 
 
 let scene, camera, renderer, controls;
@@ -196,7 +195,7 @@ const handleResetRotation = () => {
 const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     if (!chartDiv.value) return;
 
-
+    
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -206,7 +205,15 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
     const width = chartDiv.value.clientWidth;
     const height = chartDiv.value.clientHeight;
-    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+
+    let { min, max } = createPointsFromData(x1Val, x2Val);
+    const longSight = (Math.abs(max) + Math.abs(min)) * 2;
+
+    let axisTickStep = Math.round(longSight / 75);
+    axisTickStep = Math.ceil(axisTickStep / 5) * 5;
+
+
+    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
     camera.position.set(20, 20, 20);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -289,9 +296,18 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         renderer.render(scene, camera);
     });
 
-    if (gridStep) axisTickStep = Number(gridStep);
+    let letterSize = longSight / 75;
+    let tickSize = longSight / 1000;
+    let yOffset = -longSight / 280;
+    if (gridStep) {
+        letterSize *= gridStep / axisTickStep;
+        tickSize *= gridStep / axisTickStep;
+        yOffset *= gridStep / axisTickStep;
+        axisTickStep = Number(gridStep);
+    }
 
-    let { min, max } = createPointsFromData(x1Val, x2Val);
+
+    
     max = max > 0 ? max : 0;
     const posAxis_ = posAxis ? posAxis : max;
     function createAxisWithTicks(direction, color, length = posAxis_) {
@@ -315,23 +331,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         const line = new THREE.Line(lineGeometry, lineMaterial);
         axisGroup.add(line);
 
-        const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 16);
-        const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
-        const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-
-        if (direction === 'x') {
-            cone.position.set(length, 0, 0);
-            cone.rotation.z = -Math.PI / 2;
-        } else if (direction === 'y') {
-            cone.position.set(0, length, 0);
-        } else if (direction === 'z') {
-            cone.position.set(0, 0, length);
-            cone.rotation.x = Math.PI / 2;
-        }
-
-        axisGroup.add(cone);
-
-        const tickSize = 0.2;
+     
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
         
@@ -343,19 +343,19 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
                 tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
                 tickPoints.push(new THREE.Vector3(i, tickSize, 0));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.75, 0), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, yOffset, 0), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'y') {
                 tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
                 tickPoints.push(new THREE.Vector3(tickSize, i, 0));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.75, i, 0), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(yOffset, i, 0), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'z') {
                 tickPoints.push(new THREE.Vector3(0, -tickSize, i));
                 tickPoints.push(new THREE.Vector3(0, tickSize, i));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.75, i), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, yOffset, i), letterSize);
                 axisGroup.add(label);
             }
 
@@ -404,8 +404,6 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         const line = new THREE.Line(lineGeometry, lineMaterial);
         axisGroup.add(line);
 
-        // Добавляем деления и метки
-        const tickSize = 0.2;
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
         for (let i = -axisTickStep; i > -length; i -= axisTickStep) {
@@ -416,19 +414,19 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
                 tickPoints.push(new THREE.Vector3(i, -tickSize, 0));
                 tickPoints.push(new THREE.Vector3(i, tickSize, 0));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, -0.75, 0), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(i, yOffset, 0), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'y') {
                 tickPoints.push(new THREE.Vector3(-tickSize, i, 0));
                 tickPoints.push(new THREE.Vector3(tickSize, i, 0));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(-0.75, i, 0), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(yOffset, i, 0), letterSize);
                 axisGroup.add(label);
             } else if (direction === 'z') {
                 tickPoints.push(new THREE.Vector3(0, -tickSize, i));
                 tickPoints.push(new THREE.Vector3(0, tickSize, i));
 
-                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, -0.75, i), 2.3);
+                const label = createTextSprite(`${i}`, color, new THREE.Vector3(0, yOffset, i), letterSize);
                 axisGroup.add(label);
             }
 
@@ -495,9 +493,9 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
         return sprite;
     }
 
-    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(2.5, 0, 0), 4);
-    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, 2.5, 0), 4);
-    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, 2.5), 4);
+    const xLabel = createTextSprite('X', '#FF0000', new THREE.Vector3(posAxis_ + longSight / 200, 0, 0), longSight / 20);
+    const yLabel = createTextSprite('Y', '#0000FF', new THREE.Vector3(0, posAxis_ + longSight / 200, 0), longSight / 20);
+    const zLabel = createTextSprite('Z', '#00FF00', new THREE.Vector3(0, 0, posAxis_ + longSight / 200), longSight / 20);
 
 
 
