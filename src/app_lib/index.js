@@ -125,17 +125,14 @@ async function computeMatrix(data, allBasesArr) {
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
   console.time('approximation');
 
-  console.log('allBasesallBases',allBases )
 
   dataNormalization(data, normSmallValues, multiplicationFactor);
-
   const allBasesArr = Object.values(allBases);
 
   console.time('matrix');
   const matrix = await computeMatrix(data, allBasesArr);
   console.timeEnd('matrix');
 
-  console.log('матрица сформирована');
 
   for (let i = 0; i < matrix.length; i++) {
     matrix[i][i] += 2 * L2;
@@ -143,9 +140,7 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   }
 
   const weights = await solveMatrix(matrix);
-
   const success = weights.every(w => Number.isFinite(w));
-
 
 
   if (success) Object.values(allBases)
