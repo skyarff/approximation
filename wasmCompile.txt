@@ -8,3 +8,5 @@ emcc gaussian_elimination.c appLib.c -o appLib.wasm -s EXPORTED_FUNCTIONS=["_mal
 
 
 emcc gaussian_elimination.c appLib.c -o appLib.js -s EXPORTED_FUNCTIONS=["_malloc","_free","_solve_matrix","_solve_matrix_mt","_free_solution"] -s EXPORTED_RUNTIME_METHODS=["ccall","cwrap"] -s ALLOW_MEMORY_GROWTH=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=16 -s DEFAULT_PTHREAD_STACK_SIZE=2097152 -s INITIAL_MEMORY=33554432 -s MAXIMUM_MEMORY=134217728 -s MODULARIZE=1 -s EXPORT_NAME="createMatrixModule" -O3
+
+emcc gaussian_elimination.c buildMatrix.c appLib.c -o appLib.js -s EXPORTED_FUNCTIONS=["_malloc","_free","_solve_matrix","_solve_matrix_mt","_free_solution","_build_matrix_from_precomputed","_free_matrix","_matrix_to_flat","_js_array_to_c_array"] -s EXPORTED_RUNTIME_METHODS=["ccall","cwrap"] -s ALLOW_MEMORY_GROWTH=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=16 -s DEFAULT_PTHREAD_STACK_SIZE=2097152 -s INITIAL_MEMORY=33554432 -s MAXIMUM_MEMORY=134217728 -s MODULARIZE=1 -s EXPORT_NAME="createMatrixModule" -O3
