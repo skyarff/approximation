@@ -9,14 +9,18 @@ function dataNormalization(data, normSmallValues = false, multiplicationFactor =
 
   const fields = Object.keys(data[0]);
 
+  const res = [];
   for (let i = 0; i < data.length; i++) {
+    res[i] = {};
     for (let field of fields) {
-      if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor;
-      if (normSmallValues && Math.abs(data[i][field]) < 1e-20) {
-        data[i][field] = 1e-20;
-      }
+      res[i][field] = data[i][field] * multiplicationFactor;
+      if (normSmallValues && Math.abs(res[i][field]) < 1e-20) res[i][field] = 1e-20;
     }
   }
+
+  console.log('res', res)
+
+  return res;
 }
 
 
@@ -126,11 +130,11 @@ async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, norm
   console.time('approximation');
 
 
-  dataNormalization(data, normSmallValues, multiplicationFactor);
+  const temp = dataNormalization(data, normSmallValues, multiplicationFactor);
   const allBasesArr = Object.values(allBases);
 
   console.time('matrix');
-  const matrix = await computeMatrix(data, allBasesArr);
+  const matrix = await computeMatrix(temp, allBasesArr);
   console.timeEnd('matrix');
 
 
