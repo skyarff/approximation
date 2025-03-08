@@ -1,15 +1,13 @@
 <template>
     <div class="app-container">
-        <!-- Скрытый input для загрузки файла -->
+
         <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             @change="fileUpload" style="display: none" ref="fileInput" />
 
-        <!-- Верхняя панель -->
 
 
-        <!-- Основной контент -->
+
         <main class="app-content">
-            <!-- Панели управления - двухстрочный вариант -->
             <div class="configuration-panel">
                 <div class="config-section">
                     <div class="section-title">
@@ -27,11 +25,10 @@
                         <div class="control-group basis-function">
 
 
-                            
                             <div class="control-label">Выберите функцию</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val.split('|')[0]} (${item.label})`" item-value="val" bg-color="white" />
+                                :item-title="item => `${item.val.split('#')[0]} ${item.label}`" item-value="val" bg-color="white" />
                         </div>
                         <div class="control-group degree">
                             <div class="control-label">Степень</div>
@@ -58,7 +55,7 @@
                             <div class="control-label">Выходная функция</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val.split('|')[0]} (${item.label})`" item-value="val" bg-color="white" />
+                                :item-title="item => `${item.val.split('#')[0]} (${item.label})`" item-value="val" bg-color="white" />
                         </div>
                         <div class="control-group output-degree">
                             <div class="control-label">Степень</div>
@@ -78,7 +75,7 @@
                 <div class="config-section action-section">
 
                     <div class="action-section-content">
-                        <!-- Верхний ряд с главными кнопками -->
+           
                         <div class="top-actions mb-2">
                             <v-tooltip text="Получить предсказание" location="bottom">
                                 <template v-slot:activator="{ props }">
@@ -115,7 +112,7 @@
                             </v-tooltip>
                         </div>
 
-                        <!-- Нижний ряд с вторичными кнопками -->
+             
                         <div class="bottom-actions">
                             <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
                                 @click="addExtendedBasis" class="text-white action-btn">
@@ -147,11 +144,11 @@
                 </div>
             </div>
 
-            <!-- Основные панели -->
+
             <div class="panels-container">
-                <!-- Верхний ряд панелей -->
+ 
                 <div class="panels-row">
-                    <!-- Добавляемый базис -->
+            
                     <section class="panel adding-basis">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-math-integral</v-icon>
@@ -168,7 +165,7 @@
                         </div>
                     </section>
 
-                    <!-- Расширенные базисы -->
+            
                     <section class="panel extended-bases">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-view-list</v-icon>
@@ -211,7 +208,7 @@
                     </section>
                 </div>
 
-                <!-- Нижний ряд - Базисы с контролами -->
+  
                 <section class="panel bases-panel">
                     <div class="panel-header">
                         <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-database</v-icon>
@@ -274,11 +271,11 @@
                         </div>
                     </div>
                     <div class="panel-content bases-content">
-                        <!-- Список базисов -->
+         
                         <div class="basis-list-container" :style="{ background: successColor }">
                             <div v-for="(basisKey, index) in allBasesKeys" :key="index" class="basis-item">
                                 <div class="basis-formula">{{ `${allBases[basisKey].weight} ${(basisKey != '1' ? ` *
-                                    ${basisKey}` : '')}` }}</div>
+                                    ${basisKey.split('#')[0]}` : '')}` }}</div>
 
                                 <v-spacer />
                                 <div v-if="allBases[basisKey].impact">
@@ -296,7 +293,6 @@
                             </div>
                         </div>
 
-                        <!-- Панель кнопок управления -->
                         <div class="bases-actions">
                             <v-btn color="green-darken-1" size="small" variant="flat" class="action-btn text-white"
                                 :disabled="!file"
@@ -411,8 +407,8 @@ const customSettings = reactive({
 });
 const funcSettings = reactive({
     basisFunctions: [
-        { id: 0, val: 'ufSIN|return Math.sin(x)', label: 'TEST' },
-        { id: 0.1, val: 'ufX|return x', label: 'TEST' },
+        { id: 0, val: 'ufSIN#return Math.sin(x)', label: 'TEST' },
+        { id: 0.1, val: 'ufX#return x', label: 'TEST' },
         { id: 1, val: '', label: 'Идентичность' },
         { id: 2, val: 'sqrt', label: 'Квадратный корень' },
         { id: 3, val: 'sin', label: 'Синус' },
@@ -443,7 +439,6 @@ const funcSettings = reactive({
         { id: 28, val: 'weierstrass_approx', label: 'Функция Вейерштрасса - непрерывная недифференцируемая функция (Σa^n⋅cos(b^n⋅π⋅x), a=0.5, b=3)' },
         { id: 29, val: 'periodic_hat', label: 'Периодическая функция "шляпа" - треугольный импульс, повторяющийся с периодом 2π' },
         { id: 30, val: 'multi_harmonic', label: 'Мультигармоническая функция - сумма синусов (0.5sin(x)+0.3sin(2x)+0.1sin(3x))' },
-        { id: 31, val: '1', label: 'Константа 1' }
     ],
     selectedFunction: '',
     selectedOutputFunction: '',
@@ -525,6 +520,11 @@ function getExtendedBasisName(basis) {
         }
     }
 
+
+    const rows = name.split('#');
+    if(rows.length > 1) name = rows[0];
+
+
     name = `${name} - глубина ${depth1}`
 
     return name;
@@ -574,8 +574,6 @@ function filterBasesByImapct() {
         }
     }
 }
-
-
 
 
 
@@ -632,7 +630,7 @@ async function copyBasesRepresentation() {
         const sign = weight[0] == '-' ? '-' : '+';
         weight = sign === '+' ? weight : weight.substring(1);
 
-        res += `${sign} ${weight}${(key != '1' ? ` * ${key}` : '')}\n`
+        res += `${sign} ${weight}${(key != '1' ? ` * ${key.split('#')[0]}` : '')}\n`
     }
 
     await navigator.clipboard.writeText(res.slice(0, -1));

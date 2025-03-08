@@ -48,83 +48,19 @@
                     
                     <div class="preview-section" v-if="functionName && functionCode">
                         <div class="control-label">Предпросмотр</div>
-                        <div class="preview-code">uf{{ functionName.toUpperCase() }}|{{ functionCode }}</div>
+                        <div class="preview-code">uf{{ functionName.toUpperCase() }}#{{ functionCode }}</div>
                     </div>
                 
                     <div class="menu-actions">
                         <v-btn color="indigo-lighten-1" variant="flat" 
-                            @click="addFunction" class="text-white action-btn">
+                            @click="saveToLocalStorage" class="text-white action-btn">
                             <v-icon size="small" class="mr-1">mdi-plus</v-icon>
                             <span>ДОБАВИТЬ</span>
                         </v-btn>
                         
-                        <v-btn color="amber-darken-1" variant="flat" 
-                            @click="saveToLocalStorage" class="text-white action-btn ml-2">
-                            <v-icon size="small" class="mr-1">mdi-content-save</v-icon>
-                            <span>СОХРАНИТЬ</span>
-                        </v-btn>
                     </div>
                 </div>
                 
-                <!-- Тестовая панель для JavaScript функций -->
-                <div class="section-title mt-4">
-                    <v-icon size="small" color="#1e3a5f">mdi-code-json</v-icon>
-                    <span>Проверка JavaScript функции</span>
-                </div>
-                
-                <div class="config-section">
-                    <div class="test-inputs">
-                        <v-text-field
-                            density="compact"
-                            hide-details
-                            variant="outlined"
-                            class="rounded-lg"
-                            v-model="testValue"
-                            label="Тестовое значение"
-                            type="number"
-                            bg-color="white"
-                        ></v-text-field>
-                        
-                        <v-btn color="teal-lighten-1" variant="flat" 
-                            @click="testFunction" class="text-white action-btn ml-2">
-                            <v-icon size="small" class="mr-1">mdi-play</v-icon>
-                            <span>ТЕСТ</span>
-                        </v-btn>
-                    </div>
-                    
-                    <div v-if="testResult !== null" class="test-result mt-2">
-                        <div class="control-label">Результат:</div>
-                        <div class="result-value">{{ testResult }}</div>
-                    </div>
-                </div>
-                
-                <!-- Список существующих функций -->
-                <div class="section-title mt-4">
-                    <v-icon size="small" color="#1e3a5f">mdi-view-list</v-icon>
-                    <span>Пользовательские функции</span>
-                    <div class="panel-counter" v-if="customFunctions.length">
-                        {{ customFunctions.length }}
-                    </div>
-                </div>
-                
-                <div class="function-list">
-                    <div v-for="(func, index) in customFunctions" :key="index" class="basis-item">
-                        <div class="basis-formula">
-                            <strong>{{ func.label }}</strong>
-                            <div class="function-code">{{ func.val }}</div>
-                        </div>
-                        <div class="basis-actions">
-                            <v-btn icon="mdi-pencil" density="compact" variant="text" color="blue"
-                                @click="editFunction(index)" size="x-small" class="mr-1"></v-btn>
-                            <v-btn icon="mdi-close" density="compact" variant="text" color="red"
-                                @click="removeFunction(index)" size="x-small"></v-btn>
-                        </div>
-                    </div>
-                    <div v-if="!customFunctions.length" class="no-data-message">
-                        <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-function-variant</v-icon>
-                        <div>Нет пользовательских функций</div>
-                    </div>
-                </div>
             </div>
         </div>
     </v-menu>
@@ -147,13 +83,9 @@ const editIndex = ref(-1);
 const testValue = ref(1);
 const testResult = ref(null);
 
-// Генерация случайного ID
-function generateRandomId() {
-    // Генерируем случайное число от 1000 до 9999
-    return Math.floor(1000 + Math.random() * 9000);
-}
 
-// Загрузка данных из localStorage при монтировании компонента
+
+
 onMounted(() => {
     const savedFunctions = localStorage.getItem('customFunctions');
     if (savedFunctions) {
@@ -161,113 +93,57 @@ onMounted(() => {
     }
 });
 
-// Добавление или обновление функции
+
 function addFunction() {
-    // Проверяем наличие имени и кода функции
+
     if (functionName.value && functionCode.value) {
-        // Генерируем случайный ID
-        const randomId = generateRandomId();
+        const randomId = Math.floor(1000 + Math.random() * 9000);
         
-        // Формируем значение функции в нужном формате
-        const funcVal = `uf${functionName.value.toUpperCase()}|${functionCode.value}`;
-        
-        // Используем имя функции как метку
-        const label = functionName.value;
-        
+        const funcVal = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
+
         const functionData = {
             id: randomId,
             val: funcVal,
-            label: label
+            label: ''
         };
         
         if (editIndex.value >= 0) {
-            // Обновляем существующую функцию
             customFunctions.value[editIndex.value] = functionData;
             editIndex.value = -1;
         } else {
-            // Добавляем новую функцию
             customFunctions.value.push(functionData);
         }
         
-        // Очистка полей ввода
         functionName.value = '';
         functionCode.value = '';
         testResult.value = null;
         
-        // Уведомляем родительский компонент об изменениях
         emit('functions-updated');
     }
 }
 
-// Редактирование функции
-function editFunction(index) {
-    const func = customFunctions.value[index];
-    
-    // Разбираем значение функции
-    let val = func.val;
-    
-    // Извлекаем имя и код функции
-    if (val.startsWith('uf') && val.includes('|')) {
-        const namePart = val.substring(2, val.indexOf('|'));
-        const codePart = val.substring(val.indexOf('|') + 1);
-        
-        functionName.value = namePart;
-        functionCode.value = codePart;
-    } else {
-        // Если формат не соответствует ожидаемому
-        functionName.value = func.label;
-        functionCode.value = val;
-    }
-    
-    editIndex.value = index;
-}
 
-// Удаление функции
-function removeFunction(index) {
-    customFunctions.value.splice(index, 1);
-    
-    // Если удаляем редактируемую функцию, сбрасываем форму
-    if (index === editIndex.value) {
-        functionName.value = '';
-        functionCode.value = '';
-        editIndex.value = -1;
-    }
-    
-    // Уведомляем родительский компонент об изменениях
-    emit('functions-updated');
-}
 
-// Сохранение в localStorage
 function saveToLocalStorage() {
+    addFunction();
+
     localStorage.setItem('customFunctions', JSON.stringify(customFunctions.value));
-    
-    // Уведомляем родительский компонент об изменениях
     emit('functions-updated');
-    
-    // Уведомить пользователя
-    alert('Функции сохранены в localStorage');
 }
 
-// Тестирование JavaScript-функции
 function testFunction() {
     try {
-        // Используем код функции напрямую
         let functionCode = this.functionCode.value.trim();
         let func;
         
-        // Проверяем формат кода
         if (functionCode.startsWith('function')) {
-            // Функция уже определена полностью
             func = eval(`(${functionCode})`);
         } else if (functionCode.includes('return')) {
-            // Содержит только тело функции
             func = new Function('x', functionCode);
         } else {
-            // Предполагаем, что это выражение
             func = new Function('x', `return ${functionCode}`);
         }
         
-        // Выполняем функцию с тестовым значением
         const result = func(parseFloat(testValue.value));
         testResult.value = Number.isFinite(result) ? result : 'Ошибка: неверный результат';
     } catch (error) {
@@ -275,7 +151,6 @@ function testFunction() {
     }
 }
 
-// Экспорт функций для внешнего использования
 defineExpose({
     customFunctions,
     addFunction,

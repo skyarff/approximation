@@ -2,7 +2,7 @@ const basisFunctions = {
     getFunction: (funcKey) => {
 
         if (funcKey.startsWith('uf')) {
-            return new Function('x', funcKey.split('|')[1]);
+            return new Function('x', funcKey.split('#')[1]);
           }
 
         switch (funcKey) {
