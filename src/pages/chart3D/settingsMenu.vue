@@ -131,8 +131,7 @@
                                             <div class="setting-label">Шаг сетки</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1"
-                                                class="mr-1">mdi-arrow-down-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-ruler</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
@@ -178,10 +177,9 @@ let menu = ref(false);
 function switchMenu() {
     menu.value = !menu.value;
     if (menu.value) {
-        settingsClone.value = structuredClone(props.settings);
+        for (const key in props.settings)
+            settingsClone.value[key] = props.settings[key];
     }
-
-    console.log('settingsClone.value', settingsClone.value)
 };
 
 let settingsClone = ref({});

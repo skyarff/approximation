@@ -45,7 +45,6 @@ export const useChartStore = defineStore('chart', () => {
     const grid3D = ref(true);
     function switchPoint3D() {
         pointChart3D.value = !pointChart3D.value;
-        console.log('pointChart3D.value', pointChart3D.value)
     }
 
 
@@ -56,7 +55,6 @@ export const useChartStore = defineStore('chart', () => {
         yKeys.value = payload.yKeys;
         newData.value = true;
         newData3D.value = true;
-        console.log('newData3D.value', newData3D.value)
     }
 
     return { chartData, xKey, xKeys, yKeys, pointChart2D, newData, pointChart3D, grid3D, newData3D, switchPoint, switchPoint3D, setChartData };

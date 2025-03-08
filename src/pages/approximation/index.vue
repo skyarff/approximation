@@ -15,8 +15,7 @@
                         <v-spacer></v-spacer>
 
 
-                        <functionMenu ref="functionMenuRef"
-                            @functions-updated="updateFunctionList" />
+                        <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
 
 
                     </div>
@@ -32,8 +31,9 @@
                                 <template v-slot:item="{ item, props }">
                                     <v-list-item v-bind="props">
                                         <template v-slot:append>
-                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close" density="compact" variant="text" color="red"
-                                                size="small" @click.stop="deleteUF(item.raw.id)"></v-btn>
+                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close"
+                                                density="compact" variant="text" color="red" size="small"
+                                                @click.stop="deleteUF(item.raw.id)"></v-btn>
                                         </template>
                                     </v-list-item>
                                 </template>
@@ -64,13 +64,13 @@
                             <div class="control-label">Выходная функция</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
-                                :item-title="getFuncLable" item-value="val"
-                                bg-color="white">
+                                :item-title="getFuncLable" item-value="val" bg-color="white">
                                 <template v-slot:item="{ item, props }">
                                     <v-list-item v-bind="props">
                                         <template v-slot:append>
-                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close" density="compact" variant="text" color="red"
-                                                size="small" @click.stop="deleteUF(item.raw.id)"></v-btn>
+                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close"
+                                                density="compact" variant="text" color="red" size="small"
+                                                @click.stop="deleteUF(item.raw.id)"></v-btn>
                                         </template>
                                     </v-list-item>
                                 </template>
@@ -197,16 +197,16 @@
 
 
 
-                            <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="indigo-lighten-1"
+                            <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="red-lighten-1"
                                 variant="flat" size="small" @click="extendedBases.clear()"
                                 class="text-white action-btn mr-4">
-                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                                <v-icon size="small" class="mr-1">mdi-delete-sweep</v-icon>
                                 <span>ОЧИСТИТЬ</span>
                             </v-btn>
 
-                            <v-btn style="max-width: 120px;" color="teal-lighten-1" variant="flat" size="small"
+                            <v-btn style="max-width: 120px;" color="blue-lighten-1" variant="flat" size="small"
                                 @click="rememberExtendedBases" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+                                <v-icon size="small" class="mr-1">mdi-content-save</v-icon>
                                 <span>ЗАПОМНИТЬ</span>
                             </v-btn>
 
@@ -257,9 +257,9 @@
 
 
                         <v-btn style="max-width: 110px;" :disabled="!Number.isFinite(allBasesArr[0]?.impact)"
-                            color="indigo-lighten-1" variant="flat" size="small" @click="filterBasesByImapct"
+                            color="blue-darken-2" variant="flat" size="small" @click="filterBasesByImapct"
                             class="text-white action-btn">
-                            <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                            <v-icon size="small" class="mr-1">mdi-filter</v-icon>
                             <span>ПРИМЕНИТЬ</span>
                         </v-btn>
 
@@ -270,10 +270,10 @@
                         <div class="panel-actions">
 
 
-                            <v-btn style="max-width: 130px;" :disabled="!result?.success" color="indigo-lighten-1"
+                            <v-btn style="max-width: 130px;" :disabled="!result?.success" color="purple-lighten-1"
                                 variant="flat" size="small" @click="calculateMetrics"
                                 class="text-white action-btn mr-4">
-                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
+                                <v-icon size="small" class="mr-1">mdi-calculator-variant</v-icon>
                                 <span>Расч. метрики</span>
                             </v-btn>
 
@@ -418,12 +418,6 @@ const numParams = reactive({
 
 const customSettings = reactive({
     selectedVariable: '',
-    defaultCustomBasis: {
-        functions: [],
-        powers: [],
-        variables: [],
-        weight: 1,
-    },
     customBasis: {
         functions: [],
         powers: [],
@@ -507,7 +501,12 @@ function addCustomBasis() {
     console.log('allBases', allBases.value)
 };
 function clearCustomBasis() {
-    customSettings.customBasis = structuredClone(customSettings.defaultCustomBasis);
+    customSettings.customBasis = {
+        functions: [],
+        powers: [],
+        variables: [],
+        weight: 1,
+    };
 };
 function addOutputFunc() {
     if (funcSettings.selectedOutputFunction) {
