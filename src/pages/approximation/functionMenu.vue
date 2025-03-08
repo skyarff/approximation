@@ -32,6 +32,19 @@
                     </div>
                     
                     <div class="control-group">
+                        <div class="control-label">Описание функции</div>
+                        <v-text-field
+                            density="compact"
+                            hide-details
+                            variant="outlined"
+                            class="rounded-lg"
+                            v-model="functionDescription"
+                            placeholder="Функция синуса"
+                            bg-color="white"
+                        ></v-text-field>
+                    </div>
+                    
+                    <div class="control-group">
                         <div class="control-label">Код функции</div>
                         <v-textarea
                             density="compact"
@@ -50,10 +63,48 @@
                         <div class="control-label">Предпросмотр</div>
                         <div class="preview-code">uf{{ functionName.toUpperCase() }}#{{ functionCode }}</div>
                     </div>
+                    
+                    <div class="test-section" v-if="functionName && functionCode">
+                        <div class="control-label">Тестирование</div>
+                        
+                        <div class="test-row">
+                            <div class="test-x">x =</div>
+                            <v-text-field
+                                density="compact"
+                                hide-details
+                                variant="outlined"
+                                class="test-input"
+                                v-model="testValue"
+                                type="number"
+                                bg-color="white"
+                            ></v-text-field>
+                            
+                            <v-btn 
+                                @click="testFunction" 
+                                icon="mdi-play"
+                                density="comfortable"
+                                color="primary"
+                                variant="text" 
+                                class="ml-2"
+                            ></v-btn>
+                        </div>
+                        
+                        <transition name="fade">
+                            <div v-if="testPerformed" class="test-result">
+                                <template v-if="testError">
+                                    <span class="error-text">{{ testError }}</span>
+                                </template>
+                                <template v-else>
+                                    <span class="result-text">f({{ testValue }}) = {{ testResult }}</span>
+                                </template>
+                            </div>
+                        </transition>
+                    </div>
                 
                     <div class="menu-actions">
                         <v-btn color="indigo-lighten-1" variant="flat" 
-                            @click="saveToLocalStorage" class="text-white action-btn">
+                            @click="saveToLocalStorage" class="text-white action-btn"
+                            :disabled="testPerformed && testError">
                             <v-icon size="small" class="mr-1">mdi-plus</v-icon>
                             <span>ДОБАВИТЬ</span>
                         </v-btn>
@@ -67,96 +118,83 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-
-const props = defineProps({
-    basisFunctions: Array
-});
+import { ref } from 'vue';
 
 const emit = defineEmits(['functions-updated']);
-
 const isVisible = ref(false);
-const customFunctions = ref([]);
+const customFunction = ref({});
 const functionName = ref('');
 const functionCode = ref('');
-const editIndex = ref(-1);
+const functionDescription = ref('');
+
 const testValue = ref(1);
 const testResult = ref(null);
+const testError = ref(null);
+const testPerformed = ref(false);
 
-
-
-
-onMounted(() => {
-    const savedFunctions = localStorage.getItem('customFunctions');
-    if (savedFunctions) {
-        customFunctions.value = JSON.parse(savedFunctions);
+function testFunction() {
+    testPerformed.value = true;
+    testResult.value = null;
+    testError.value = null;
+    
+    if (!functionName.value || !functionCode.value) {
+        testError.value = "Введите имя и код функции";
+        return;
     }
-});
+    
+    try {
+        const functionBody = functionCode.value;
+        const testFunc = new Function('x', functionBody);
+        
+        const x = Number(testValue.value);
+        const result = testFunc(x);
+        
+        if (typeof result !== 'number' || isNaN(result)) {
+            testError.value = "Функция должна возвращать число";
+            return;
+        }
 
+        testResult.value = result;
+    } catch (error) {
+        testError.value = `Ошибка: ${error.message}`;
+    }
+}
 
 function addFunction() {
-
     if (functionName.value && functionCode.value) {
-        const randomId = Math.floor(1000 + Math.random() * 9000);
-        
-        const funcVal = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
-
-        const functionData = {
-            id: randomId,
-            val: funcVal,
-            label: ''
-        };
-        
-        if (editIndex.value >= 0) {
-            customFunctions.value[editIndex.value] = functionData;
-            editIndex.value = -1;
-        } else {
-            customFunctions.value.push(functionData);
+        if (!testPerformed.value || !testError.value) {
+            const randomId = Math.floor(1000 + Math.random() * 9000);
+            const funcVal = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
+            
+            customFunction.value = {
+                id: randomId,
+                val: funcVal,
+                label: functionDescription.value || ''
+            };
+            
+            return true;
         }
+        return false;
+    }
+    return false;
+}
+
+function saveToLocalStorage() {
+    if (addFunction()) {
+        emit('functions-updated', customFunction.value);
         
         functionName.value = '';
         functionCode.value = '';
+        functionDescription.value = '';
+        testValue.value = 1;
         testResult.value = null;
+        testError.value = null;
+        testPerformed.value = false;
         
-        emit('functions-updated');
+        isVisible.value = false;
     }
 }
 
-
-
-function saveToLocalStorage() {
-    addFunction();
-
-    localStorage.setItem('customFunctions', JSON.stringify(customFunctions.value));
-    emit('functions-updated');
-}
-
-function testFunction() {
-    try {
-        let functionCode = this.functionCode.value.trim();
-        let func;
-        
-        if (functionCode.startsWith('function')) {
-            func = eval(`(${functionCode})`);
-        } else if (functionCode.includes('return')) {
-            func = new Function('x', functionCode);
-        } else {
-            func = new Function('x', `return ${functionCode}`);
-        }
-        
-        const result = func(parseFloat(testValue.value));
-        testResult.value = Number.isFinite(result) ? result : 'Ошибка: неверный результат';
-    } catch (error) {
-        testResult.value = `Ошибка: ${error.message}`;
-    }
-}
-
-defineExpose({
-    customFunctions,
-    addFunction,
-    saveToLocalStorage,
-    isVisible
-});
 </script>
 
 <style scoped>
@@ -328,27 +366,85 @@ defineExpose({
     border: 1px dashed #d0d7de;
 }
 
-.test-inputs {
+
+.test-section {
+    margin-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding-top: 16px;
+}
+
+.test-row {
     display: flex;
     align-items: center;
+    margin-bottom: 12px;
+}
+
+.test-x {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    color: #555;
+    margin-right: 8px;
+}
+
+.test-input {
+    width: 100px;
+    margin-right: 4px;
 }
 
 .test-result {
-    padding: 0.5rem;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
-}
-
-.result-value {
     font-family: 'Roboto Mono', monospace;
-    font-weight: 500;
+    padding: 8px 0;
+    margin-top: 4px;
+    font-size: 14px;
 }
 
-/* Адаптивность для маленьких экранов */
+.error-text {
+    color: #e53935;
+}
+
+.result-text {
+    color: #333;
+}
+
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+@media (max-width: 560px) {
+    .test-row {
+        flex-wrap: wrap;
+    }
+    
+    .test-input {
+        flex: 1;
+        min-width: 80px;
+    }
+}
+
+
 @media (max-width: 560px) {
     .function-menu {
         width: 95vw;
+    }
+    
+    .test-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .test-inputs .v-btn {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+    
+    .test-input {
+        max-width: 100%;
     }
 }
 </style>

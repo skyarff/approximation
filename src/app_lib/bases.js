@@ -143,17 +143,20 @@ function parsePower(powerStr) {
 function getBasisKey(basis) {
     let name = '';
     for (let i = 0; i < basis.functions.length; i++) {
-
-        if (basis.functions[i])
-            name += ` * ${basis.functions[i]}(${basis.variables[i]})^${basis.powers[i]}`;
+        const funcName = basis.functions[i].split('#')[0];
+        if (funcName)
+            name += ` * ${funcName}(${basis.variables[i]})^${basis.powers[i]}`;
         else
             name += ` * ${basis.variables[i]}^${basis.powers[i]}`;
     }
 
     name = name.substring(3)
 
-    if (basis.outputFunc)
-        name = `${basis.outputFunc}(${name})`;
+    if (basis.outputFunc) {
+        const outputFuncName = basis.outputFunc.split('#')[0];
+        name = `${outputFuncName}(${name})`;
+    }
+        
     if ('outputDegree' in basis && basis.outputDegree != 1) {
         if (!basis.outputFunc) name = `(${name})`;
         name = `${name}^${basis.outputDegree}`
@@ -161,7 +164,6 @@ function getBasisKey(basis) {
 
 
     return name;
-
 }
 
 function getExtendedBases({ keys = ['x'], extendedBases = ['1^1'], allBases = {}, constant = true, stepPower = 1 } = {}) {

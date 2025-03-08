@@ -4,9 +4,6 @@
         <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             @change="fileUpload" style="display: none" ref="fileInput" />
 
-
-
-
         <main class="app-content">
             <div class="configuration-panel">
                 <div class="config-section">
@@ -16,19 +13,31 @@
 
 
                         <v-spacer></v-spacer>
-                        <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
+
+
+                        <functionMenu ref="functionMenuRef"
+                            @functions-updated="updateFunctionList" />
 
 
                     </div>
+
                     <div class="config-controls">
 
                         <div class="control-group basis-function">
 
-
                             <div class="control-label">Выберите функцию</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val.split('#')[0]} ${item.label}`" item-value="val" bg-color="white" />
+                                item-value="val" bg-color="white" :item-title="getFuncLable">
+                                <template v-slot:item="{ item, props }">
+                                    <v-list-item v-bind="props">
+                                        <template v-slot:append>
+                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close" density="compact" variant="text" color="red"
+                                                size="small" @click.stop="deleteUF(item.raw.id)"></v-btn>
+                                        </template>
+                                    </v-list-item>
+                                </template>
+                            </v-autocomplete>
                         </div>
                         <div class="control-group degree">
                             <div class="control-label">Степень</div>
@@ -55,7 +64,17 @@
                             <div class="control-label">Выходная функция</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedOutputFunction" :items="funcSettings.basisFunctions"
-                                :item-title="item => `${item.val.split('#')[0]} (${item.label})`" item-value="val" bg-color="white" />
+                                :item-title="getFuncLable" item-value="val"
+                                bg-color="white">
+                                <template v-slot:item="{ item, props }">
+                                    <v-list-item v-bind="props">
+                                        <template v-slot:append>
+                                            <v-btn v-if="item.raw.val && item.raw.val.startsWith('uf')" icon="mdi-close" density="compact" variant="text" color="red"
+                                                size="small" @click.stop="deleteUF(item.raw.id)"></v-btn>
+                                        </template>
+                                    </v-list-item>
+                                </template>
+                            </v-autocomplete>
                         </div>
                         <div class="control-group output-degree">
                             <div class="control-label">Степень</div>
@@ -75,7 +94,7 @@
                 <div class="config-section action-section">
 
                     <div class="action-section-content">
-           
+
                         <div class="top-actions mb-2">
                             <v-tooltip text="Получить предсказание" location="bottom">
                                 <template v-slot:activator="{ props }">
@@ -112,7 +131,7 @@
                             </v-tooltip>
                         </div>
 
-             
+
                         <div class="bottom-actions">
                             <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
                                 @click="addExtendedBasis" class="text-white action-btn">
@@ -146,9 +165,9 @@
 
 
             <div class="panels-container">
- 
+
                 <div class="panels-row">
-            
+
                     <section class="panel adding-basis">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-math-integral</v-icon>
@@ -165,7 +184,7 @@
                         </div>
                     </section>
 
-            
+
                     <section class="panel extended-bases">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-view-list</v-icon>
@@ -176,10 +195,11 @@
 
                             <v-spacer></v-spacer>
 
-                
 
-                            <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="indigo-lighten-1" variant="flat" size="small"
-                                @click="extendedBases.clear()" class="text-white action-btn mr-4">
+
+                            <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="indigo-lighten-1"
+                                variant="flat" size="small" @click="extendedBases.clear()"
+                                class="text-white action-btn mr-4">
                                 <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
                                 <span>ОЧИСТИТЬ</span>
                             </v-btn>
@@ -196,8 +216,7 @@
                                 <div v-for="(basis, index) in extendedBases" :key="index" class="basis-item">
                                     <div class="basis-formula">{{ getExtendedBasisName(basis) }}</div>
                                     <v-btn icon="mdi-close" density="compact" variant="text" color="red"
-                                        @click="extendedBases.delete(basis)"
-                                        size="x-small"></v-btn>
+                                        @click="extendedBases.delete(basis)" size="x-small"></v-btn>
                                 </div>
                                 <div v-if="!extendedBases.size" class="no-data-message">
                                     <v-icon color="grey-lighten-1" size="large" class="mb-2">mdi-database-off</v-icon>
@@ -208,7 +227,7 @@
                     </section>
                 </div>
 
-  
+
                 <section class="panel bases-panel">
                     <div class="panel-header">
                         <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-database</v-icon>
@@ -271,11 +290,11 @@
                         </div>
                     </div>
                     <div class="panel-content bases-content">
-         
+
                         <div class="basis-list-container" :style="{ background: successColor }">
                             <div v-for="(basisKey, index) in allBasesKeys" :key="index" class="basis-item">
                                 <div class="basis-formula">{{ `${allBases[basisKey].weight} ${(basisKey != '1' ? ` *
-                                    ${basisKey.split('#')[0]}` : '')}` }}</div>
+                                    ${basisKey}` : '')}` }}</div>
 
                                 <v-spacer />
                                 <div v-if="allBases[basisKey].impact">
@@ -295,8 +314,7 @@
 
                         <div class="bases-actions">
                             <v-btn color="green-darken-1" size="small" variant="flat" class="action-btn text-white"
-                                :disabled="!file"
-                                @click="makeApproximation">
+                                :disabled="!file" @click="makeApproximation">
                                 <v-progress-circular v-if="aproximationLoading" indeterminate color="white" :size="16"
                                     :width="2" class="mr-1" />
                                 <v-icon v-else size="small" class="mr-1">mdi-chart-bell-curve</v-icon>
@@ -312,8 +330,7 @@
                             </v-btn>
 
                             <v-btn color="red-lighten-1" size="small" variant="flat" class="action-btn text-white ml-2"
-                                :disabled="!file"
-                                @click="clearBases">
+                                :disabled="!file" @click="clearBases">
                                 <v-icon size="small" class="mr-1">mdi-delete</v-icon>
                                 <span>ОЧИСТИТЬ</span>
                             </v-btn>
@@ -353,23 +370,32 @@ const predictMenuRef = ref(null);
 const metricsMenuRef = ref(null);
 const functionMenuRef = ref(null);
 
-function updateFunctionList() {
-    // Получаем пользовательские функции из localStorage
-    const savedFunctions = localStorage.getItem('customFunctions');
+
+
+let userFunctions = ref([]);
+function updateFunctionList(userFunction) {
+
+    if (userFunction) {
+        userFunctions.value.push(userFunction);
+        localStorage.setItem('userFunctions', JSON.stringify(userFunctions.value));
+    }
+
+    const savedFunctions = localStorage.getItem('userFunctions');
     if (savedFunctions) {
-        const customFunctions = JSON.parse(savedFunctions);
-        
-        // Обновляем список функций, добавляя пользовательские
-        funcSettings.basisFunctions = [
-            ...funcSettings.basisFunctions.filter(f => !f.id.toString().startsWith('custom_')),
-            ...customFunctions.map(f => ({
-                ...f,
-                id: `custom_${f.id}` // Добавляем префикс, чтобы избежать конфликтов ID
-            }))
-        ];
+        userFunctions.value = JSON.parse(savedFunctions);
+
+        funcSettings.basisFunctions =
+            [
+                ...userFunctions.value,
+                ...funcSettings.basisFunctionsDef
+            ];
     }
 }
-
+function deleteUF(id) {
+    userFunctions.value = userFunctions.value.filter(func => func.id != id);
+    localStorage.setItem('userFunctions', JSON.stringify(userFunctions.value));
+    funcSettings.basisFunctions = funcSettings.basisFunctions.filter(func => func.id != id);
+}
 
 const numParams = reactive({
     constant: true,
@@ -405,10 +431,11 @@ const customSettings = reactive({
         weight: '',
     },
 });
+
+
+
 const funcSettings = reactive({
-    basisFunctions: [
-        { id: 0, val: 'ufSIN#return Math.sin(x)', label: 'TEST' },
-        { id: 0.1, val: 'ufX#return x', label: 'TEST' },
+    basisFunctionsDef: [
         { id: 1, val: '', label: 'Идентичность' },
         { id: 2, val: 'sqrt', label: 'Квадратный корень' },
         { id: 3, val: 'sin', label: 'Синус' },
@@ -440,10 +467,19 @@ const funcSettings = reactive({
         { id: 29, val: 'periodic_hat', label: 'Периодическая функция "шляпа" - треугольный импульс, повторяющийся с периодом 2π' },
         { id: 30, val: 'multi_harmonic', label: 'Мультигармоническая функция - сумма синусов (0.5sin(x)+0.3sin(2x)+0.1sin(3x))' },
     ],
+    basisFunctions: [],
     selectedFunction: '',
     selectedOutputFunction: '',
     outputDegree: 1
 });
+funcSettings.basisFunctions = [...funcSettings.basisFunctionsDef];
+function getFuncLable(item) {
+    let label = item.val.split('#')[0];
+    if (item.label) label += ` (${item.label})`
+    return label;
+}
+
+
 function addVariable() {
     const { customBasis } = toRefs(customSettings);
 
@@ -492,13 +528,13 @@ function addExtendedBasis() {
 
 };
 function getExtendedBasisName(basis) {
-    const funcs = basis.split('/');
 
+    const funcs = basis.split('/');
     const rows1 = funcs[0].split('^');
 
     const depth1 = rows1.length > 0 ? `${rows1[0][0]}` : '1';
     const degree1 = rows1.length > 1 ? `${rows1[1]}` : '';
-    const func1 = rows1[0].substring(1);
+    const func1 = rows1[0].substring(1).split('#')[0];
 
 
     let name = `x`;
@@ -507,10 +543,9 @@ function getExtendedBasisName(basis) {
 
 
     if (funcs[1]) {
-
         const rows2 = funcs[1].split('^');
         if (rows2[0]) {
-            const func2 = rows2[0];
+            const func2 = rows2[0].split('#')[0];
             name = `${func2}(${name})`
         }
 
@@ -519,11 +554,6 @@ function getExtendedBasisName(basis) {
             name = `${name}^${rows2[1]}`
         }
     }
-
-
-    const rows = name.split('#');
-    if(rows.length > 1) name = rows[0];
-
 
     name = `${name} - глубина ${depth1}`
 
@@ -618,7 +648,6 @@ function filterBases() {
             }
         }
     }
-    console.log('exit')
 };
 function getBasisName(basis) {
     return getBasisKey(basis);
@@ -852,6 +881,7 @@ async function readExcelFile(file) {
 }
 
 .section-title {
+    height: 100%;
     display: flex;
     align-items: center;
     color: #1e3a5f;
