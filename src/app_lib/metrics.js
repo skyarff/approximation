@@ -1,6 +1,6 @@
 import { basisFunctions } from './bases';
 
-function calculatePredicted(data, allBases, metrics = true) {
+function calculatePredicted(data, allBases, multiplicationFactor = 1, metrics = true) {
 
     const allBasesArr = Object.values(allBases);
 

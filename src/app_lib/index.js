@@ -3,24 +3,21 @@ import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
 import { computeMatrixWithC } from '@/app_lib_wasm/buildMatrix';
 import { basisFunctions } from './bases';
 
+
 function dataNormalization(data, normSmallValues = false, multiplicationFactor = 1) {
   if (!normSmallValues && multiplicationFactor == 1) return;
   multiplicationFactor = parseFloat(multiplicationFactor);
 
   const fields = Object.keys(data[0]);
 
-  const res = [];
   for (let i = 0; i < data.length; i++) {
-    res[i] = {};
     for (let field of fields) {
-      res[i][field] = data[i][field] * multiplicationFactor;
-      if (normSmallValues && Math.abs(res[i][field]) < 1e-20) res[i][field] = 1e-20;
+      if (multiplicationFactor !== 1) data[i][field] *= multiplicationFactor;
+      if (normSmallValues && Math.abs(data[i][field]) < 1e-20) {
+        data[i][field] = 1e-20;
+      }
     }
   }
-
-  console.log('res', res)
-
-  return res;
 }
 
 
@@ -129,12 +126,11 @@ async function computeMatrix(data, allBasesArr) {
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
   console.time('approximation');
 
-
-  const temp = dataNormalization(data, normSmallValues, multiplicationFactor);
+  dataNormalization(data, normSmallValues, multiplicationFactor);
   const allBasesArr = Object.values(allBases);
 
   console.time('matrix');
-  const matrix = await computeMatrix(temp, allBasesArr);
+  const matrix = await computeMatrix(data, allBasesArr);
   console.timeEnd('matrix');
 
 
