@@ -111,10 +111,11 @@ const toggleDataVisible = () => {
 
 
 
-const createPointsFromData = (x1Val, x2Val) => {
+const createPointsFromData = (x1Val, x2Val, sortVal) => {
 
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
+
 
     const keys = Object.keys(chartData[0]);
     let xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
@@ -123,10 +124,12 @@ const createPointsFromData = (x1Val, x2Val) => {
     if (x1Val) xKeys[1] = x1Val;
 
 
-    if (x2Val == '-')
-        chartData.sort((a, b) => a[xKeys[0]] - b[xKeys[0]]);
-    if (x1Val == '-')
-        chartData.sort((a, b) => a[xKeys[1]] - b[xKeys[1]]);
+    const x2Active = x2Val && x2Val != '-' || !x2Val && xKeys[0];
+    const x1Active = x1Val && x1Val != '-' || !x1Val && xKeys[1];
+
+
+    if (sortVal && sortVal != '-')
+        chartData.sort((a, b) => a[sortVal] - b[sortVal]);
 
 
     let primaryData = null;
@@ -136,8 +139,8 @@ const createPointsFromData = (x1Val, x2Val) => {
     tempArr = new Float32Array(chartData.length * 3);
 
     for (let i = 0; i < chartData.length; i++) {
-        tempArr[i * 3] = x1Val != '-' ? chartData[i][xKeys[1]] : 0;
-        tempArr[i * 3 + 1] = x2Val != '-' ? chartData[i][xKeys[0]] : 0;
+        tempArr[i * 3] = x1Active ? chartData[i][xKeys[1]] : 0;
+        tempArr[i * 3 + 1] = x2Active ? chartData[i][xKeys[0]] : 0;
     }
 
     primaryData = structuredClone(tempArr);
@@ -145,6 +148,7 @@ const createPointsFromData = (x1Val, x2Val) => {
         primaryData[i * 3 + 2] = chartData[i][chartStore.yKeys[0]];
     }
 
+    
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
         size: 0.25,
@@ -194,7 +198,7 @@ const createPointsFromData = (x1Val, x2Val) => {
 };
 
 
-const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
+const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
     if (!chartDiv.value) return;
 
     scene = new THREE.Scene();
@@ -207,7 +211,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     const height = chartDiv.value.clientHeight;
 
 
-    let { min, max } = createPointsFromData(x1Val, x2Val);
+    let { min, max } = createPointsFromData(x1Val, x2Val, sortVal);
     const longSight = (Math.abs(max) + Math.abs(min)) * 2;
 
     let axisTickStep = Math.round(longSight / 75);

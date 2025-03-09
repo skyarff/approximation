@@ -32,6 +32,7 @@ const settings = reactive({
     posAxis: '',
     negAxis: '',
     gridStep: '',
+    sortVal: '-',
     x1Val: chartStore.xKeys[1] ?? '-',
     x2Val: chartStore.xKeys[0] ?? '-',
 });
@@ -50,6 +51,7 @@ function apply() {
         settings.gridStep,
         settings.x1Val,
         settings.x2Val,
+        settings.sortVal,
     );
 }
 

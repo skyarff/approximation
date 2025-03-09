@@ -47,9 +47,30 @@
 
                             <v-autocomplete v-model="settingsClone.x1Val" item-title="val" item-value="val"
                                 :items="[...chartStore.xKeys, '-']" density="compact" hide-details variant="outlined"
-                                bg-color="white" class="rounded-lg">
+                                bg-color="white" class="rounded-lg mb-3">
                                 <template #label>
                                     <div class="setting-label">Переменная по оси X</div>
+                                </template>
+                                <template #prepend-inner>
+                                    <v-icon size="x-small" color="primary" class="mr-2">mdi-arrow-right-bold</v-icon>
+                                </template>
+                                <template #item="{ item, props }">
+                                    <v-list-item density="compact" v-bind="props">
+                                        <template #prepend>
+                                            <v-icon size="x-small" color="primary">mdi-chart-timeline-variant</v-icon>
+                                        </template>
+                                        <template #title>
+                                            <span class="text-body-2">{{ item.title }}</span>
+                                        </template>
+                                    </v-list-item>
+                                </template>
+                            </v-autocomplete>
+
+                            <v-autocomplete v-model="settingsClone.sortVal" item-title="val" item-value="val"
+                                :items="[...chartStore.xKeys, ...chartStore.yKeys, '-']" density="compact" hide-details variant="outlined"
+                                bg-color="white" class="rounded-lg">
+                                <template #label>
+                                    <div class="setting-label">Сортировка по переменной</div>
                                 </template>
                                 <template #prepend-inner>
                                     <v-icon size="x-small" color="primary" class="mr-2 ">mdi-arrow-right-bold</v-icon>
