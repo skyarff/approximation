@@ -8,7 +8,8 @@
 <script setup>
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
-import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
+// Заменяем темную тему на светлую, чтобы соответствовать основному дизайну
+import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import { useChartStore } from '@/store/chart';
 import { ref, computed, nextTick, defineExpose } from 'vue'
@@ -40,7 +41,8 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
     
     const root = am5.Root.new(ref.value);
     root._logo.dispose();
-    root.setThemes([am5themes_Dark.new(root)]);
+    
+    root.setThemes([am5themes_Animated.new(root)]);
 
     const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
@@ -54,7 +56,7 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
             paddingBottom: 20,
             layout: root.verticalLayout,
             background: am5.Rectangle.new(root, {
-                fill: am5.color("#262525"),
+                fill: am5.color("#f0f0f0"),
                 fillOpacity: 1
             }),
         })
@@ -64,6 +66,8 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
         minGridDistance: 40,
         cellStartLocation: 0,
         cellEndLocation: 1,
+        stroke: am5.color("#c4d8e9"),
+        strokeOpacity: 1
     });
 
     xRenderer.labels.template.setAll({
@@ -71,6 +75,12 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
         centerY: am5.p50,
         centerX: am5.p50,
         paddingTop: 10,
+        fill: am5.color("#1e3a5f")
+    });
+
+    xRenderer.grid.template.setAll({
+        stroke: am5.color("#e0e6ed"),
+        strokeOpacity: 1
     });
 
     let tooltip = am5.Tooltip.new(root, {
@@ -83,12 +93,14 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
     });
 
     tooltip.get('background').setAll({
-        fill: am5.color('#262525'),
-        fillOpacity: 1,
+        fill: am5.color('#ffffff'),
+        fillOpacity: 0.9,
+        stroke: am5.color("#c4d8e9"),
+        strokeWidth: 1
     });
 
     tooltip.label.setAll({
-        fill: am5.color("#fff")
+        fill: am5.color("#1e3a5f")
     });
 
     const xAxis = chart.xAxes.push(
@@ -116,11 +128,9 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
     legend.markers.template.setAll({
         width: 9,
         height: 9,
-
     });
 
     legend.markerRectangles.template.setAll({
-
         cornerRadiusTL: 10,
         cornerRadiusTR: 10,
         cornerRadiusBL: 10,
@@ -129,6 +139,7 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
 
     legend.labels.template.setAll({
         marginLeft: 8,
+        fill: am5.color("#1e3a5f")
     });
 
     legend.itemContainers.template.events.on("click", function (e) {
@@ -178,12 +189,32 @@ function createChart(context, ref, data, chartKeys, pointChart2D = false, min, m
 };
 
 function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointChart2D, min, max, yKey, xKey, index } = {}) {
-    const color = getRandomColor();
-
+    const colorPalette = [
+        "#1e3a5f",
+        "#3498db",
+        "#2ecc71",
+        "#e67e22",
+        "#9b59b6",
+        "#1abc9c",
+        "#f1c40f",
+        "#e74c3c",
+        "#34495e",
+        "#16a085",
+    ];
+    
+    const color = colorPalette[index];
     const yRenderer = am5xy.AxisRendererY.new(root, {
         minGridDistance: 25,
         cellStartLocation: 0,
         cellEndLocation: 1,
+        stroke: am5.color("#c4d8e9"),
+        strokeOpacity: 1
+    });
+
+    yRenderer.grid.template.setAll({
+        stroke: am5.color("#e0e6ed"),
+        strokeOpacity: 0.8, 
+        strokeDasharray: [2, 2]
     });
 
 
@@ -223,8 +254,14 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     });
 
     tooltip.get('background').setAll({
-        fill: am5.color('#262525'),
-        fillOpacity: 1,
+        fill: am5.color('#ffffff'),
+        fillOpacity: 0.9,
+        stroke: am5.color("#c4d8e9"),
+        strokeWidth: 1
+    });
+
+    tooltip.label.setAll({
+        fill: am5.color("#1e3a5f") // Цвет текста подсказки
     });
 
 
@@ -238,6 +275,8 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
             stroke: am5.color(color),
             fill: am5.color(color),
             tooltip,
+            // Добавляем толщину линии для лучшей видимости
+            strokeWidth: 2
         })
     );
 
@@ -246,8 +285,13 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
         yRenderer.grid.template.set('visible', false);
 
 
-    yRenderer.labels.template.set('fill', oneAxis ? '#fff' : series.get('fill'));
-    yRenderer.setAll({ stroke: oneAxis ? '#fff' : series.get('fill'), strokeOpacity: 1, opacity: 1, marginLeft: 2 });
+    yRenderer.labels.template.set('fill', oneAxis ? am5.color("#1e3a5f") : series.get('fill'));
+    yRenderer.setAll({ 
+        stroke: oneAxis ? am5.color("#c4d8e9") : series.get('stroke'), 
+        strokeOpacity: 1, 
+        opacity: 1, 
+        marginLeft: 2 
+    });
 
 
     if (context.seriesVisibility.value[yKey] == undefined)
@@ -268,10 +312,10 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
         series.bullets.push(function () {
             return am5.Bullet.new(root, {
                 sprite: am5.Circle.new(root, {
-                    radius: 2.5,
+                    radius: 3.5, // Немного увеличиваем размер точек
                     fill: series.get("fill"),
-                    stroke: root.interfaceColors.get("background"),
-                    strokeWidth: 0.5
+                    stroke: am5.color("#FFFFFF"),
+                    strokeWidth: 1
                 })
             });
         });
@@ -313,63 +357,6 @@ function callChart(min, max) {
 };
 
 
-let usedColors = [];
-function getRandomColor() {
-    let newColor;
-    let attempts = 0;
-    const maxAttempts = 50;
-
-    do {
-        let r = Math.floor(Math.random() * (255 - 150) + 150).toString(16);
-        let g = Math.floor(Math.random() * (255 - 150) + 150).toString(16);
-        let b = Math.floor(Math.random() * (255 - 100) + 100).toString(16);
-
-
-        const boost = Math.floor(Math.random() * 3);
-        if (boost === 0) {
-            r = Math.min(255, parseInt(r, 16) + 50).toString(16);
-        } else if (boost === 1) {
-            g = Math.min(255, parseInt(g, 16) + 50).toString(16);
-        } else {
-            b = Math.min(255, parseInt(b, 16) + 50).toString(16);
-        }
-
-        newColor = '#' +
-            (r.length === 1 ? '0' + r : r) +
-            (g.length === 1 ? '0' + g : g) +
-            (b.length === 1 ? '0' + b : b);
-
-        const isSimilar = usedColors.some(usedColor =>
-            isColorSimilar(newColor, usedColor)
-        );
-
-        if (!isSimilar || attempts >= maxAttempts) {
-            usedColors.push(newColor);
-            return newColor;
-        }
-
-        attempts++;
-    } while (true);
-};
-
-function isColorSimilar(color1, color2) {
-    // Конвертируем HEX в RGB
-    const hex2Rgb = (hex) => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return [r, g, b];
-    };
-
-    const [r1, g1, b1] = hex2Rgb(color1);
-    const [r2, g2, b2] = hex2Rgb(color2);
-
-    // Вычисляем разницу между цветами
-    const threshold = 50; // порог различия
-    return Math.abs(r1 - r2) < threshold &&
-        Math.abs(g1 - g2) < threshold &&
-        Math.abs(b1 - b2) < threshold;
-};
 
 
 

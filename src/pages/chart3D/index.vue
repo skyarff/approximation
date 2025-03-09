@@ -1,7 +1,7 @@
 <template>
     <div style="position: relative;">
 
-        <div style="position: absolute; top: 10px; right: 0px;">
+        <div style="position: absolute; top: 12px; right: 0px;">
             <v-btn @click="settingsRef.switchMenu()" class="mr-5" :color="'transparent'" elevation="0" icon size="x-small">
                 <component :is="icons.FilterIcon" :color="'#262525'" :size="17" />
             </v-btn>

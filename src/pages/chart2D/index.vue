@@ -1,14 +1,14 @@
 <template>
-    <div style="overflow: hidden; background: #262525;">
+    <div style="overflow: hidden; background: #f0f0f0;">
 
 
 
         <div class="h-100 w-100 mt-3 d-flex justify-end align-center">
 
             <div>
-                <v-btn @click="settingsRef.switchMenu()" class="mr-5" :color="'#262525'" elevation="0" icon
+                <v-btn @click="settingsRef.switchMenu()" class="mr-5" :color="'transparent'" elevation="0" icon
                     size="x-small">
-                    <component :is="icons.FilterIcon" :color="'#fff'" :size="17" />
+                    <component :is="icons.FilterIcon" :color="'#000'" :size="17" />
                 </v-btn>
                 <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsRef" />
             </div>
@@ -43,9 +43,6 @@ const settings = reactive({
     xVal: 0
 });
 
-onActivated(() => {
-    settings.xVal = chartStore.xKey;
-});
 
 const chartRef = ref(null);
 const settingsRef = ref(null);
@@ -53,7 +50,6 @@ const settingsRef = ref(null);
 function apply() {
     chartRef.value.callChart(settings.min, settings.max);
 }
-
 
 </script>
 

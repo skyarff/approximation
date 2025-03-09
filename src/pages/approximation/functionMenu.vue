@@ -1,5 +1,5 @@
 <template>
-    <v-menu v-model="isVisible" :close-on-content-click="false" location="bottom">
+    <v-menu v-model="funcMenu" :close-on-content-click="false" location="bottom">
         <template v-slot:activator="{ props }">
             <v-btn variant="text" color="indigo-lighten-1" v-bind="props" class="ml-2">
                 <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
@@ -12,7 +12,7 @@
                 <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-function</v-icon>
                 <span>Управление функциями</span>
                 <v-spacer></v-spacer>
-                <v-btn icon="mdi-close" size="x-small" variant="text" @click="isVisible = false"></v-btn>
+                <v-btn icon="mdi-close" size="x-small" variant="text" @click="funcMenu = false"></v-btn>
             </div>
             
             <div class="panel-content">
@@ -121,7 +121,7 @@
 import { ref } from 'vue';
 
 const emit = defineEmits(['functions-updated']);
-const isVisible = ref(false);
+const funcMenu = ref(false);
 const customFunction = ref({});
 const functionName = ref('');
 const functionCode = ref('');
@@ -191,7 +191,7 @@ function saveToLocalStorage() {
         testError.value = null;
         testPerformed.value = false;
         
-        isVisible.value = false;
+        funcMenu.value = false;
     }
 }
 

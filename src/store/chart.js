@@ -42,7 +42,7 @@ export const useChartStore = defineStore('chart', () => {
     const xKeys = ref(['x']);
     const newData3D = ref(true);
     const pointChart3D = ref(true);
-    const grid3D = ref(true);
+    const grid3D = ref(false);
     function switchPoint3D() {
         pointChart3D.value = !pointChart3D.value;
     }

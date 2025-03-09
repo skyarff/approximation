@@ -197,7 +197,6 @@ function switchMenu() {
 
 
 let settingsClone = ref({});
-
 const xKeys = computed(() => {
     return Object.keys(chartStore.chartData[0])
         .filter(key => !chartStore.yKeys.includes(key))

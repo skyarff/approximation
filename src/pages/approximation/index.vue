@@ -374,6 +374,11 @@ const functionMenuRef = ref(null);
 
 let userFunctions = ref([]);
 function updateFunctionList(userFunction) {
+    
+    const name = userFunction?.val.split('#')[0];
+    if (name) userFunctions.value = userFunctions
+        .value.filter(func => func.val.split('#')[0] != name);
+        
 
     if (userFunction) {
         userFunctions.value.push(userFunction);
@@ -482,8 +487,6 @@ function addVariable() {
     customBasis.value.variables.push(customSettings.selectedVariable);
     customBasis.value.weight = 1;
     customBasis.value.outputDegree = funcSettings.outputDegree;
-
-    console.log('customSettings.customBasis_', customSettings.customBasis)
 };
 function addCustomBasis() {
     allBases.value[getBasisName(customSettings.customBasis)]
@@ -497,8 +500,6 @@ function addCustomBasis() {
                 outputDegree: funcSettings.outputDegree,
             }
         );
-
-    console.log('allBases', allBases.value)
 };
 function clearCustomBasis() {
     customSettings.customBasis = {
@@ -634,7 +635,6 @@ async function getExtBases() {
         console.error(error)
     } finally {
         getBasesLoading.value = false;
-        console.log('basis_123', allBases.value)
     }
 };
 function filterBases() {
@@ -791,8 +791,6 @@ async function readExcelFile(file) {
                 const worksheet = workbook.Sheets[firstSheetName];
                 const jsonData = utils.sheet_to_json(worksheet);
 
-                console.log('Прочитанные данные:', jsonData);
-                console.log('Структура первой строки:', Object.keys(jsonData[0]));
                 resolve(jsonData);
             } catch (error) {
                 reject(error);
