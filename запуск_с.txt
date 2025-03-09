@@ -1,3 +1,3 @@
 npx serve -s dist --ssl-cert cert.pem --ssl-key key.pem --cors -c serve.json
 
-ngrok authtoken 2ZqS5TIUWFBNz6eIB3kpOc5XA0B_36YUimQeApFQYcUVgNUr3
+изменение политики выполнения сценариев PowerShell: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
