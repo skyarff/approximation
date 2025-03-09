@@ -43,6 +43,7 @@ onActivated(() => {
 
 
 function apply() {
+
     chartRef.value.callChart(
         settings.posAxis, 
         settings.negAxis, 

@@ -99,7 +99,7 @@ const toggleDataVisible = () => {
             if (approximatedLines) approximatedLines.visible = true;
         } else if (switcher == 1) {
             vallAppPointsObject.visible = false;
-            if (approximatedLines)approximatedLines.visible = false;
+            if (approximatedLines) approximatedLines.visible = false;
         }
     }
 
@@ -122,11 +122,10 @@ const createPointsFromData = (x1Val, x2Val) => {
     if (x2Val) xKeys[0] = x2Val;
     if (x1Val) xKeys[1] = x1Val;
 
-    if (x1Val == '-') xKeys = xKeys.slice(0, 1)
 
-
-    chartData.sort((a, b) => a[xKeys[0]] - b[xKeys[0]]);
-    if (xKeys.length > 1)
+    if (x2Val == '-')
+        chartData.sort((a, b) => a[xKeys[0]] - b[xKeys[0]]);
+    if (x1Val == '-')
         chartData.sort((a, b) => a[xKeys[1]] - b[xKeys[1]]);
 
 
@@ -137,8 +136,8 @@ const createPointsFromData = (x1Val, x2Val) => {
     tempArr = new Float32Array(chartData.length * 3);
 
     for (let i = 0; i < chartData.length; i++) {
-        tempArr[i * 3] = xKeys.length > 1 ? chartData[i][xKeys[1]] : 0;
-        tempArr[i * 3 + 1] = chartData[i][xKeys[0]];
+        tempArr[i * 3] = x1Val != '-' ? chartData[i][xKeys[1]] : 0;
+        tempArr[i * 3 + 1] = x2Val != '-' ? chartData[i][xKeys[0]] : 0;
     }
 
     primaryData = structuredClone(tempArr);
@@ -195,7 +194,6 @@ const createPointsFromData = (x1Val, x2Val) => {
 };
 
 
-
 const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     if (!chartDiv.value) return;
 
@@ -209,7 +207,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
     const height = chartDiv.value.clientHeight;
 
 
-    let { min, max } = createPointsFromData(x1Val, x2Val,);
+    let { min, max } = createPointsFromData(x1Val, x2Val);
     const longSight = (Math.abs(max) + Math.abs(min)) * 2;
 
     let axisTickStep = Math.round(longSight / 75);
@@ -248,58 +246,58 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val) => {
 
         switch (e.key) {
 
-        case 'ArrowLeft':
-            panVector.set(-panSpeed, 0, 0);
-            break;
-        case 'ArrowRight':
-            panVector.set(panSpeed, 0, 0);
-            break;
-        case 'ArrowUp':
-            panVector.set(0, panSpeed, 0);
-            break;
-        case 'ArrowDown':
-            panVector.set(0, -panSpeed, 0);
-            break;
-            
+            case 'ArrowLeft':
+                panVector.set(-panSpeed, 0, 0);
+                break;
+            case 'ArrowRight':
+                panVector.set(panSpeed, 0, 0);
+                break;
+            case 'ArrowUp':
+                panVector.set(0, panSpeed, 0);
+                break;
+            case 'ArrowDown':
+                panVector.set(0, -panSpeed, 0);
+                break;
 
-        case 'a':
-        case 'A':
-        case 'ф':
-        case 'Ф':
-            panVector.set(-panSpeed, 0, 0);
-            break;
-            
-        case 'd':
-        case 'D':
-        case 'в':
-        case 'В':
-            panVector.set(panSpeed, 0, 0);
-            break;
-            
-        case 'w':
-        case 'W':
-        case 'ц':
-        case 'Ц':
-            panVector.set(0, 0, -panSpeed);
-            break;
-            
-        case 's':
-        case 'S':
-        case 'ы':
-        case 'Ы':
-            panVector.set(0, 0, panSpeed);
-            break;
-        
-        case 'Control':
-            panVector.set(0, -panSpeed, 0);
-            break;
-        case ' ':
-            panVector.set(0, panSpeed, 0);
-            break;
 
-        default:
-            return;
-    }
+            case 'a':
+            case 'A':
+            case 'ф':
+            case 'Ф':
+                panVector.set(-panSpeed, 0, 0);
+                break;
+
+            case 'd':
+            case 'D':
+            case 'в':
+            case 'В':
+                panVector.set(panSpeed, 0, 0);
+                break;
+
+            case 'w':
+            case 'W':
+            case 'ц':
+            case 'Ц':
+                panVector.set(0, 0, -panSpeed);
+                break;
+
+            case 's':
+            case 'S':
+            case 'ы':
+            case 'Ы':
+                panVector.set(0, 0, panSpeed);
+                break;
+
+            case 'Control':
+                panVector.set(0, -panSpeed, 0);
+                break;
+            case ' ':
+                panVector.set(0, panSpeed, 0);
+                break;
+
+            default:
+                return;
+        }
 
         panVector.applyQuaternion(camera.quaternion);
 

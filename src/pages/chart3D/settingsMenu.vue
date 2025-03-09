@@ -25,7 +25,7 @@
                         <div class="setting-body">
 
                             <v-autocomplete v-model="settingsClone.x2Val" item-title="val" item-value="val"
-                                :items="chartStore.xKeys" density="compact" hide-details variant="outlined"
+                                :items="[...chartStore.xKeys, '-']" density="compact" hide-details variant="outlined"
                                 bg-color="white" class="rounded-lg mb-3">
                                 <template #label>
                                     <div class="setting-label">Переменная по оси Y</div>
@@ -65,8 +65,6 @@
                                     </v-list-item>
                                 </template>
                             </v-autocomplete>
-
-
                         </div>
                     </div>
 
@@ -189,7 +187,6 @@ let settingsClone = ref({});
 function apply() {
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
-
 
     emit('applySettings');
 };
