@@ -67,7 +67,7 @@
                             </v-autocomplete>
 
                             <v-autocomplete v-model="settingsClone.sortVal" item-title="val" item-value="val"
-                                :items="[...chartStore.xKeys, ...chartStore.yKeys, '-']" density="compact" hide-details variant="outlined"
+                                :items="[...chartStore.xKeys, ...chartStore.yKeys.slice(0, chartStore.yKeys.length - 1), '-']" density="compact" hide-details variant="outlined"
                                 bg-color="white" class="rounded-lg">
                                 <template #label>
                                     <div class="setting-label">Сортировка по переменной</div>
