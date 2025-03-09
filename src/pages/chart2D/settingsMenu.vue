@@ -16,7 +16,6 @@
                 </div>
 
                 <div class="panel-content">
-                    <!-- X-Axis Configuration -->
                     <div class="settings-section x-axis-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-axis-x-arrow-lock</v-icon>
@@ -183,13 +182,19 @@ const props = defineProps({
     }
 });
 
+
+
+
+
 let menu = ref(false);
 function switchMenu() {
     menu.value = !menu.value;
     if (menu.value) {
-        settingsClone.value = structuredClone(props.settings);
+        for (const key in props.settings)
+            settingsClone.value[key] = props.settings[key];
     }
 };
+
 
 let settingsClone = ref({});
 
