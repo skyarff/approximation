@@ -103,8 +103,6 @@
                                         @click="setChartData" v-bind="props">
                                         <v-icon left class="mr-1">mdi-chart-line</v-icon>
                                         <span>ДАННЫЕ</span>
-                                        <v-progress-circular v-if="setChartDataLoading" indeterminate color="white"
-                                            :size="16" :width="2" class="ml-2" />
                                     </v-btn>
                                 </template>
                             </v-tooltip>
@@ -125,27 +123,22 @@
                         <div class="bottom-actions">
                             <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
                                 @click="addExtendedBasis" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-math-integral-box</v-icon>
                                 <span>РАСШ. БАЗИС</span>
                             </v-btn>
                             <v-btn :disabled="!customSettings.customBasis.functions.length" color="blue-lighten-1"
                                 variant="flat" size="small" @click="addOutputFunc" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
                                 <span>ВЫХ. ФУНКЦИЯ</span>
                             </v-btn>
                             <v-btn :disabled="!file" color="teal-lighten-1" variant="flat" size="small"
                                 @click="addVariable" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-plus</v-icon>
                                 <span>ДОБАВИТЬ</span>
                             </v-btn>
                             <v-btn :disabled="!customSettings.customBasis.functions.length" color="amber-darken-1"
                                 variant="flat" size="small" @click="addCustomBasis" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-database-plus</v-icon>
                                 <span>БАЗИС</span>
                             </v-btn>
                             <v-btn :disabled="!file" color="red-lighten-1" variant="flat" size="small"
                                 @click="clearCustomBasis" class="text-white action-btn">
-                                <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
                                 <span>ОБНУЛИТЬ</span>
                             </v-btn>
                         </div>
@@ -300,15 +293,12 @@
 
                             <v-btn color="amber-darken-1" size="small" variant="flat" class="action-btn text-white ml-2"
                                 :disabled="!file" @click="getExtBases">
-                                <v-progress-circular v-if="getBasesLoading" indeterminate color="white" :size="16"
-                                    :width="2" class="mr-1" />
-                                <v-icon v-else size="small" class="mr-1">mdi-database-plus</v-icon>
+                                <v-icon size="small" class="mr-1">mdi-database-plus</v-icon>
                                 <span>РАСШ. БАЗИСЫ</span>
                             </v-btn>
 
                             <v-btn color="red-lighten-1" size="small" variant="flat" class="action-btn text-white ml-2"
                                 :disabled="!file" @click="clearBases">
-                                <v-icon size="small" class="mr-1">mdi-delete</v-icon>
                                 <span>ОЧИСТИТЬ</span>
                             </v-btn>
                         </div>
@@ -582,10 +572,7 @@ function filterBasesByImapct() {
 }
 
 
-
-const getBasesLoading = ref(false);
 async function getExtBases() {
-    getBasesLoading.value = true;
     try {
         if (Object.keys(allBases.value).length) {
             filterBases();
@@ -609,9 +596,7 @@ async function getExtBases() {
         }
     } catch (error) {
         console.error(error)
-    } finally {
-        getBasesLoading.value = false;
-    }
+    } 
 };
 function filterBases() {
     const fields = dataInfo.value.fields.slice(1);
@@ -702,10 +687,8 @@ async function makeApproximation() {
         aproximationLoading.value = false;
     }
 };
-const setChartDataLoading = ref(false);
 async function setChartData() {
     try {
-        setChartDataLoading.value = true;
 
         const { data, fields } = dataInfo.value;
         const [yField, xField] = fields;
@@ -736,8 +719,6 @@ async function setChartData() {
 
     } catch (error) {
         console.log(error)
-    } finally {
-        setChartDataLoading.value = false;
     }
 
 };
@@ -1157,7 +1138,7 @@ async function readExcelFile(file) {
     white-space: nowrap;
     letter-spacing: 0.5px;
     font-weight: 500;
-    font-size: 0.8rem;
+    font-size: calc(6px + (14 - 6) * ((100vw - 480px) / (1980 - 480)));
 }
 
 .action-btn {
@@ -1165,29 +1146,9 @@ async function readExcelFile(file) {
     white-space: nowrap;
     letter-spacing: 0.5px;
     height: 32px;
-    font-size: 11px;
+    font-size: calc(3px + (11 - 3) * ((100vw - 480px) / (1980 - 480)));
     font-weight: 500;
+    
 }
 
-/* Адаптивность для маленьких экранов */
-@media (max-width: 960px) {
-    .configuration-panel {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .panels-row {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .extended-bases {
-        width: auto;
-        margin-bottom: 8px;
-    }
-
-    .action-buttons {
-        flex-wrap: wrap;
-    }
-}
 </style>

@@ -135,7 +135,7 @@
                         </div>
                     </div>
 
-                    <div class="settings-section range-section">
+                    <div class="settings-section range-section mb-0">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
                             <span>Шаг сетки</span>
