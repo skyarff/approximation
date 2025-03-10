@@ -219,7 +219,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
 
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
-    camera.position.set(20, 20, 20);
+    camera.position.set(0.4 * max, 0.3 * max, 0.3 * max);
     camera.up.set(0, 0, 1);
 
 
