@@ -25,8 +25,8 @@ export async function buildMatrixFromPrecomputed(precomputedValues, outputValues
     const outputPtr = wasm._malloc(outputValues.length * 8);
     new Float64Array(wasm.HEAPF64.buffer, outputPtr, outputValues.length).set(outputValues);
     
-    
-    const matrixPtr = wasm._build_matrix_from_precomputed(
+
+    const flatMatrixPtr = wasm._build_matrix_from_precomputed(
       precomputedArrayPtr,
       rows,
       cols,
@@ -34,29 +34,21 @@ export async function buildMatrixFromPrecomputed(precomputedValues, outputValues
       outputValues.length
     );
     
-    if (!matrixPtr) {
+    if (!flatMatrixPtr) {
       console.error("Не удалось построить матрицу");
       
       for (let i = 0; i < rows; i++) wasm._free(precomputedPtrs[i]);
-
       wasm._free(precomputedArrayPtr);
       wasm._free(outputPtr);
       
       return null;
     }
     
-
-    const flatMatrixPtr = wasm._matrix_to_flat(matrixPtr, rows, rows + 1);
+  
     for (let i = 0; i < rows; i++) wasm._free(precomputedPtrs[i]);
-
     wasm._free(precomputedArrayPtr);
     wasm._free(outputPtr);
-    wasm._free_matrix(matrixPtr, rows);
     
-    if (!flatMatrixPtr) {
-      console.error("Не удалось преобразовать матрицу в плоский массив");
-      return null;
-    }
     
     const resultMatrix = [];
     for (let i = 0; i < rows; i++) {
@@ -72,13 +64,12 @@ export async function buildMatrixFromPrecomputed(precomputedValues, outputValues
     return resultMatrix;
     
   } catch (error) {
-      console.error("Ошибка в buildMatrixFromPrecomputed:", error);
+    console.error("Ошибка в buildMatrixFromPrecomputed:", error);
     return null;
   }
 }
 
 export async function computeMatrixWithC(precomputedValues, data) {
-  
   if (!precomputedValues || !precomputedValues.length || !data || !data.length) {
     console.error('Некорректные входные данные');
     return null;

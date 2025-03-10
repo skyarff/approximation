@@ -13,7 +13,6 @@ double* solve_matrix(double* flat_matrix, int rows, int cols) {
     if (!solution) return NULL;
     
 
-    
     for (int i = 0; i < rows; i++) {
         // Поиск максимального элемента в столбце
         int max_row = i;
@@ -52,9 +51,8 @@ double* solve_matrix(double* flat_matrix, int rows, int cols) {
     }
     
     // Извлечение решения (последний столбц)
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; i++)
         solution[i] = flat_matrix[i * cols + (cols - 1)];
-    }
     
     // Освобождаем память
     free(flat_matrix);
