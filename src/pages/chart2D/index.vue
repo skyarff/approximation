@@ -29,12 +29,10 @@
 <script setup>
 
 import icons from '@/assets/icons'
-import { ref, reactive, onActivated } from 'vue'
+import { ref, reactive } from 'vue'
 import settingsMenu from './settingsMenu.vue';
 import chart from './chart.vue';
 
-import { useChartStore } from '@/store/chart';
-const chartStore = useChartStore();
 
 
 const settings = reactive({

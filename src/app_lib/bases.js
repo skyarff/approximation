@@ -3,7 +3,7 @@ const basisFunctions = {
 
         if (funcKey.startsWith('uf')) {
             return new Function('x', funcKey.split('#')[1]);
-          }
+        }
 
         switch (funcKey) {
             case '1':
@@ -156,7 +156,7 @@ function getBasisKey(basis) {
         const outputFuncName = basis.outputFunc.split('#')[0];
         name = `${outputFuncName}(${name})`;
     }
-        
+
     if ('outputDegree' in basis && basis.outputDegree != 1) {
         if (!basis.outputFunc) name = `(${name})`;
         name = `${name}^${basis.outputDegree}`

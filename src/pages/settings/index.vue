@@ -1,6 +1,5 @@
 <template>
     <div class="settings-container">
-        <!-- Блок регуляризации -->
         <v-card elevation="0" rounded="xl" class="settings-card mb-6">
             <div class="card-header-wrapper">
                 <v-card-title class="settings-card-title">
@@ -11,7 +10,6 @@
                 </v-card-title>
             </div>
             <v-card-text class="card-content">
-                <!-- L1 регуляризация -->
                 <div class="setting-row">
                     <div class="input-container">
                         <v-text-field :hide-details="true" variant="outlined" title="L1 регуляризация" type="number"
@@ -29,7 +27,6 @@
                     </div>
                 </div>
 
-                <!-- L2 регуляризация -->
                 <div class="setting-row">
                     <div class="input-container">
                         <v-text-field :hide-details="true" variant="outlined" title="L2 регуляризация" type="number"
@@ -48,7 +45,6 @@
             </v-card-text>
         </v-card>
 
-        <!-- Блок предобработки данных -->
         <v-card elevation="0" rounded="xl" class="settings-card mb-6">
             <div class="card-header-wrapper">
                 <v-card-title class="settings-card-title">
@@ -59,7 +55,6 @@
                 </v-card-title>
             </div>
             <v-card-text class="card-content">
-                <!-- Коэффициент умножения -->
                 <div class="setting-row">
                     <div class="input-container">
                         <v-text-field :hide-details="true" variant="outlined"
@@ -77,7 +72,6 @@
                     </div>
                 </div>
 
-                <!-- Нормализация малых значений -->
                 <div class="setting-row">
                     <div class="input-container checkbox-container">
                         <v-checkbox :hide-details="true" color="primary"
@@ -97,7 +91,6 @@
             </v-card-text>
         </v-card>
 
-        <!-- Блок построения базисов -->
         <v-card elevation="0" rounded="xl" class="settings-card mb-6">
             <div class="card-header-wrapper">
                 <v-card-title class="settings-card-title">
@@ -108,7 +101,6 @@
                 </v-card-title>
             </div>
             <v-card-text class="card-content">
-                <!-- Степенной шаг -->
                 <div class="setting-row">
                     <div class="input-container">
                         <v-text-field :hide-details="true" variant="outlined" title="Шаг построения степеней базисов"
@@ -125,7 +117,6 @@
                     </div>
                 </div>
 
-                <!-- Наличие константы -->
                 <div class="setting-row">
                     <div class="input-container checkbox-container">
                         <v-checkbox :hide-details="true" color="primary" hint="Наличие константы"

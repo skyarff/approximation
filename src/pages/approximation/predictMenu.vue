@@ -126,10 +126,8 @@ const predictInfo = reactive({
 const form1 = ref(null);
 
 function formatResult(result) {
-    // Проверяем, является ли результат числом
     const numValue = parseFloat(result);
     if (!isNaN(numValue)) {
-        // Форматируем число для лучшей читаемости
         return new Intl.NumberFormat('ru-RU', { 
             maximumFractionDigits: 4,
             minimumFractionDigits: 2
@@ -151,7 +149,6 @@ async function predict() {
     if (isValid) {
         isCalculating.value = true;
         
-        // Добавляем небольшую задержку для визуального отображения процесса расчета
         setTimeout(() => {
             try {
                 const result = calculatePredicted([predictInfo.predictData[0]], props.allBases);

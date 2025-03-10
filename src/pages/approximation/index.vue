@@ -661,7 +661,12 @@ async function copyBasesRepresentation() {
         res += `${sign} ${weight}${(key != '1' ? ` * ${key.split('#')[0]}` : '')}\n`
     }
 
-    await navigator.clipboard.writeText(res.slice(0, -1));
+    await navigator.clipboard.writeText(res.slice(0, -1)).then(() => {
+        appStore.showEvent({
+            text: 'Аппроксимация успешно скопирована',
+            color: 'succses'
+        });
+    });;
 };
 function clearBases() {
     allBases.value = {};

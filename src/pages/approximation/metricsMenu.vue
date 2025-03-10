@@ -59,6 +59,9 @@
 <script setup>
 import { ref } from 'vue';
 
+import { useAppStore } from '@/store/app';
+const appStore = useAppStore();
+
 const props = defineProps({
     metrics: {
         type: Object,
@@ -127,7 +130,10 @@ function copyMetricsToClipboard() {
         .join('\n');
     
     navigator.clipboard.writeText(text).then(() => {
-        // Здесь можно добавить уведомление об успешном копировании
+        appStore.showEvent({
+            text: 'Метрики успешно скопированы',
+            color: 'succses'
+        });
     });
 }
 

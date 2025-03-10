@@ -11,8 +11,6 @@ export const useAppStore = defineStore('app', () => {
     });
 
     function showEvent(payload) {
-        console.log('showEventS')
-
         notify.text = (typeof payload == 'object') ? payload.text : payload;
         notify.color = (typeof payload == 'object') ? payload.color : 'error';
         notify.snackbar = true;   

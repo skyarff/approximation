@@ -8,7 +8,6 @@
 <script setup>
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
-// Заменяем темную тему на светлую, чтобы соответствовать основному дизайну
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import { useChartStore } from '@/store/chart';
@@ -261,7 +260,7 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     });
 
     tooltip.label.setAll({
-        fill: am5.color("#1e3a5f") // Цвет текста подсказки
+        fill: am5.color("#1e3a5f")
     });
 
 
@@ -275,7 +274,6 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
             stroke: am5.color(color),
             fill: am5.color(color),
             tooltip,
-            // Добавляем толщину линии для лучшей видимости
             strokeWidth: 2
         })
     );
@@ -312,7 +310,7 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
         series.bullets.push(function () {
             return am5.Bullet.new(root, {
                 sprite: am5.Circle.new(root, {
-                    radius: 3.5, // Немного увеличиваем размер точек
+                    radius: 3.5,
                     fill: series.get("fill"),
                     stroke: am5.color("#FFFFFF"),
                     strokeWidth: 1
