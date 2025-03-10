@@ -245,7 +245,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
 
     handleKeyDown = (e) => {
-        const panSpeed = 5;
+        const panSpeed = 5 * max / 370;
         const panVector = new THREE.Vector3();
 
         switch (e.key) {

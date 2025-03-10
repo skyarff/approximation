@@ -37,7 +37,6 @@ const chartKeys = computed(() => {
 
 function createChart(context, ref, data, chartKeys, pointChart2D = false, min, max) {
 
-    
     const root = am5.Root.new(ref.value);
     root._logo.dispose();
     
