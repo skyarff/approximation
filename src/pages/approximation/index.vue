@@ -11,19 +11,12 @@
                         <v-icon size="small" color="#1e3a5f">mdi-function</v-icon>
                         <span>Функция и параметры</span>
 
-
                         <v-spacer></v-spacer>
-
-
                         <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
-
-
                     </div>
 
                     <div class="config-controls">
-
                         <div class="control-group basis-function">
-
                             <div class="control-label">Выберите функцию</div>
                             <v-autocomplete density="compact" hide-details variant="outlined" class="rounded-lg"
                                 v-model="funcSettings.selectedFunction" :items="funcSettings.basisFunctions"
@@ -92,9 +85,7 @@
                 </div>
 
                 <div class="config-section action-section">
-
                     <div class="action-section-content">
-
                         <div class="top-actions mb-2">
                             <v-tooltip text="Получить предсказание" location="bottom">
                                 <template v-slot:activator="{ props }">
@@ -131,7 +122,6 @@
                             </v-tooltip>
                         </div>
 
-
                         <div class="bottom-actions">
                             <v-btn :disabled="!file" color="indigo-lighten-1" variant="flat" size="small"
                                 @click="addExtendedBasis" class="text-white action-btn">
@@ -165,9 +155,7 @@
 
 
             <div class="panels-container">
-
                 <div class="panels-row">
-
                     <section class="panel adding-basis">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-math-integral</v-icon>
@@ -184,7 +172,6 @@
                         </div>
                     </section>
 
-
                     <section class="panel extended-bases">
                         <div class="panel-header">
                             <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-view-list</v-icon>
@@ -192,11 +179,7 @@
                             <div class="panel-counter" v-if="extendedBases.size">
                                 {{ extendedBases.size }}
                             </div>
-
                             <v-spacer></v-spacer>
-
-
-
                             <v-btn style="max-width: 120px;" :disabled="!extendedBases.size" color="red-lighten-1"
                                 variant="flat" size="small" @click="extendedBases.clear()"
                                 class="text-white action-btn mr-4">
@@ -209,7 +192,6 @@
                                 <v-icon size="small" class="mr-1">mdi-content-save</v-icon>
                                 <span>ЗАПОМНИТЬ</span>
                             </v-btn>
-
                         </div>
                         <div class="panel-content">
                             <div class="basis-list">
@@ -226,7 +208,6 @@
                         </div>
                     </section>
                 </div>
-
 
                 <section class="panel bases-panel">
                     <div class="panel-header">
@@ -255,7 +236,6 @@
                             </template>
                         </v-text-field>
 
-
                         <v-btn style="max-width: 110px;" :disabled="!Number.isFinite(allBasesArr[0]?.impact)"
                             color="blue-darken-2" variant="flat" size="small" @click="filterBasesByImapct"
                             class="text-white action-btn">
@@ -263,12 +243,9 @@
                             <span>ПРИМЕНИТЬ</span>
                         </v-btn>
 
-
-
                         <v-spacer />
 
                         <div class="panel-actions">
-
 
                             <v-btn style="max-width: 130px;" :disabled="!result?.success" color="purple-lighten-1"
                                 variant="flat" size="small" @click="calculateMetrics"
@@ -516,7 +493,6 @@ function addOutputFunc() {
         delete customSettings.customBasis.outputFunc;
 
 };
-
 
 
 const extendedBases = ref(new Set(['3ln^4', '3^6', '3cos^4', '3tanh^3', '3^3/cos^-1', '1', '2^2/sin', '3sin^3', '2sin^2']));
