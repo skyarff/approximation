@@ -113,6 +113,7 @@ const toggleDataVisible = () => {
 
 const createPointsFromData = (x1Val, x2Val, sortVal) => {
 
+
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
@@ -124,8 +125,8 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
     if (x1Val) xKeys[1] = x1Val;
 
 
-    const x2Active = x2Val && x2Val != '-' || !x2Val && xKeys[0];
-    const x1Active = x1Val && x1Val != '-' || !x1Val && xKeys[1];
+    const x2Active = Boolean(x2Val && x2Val != '-' || !x2Val && xKeys[0]);
+    const x1Active = Boolean(x1Val && x1Val != '-' || !x1Val && xKeys[1]);
 
 
     if (sortVal && sortVal != '-')
@@ -148,7 +149,7 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
         primaryData[i * 3 + 2] = chartData[i][chartStore.yKeys[0]];
     }
 
-    
+
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
         size: 0.25,
@@ -160,10 +161,10 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
     group.add(valPointsObject);
 
     approximatedData = structuredClone(tempArr);
-    for (let i = 0; i < chartData.length; i++) {
+    for (let i = 0; i < chartData.length; i++) 
         approximatedData[i * 3 + 2] = chartData[i][chartStore.yKeys[1]];
-    }
 
+    
     const approximatedDataMaterial = new THREE.PointsMaterial({
         color: '#FF0000',
         size: 0.25,
@@ -200,7 +201,6 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
 
 const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
     if (!chartDiv.value) return;
-
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
 
@@ -212,10 +212,12 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
 
     let { min, max } = createPointsFromData(x1Val, x2Val, sortVal);
-    const longSight = (Math.abs(max) + Math.abs(min)) * 2;
+    const longSight = (Math.abs(max) + Math.abs(min)) * 2.2;
+
+    debugger
 
     let axisTickStep = Math.round(longSight / 75);
-    axisTickStep = Math.ceil(axisTickStep / 5) * 5;
+    axisTickStep = Math.max(Math.ceil(axisTickStep / 5) * 5, 1);
 
 
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
@@ -392,7 +394,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
         return axisGroup;
     }
-
+    debugger
     const xAxis = createAxisWithTicks('x', '#FF0000', posAxis_);
     const yAxis = createAxisWithTicks('y', '#00FF00', posAxis_);
     const zAxis = createAxisWithTicks('z', '#0000FF', posAxis_);
