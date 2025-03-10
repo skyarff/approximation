@@ -2,8 +2,6 @@
 
 // Прототипы функций
 double* solve_matrix(double* flat_matrix, int rows, int cols);
-double* solve_matrix_mt(double* flat_matrix, int rows, int cols);
-void free_solution(double* solution);
 
 // Прототипы функций из buildMatrix.c
 double** build_matrix_from_precomputed(double** precomputed_values, int rows, int cols, double* output_values, int output_length);

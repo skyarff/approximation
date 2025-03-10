@@ -26,9 +26,7 @@ export async function solveMatrix(matrix) {
     new Float64Array(wasm.HEAPF64.buffer, dataPtr, flatArray.length).set(flatArray);
 
 
-    const solutionPtr = rows >= 4
-      ? wasm._solve_matrix_mt(dataPtr, rows, cols)
-      : wasm._solve_matrix(dataPtr, rows, cols);
+    const solutionPtr = wasm._solve_matrix(dataPtr, rows, cols)
       
     wasm._free(dataPtr);
 
@@ -41,8 +39,6 @@ export async function solveMatrix(matrix) {
     for (let i = 0; i < rows; i++) {
       solution.push(wasm.HEAPF64[(solutionPtr / 8) + i]);
     }
-
-    wasm._free_solution(solutionPtr);
 
     return solution;
   } catch (error) {
