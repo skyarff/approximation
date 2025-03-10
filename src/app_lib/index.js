@@ -1,6 +1,5 @@
 import PrecomputedValuesWorkerPool from './preCompWorkerPool';
-import { solveMatrix } from '@/app_lib_wasm/solveMatrix';
-import { computeMatrixWithC } from '@/app_lib_wasm/buildMatrix';
+import { buildAndSolveMatrix } from '@/app_lib_wasm/buildAndSolveMatrix';
 import { basisFunctions } from './bases';
 
 
@@ -20,7 +19,6 @@ function dataNormalization(data, normSmallValues = false, multiplicationFactor =
   }
 }
 
-
 function serializeObject(obj, name = 'basisFunctions') {
   let result = `const ${name} = {\n`;
   
@@ -39,8 +37,7 @@ function serializeObject(obj, name = 'basisFunctions') {
 }
 
 
-async function computeMatrix(data, allBasesArr) {
-  
+async function computePrecomputedValues(data, allBasesArr) {
   const simplifyBasisArray = (allBasesArr) => {
     return allBasesArr.map(basis => ({
       variables: basis.variables.slice(),
@@ -52,7 +49,6 @@ async function computeMatrix(data, allBasesArr) {
   };
 
   const simplifiedBasisArr = simplifyBasisArray(allBasesArr);
-
   const getUniqueVariables = (basisArr) => {
     const variables = new Set();
     for (const basis of basisArr) {
@@ -92,7 +88,6 @@ async function computeMatrix(data, allBasesArr) {
 
   const precomputedValues = [];
 
-
   try {
     const results = await Promise.all(preChunks.map(chunk =>
       prePool.processChunk(
@@ -110,45 +105,43 @@ async function computeMatrix(data, allBasesArr) {
       });
     });
 
+    return precomputedValues;
   } finally {
     prePool.terminate();
   }
-
-
-  const outPutKey = Object.keys(data[0])[0];
-  const outputData = data.map(item => ({
-    [outPutKey]: item[outPutKey]
-  }));
-
-  return await computeMatrixWithC(precomputedValues, outputData);
 }
+
 
 async function getApproximation({ data = [], allBases = {}, L1 = 0, L2 = 0, normSmallValues = false, multiplicationFactor = 1 } = {}) {
   console.time('approximation');
 
+ 
   dataNormalization(data, normSmallValues, multiplicationFactor);
   const allBasesArr = Object.values(allBases);
 
-  console.time('matrix');
-  const matrix = await computeMatrix(data, allBasesArr);
-  console.timeEnd('matrix');
+  console.time('precomputed');
+  const precomputedValues = await computePrecomputedValues(data, allBasesArr);
+  console.timeEnd('precomputed');
+  
+  const outPutKey = Object.keys(data[0])[0];
+  const outputValues = data.map(item => item[outPutKey]);
 
 
-  for (let i = 0; i < matrix.length; i++) {
-    matrix[i][i] += 2 * L2;
-    matrix[i][matrix.length] -= L1;
+  console.time('solving');
+  const weights = await buildAndSolveMatrix(precomputedValues, outputValues, L1, L2);
+  console.timeEnd('solving');
+  
+  const success = weights && weights.every(w => Number.isFinite(w));
+
+  if (success) {
+    Object.values(allBases).forEach((basis, index) => {
+      basis.weight = weights[index];
+    });
   }
-
-  const weights = await solveMatrix(matrix);
-  const success = weights.every(w => Number.isFinite(w));
-
-
-  if (success) Object.values(allBases)
-    .forEach((basis, index) => basis.weight = weights[index]);
 
   console.timeEnd('approximation');
 
-  return { matrix, weights, success, allBases };
+  return { weights, success, allBases };
 }
 
 export { getApproximation };
