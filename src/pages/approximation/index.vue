@@ -12,7 +12,9 @@
                         <span>Функция и параметры</span>
 
                         <v-spacer></v-spacer>
+
                         <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
+                        <periodicSeriesMenu :file="file" ref="periodicSeriesMenuRef" @get-periodic-series="addPeriodicSeriesBases" />
                     </div>
 
                     <div class="config-controls">
@@ -49,8 +51,10 @@
 
                 <div class="config-section">
                     <div class="section-title">
-                        <v-icon size="small" color="#1e3a5f">mdi-function-variant</v-icon>
-                        <span>Выходная функция</span>
+                        <div>
+                            <v-icon size="small" color="#1e3a5f">mdi-function-variant</v-icon>
+                            <span>Выходная функция</span>
+                        </div>
                     </div>
                     <div class="config-controls">
                         <div class="control-group output-function">
@@ -314,10 +318,11 @@ import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from '@/a
 
 import { read, utils } from 'xlsx';
 import { getApproximation } from '@/app_lib/index';
-import { getExtendedBases, getBasisKey } from '@/app_lib/bases';
+import { getExtendedBases, getBasisKey, getPeriodicSeriesBases } from '@/app_lib/bases';
 import predictMenu from './predictMenu.vue';
 import metricsMenu from './metricsMenu.vue';
 import functionMenu from './functionMenu.vue';
+import periodicSeriesMenu from './periodicSeriesMenu.vue'
 import icons from '@/assets/icons';
 
 import { ref, reactive, toRefs } from 'vue';
@@ -338,14 +343,28 @@ const metricsMenuRef = ref(null);
 const functionMenuRef = ref(null);
 
 
+const periodicSeriesMenuRef = ref(null);
+function addPeriodicSeriesBases({ ...rest } = {}) {
+
+    const options = {
+        ...rest,
+        allBases: allBases.value,
+        keys: dataInfo.value.fields,
+    }
+
+    getPeriodicSeriesBases(options);
+}
+
+
+
 
 let userFunctions = ref([]);
 function updateFunctionList(userFunction) {
-    
+
     const name = userFunction?.val.split('#')[0];
     if (name) userFunctions.value = userFunctions
         .value.filter(func => func.val.split('#')[0] != name);
-        
+
 
     if (userFunction) {
         userFunctions.value.push(userFunction);
@@ -587,7 +606,7 @@ async function getExtBases() {
                 keys: dataInfo.value.fields,
             }
 
-            allBases.value = { ...getExtendedBases(options) };
+            getExtendedBases(options);
         } else {
             appStore.showEvent({
                 text: 'Данные отсутствуют.',
@@ -596,7 +615,7 @@ async function getExtBases() {
         }
     } catch (error) {
         console.error(error)
-    } 
+    }
 };
 function filterBases() {
     const fields = dataInfo.value.fields.slice(1);
@@ -733,6 +752,7 @@ async function fileUpload(event) {
         dataInfo.value.data = await readExcelFile(file.value);
         dataInfo.value.fields = Object.keys(dataInfo.value.data[0]);
         customSettings.selectedVariable = dataInfo.value.fields[1];
+        allBases.value = {};
     } else {
 
         appStore.showEvent({
@@ -1148,7 +1168,6 @@ async function readExcelFile(file) {
     height: 32px;
     font-size: calc(3px + (11 - 3) * ((100vw - 480px) / (1980 - 480)));
     font-weight: 500;
-    
-}
 
+}
 </style>

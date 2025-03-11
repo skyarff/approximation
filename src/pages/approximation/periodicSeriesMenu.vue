@@ -1,9 +1,9 @@
 <template>
-    <v-menu v-model="funcMenu" :close-on-content-click="false" location="bottom">
+    <v-menu v-model="menu" :close-on-content-click="false" location="bottom">
         <template v-slot:activator="{ props }">
-            <v-btn variant="text" color="indigo-lighten-1" v-bind="props" class="sizeable-btn">
+            <v-btn :disabled="!file" variant="text" color="indigo-lighten-1" v-bind="props" class="sizeable-btn">
                 <v-icon size="small" class="mr-1">mdi-function-variant</v-icon>
-                <span>ФУНКЦИИ</span>
+                <span>Пер. ряд</span>
             </v-btn>
         </template>
         
@@ -12,103 +12,59 @@
                 <v-icon class="mr-1" size="small" color="#1e3a5f">mdi-function</v-icon>
                 <span>Управление функциями</span>
                 <v-spacer></v-spacer>
-                <v-btn icon="mdi-close" size="x-small" variant="text" @click="funcMenu = false"></v-btn>
+                <v-btn icon="mdi-close" size="x-small" variant="text" @click="menu = false"></v-btn>
             </div>
             
             <div class="panel-content">
                 
                 <div class="config-section">
                     <div class="control-group">
-                        <div class="control-label">Имя функции</div>
+                        <div class="control-label">Число ряда SIN</div>
                         <v-text-field
                             density="compact"
                             hide-details
                             variant="outlined"
                             class="rounded-lg"
-                            v-model="functionName"
-                            placeholder="SIN"
+                            v-model="sinNum"
+                            placeholder="sin(x) + sin(2x) ... + sin(nx)"
                             bg-color="white"
                         ></v-text-field>
                     </div>
                     
                     <div class="control-group">
-                        <div class="control-label">Описание функции</div>
+                        <div class="control-label">Число ряда COS</div>
                         <v-text-field
                             density="compact"
                             hide-details
                             variant="outlined"
                             class="rounded-lg"
-                            v-model="functionDescription"
-                            placeholder="Функция синуса"
+                            v-model="cosNum"
+                            placeholder="cos(x) + cos(2x) ... + cos(nx)"
                             bg-color="white"
                         ></v-text-field>
                     </div>
                     
                     <div class="control-group">
-                        <div class="control-label">Код функции</div>
-                        <v-textarea
+                        <div class="control-label">Шаг</div>
+                        <v-text-field
                             density="compact"
                             hide-details
                             variant="outlined"
                             class="rounded-lg"
-                            v-model="functionCode"
-                            placeholder="return Math.sin(x);"
+                            v-model="step"
+                            placeholder="|n| >= 0.001"
                             bg-color="white"
-                            rows="4"
-                            :persistent-placeholder="true"
-                        ></v-textarea>
+                        ></v-text-field>
                     </div>
                     
-                    <div class="preview-section" v-if="functionName && functionCode">
-                        <div class="control-label">Предпросмотр</div>
-                        <div class="preview-code">uf{{ functionName.toUpperCase() }}#{{ functionCode }}</div>
-                    </div>
-                    
-                    <div class="test-section" v-if="functionName && functionCode">
-                        <div class="control-label">Тестирование</div>
-                        
-                        <div class="test-row">
-                            <div class="test-x">x =</div>
-                            <v-text-field
-                                density="compact"
-                                hide-details
-                                variant="outlined"
-                                class="test-input"
-                                v-model="testValue"
-                                type="number"
-                                bg-color="white"
-                            ></v-text-field>
-                            
-                            <v-btn 
-                                @click="testFunction" 
-                                icon="mdi-play"
-                                density="comfortable"
-                                color="primary"
-                                variant="text" 
-                                class="ml-2"
-                            ></v-btn>
-                        </div>
-                        
-                        <transition name="fade">
-                            <div v-if="testPerformed" class="test-result">
-                                <template v-if="testError">
-                                    <span class="error-text">{{ testError }}</span>
-                                </template>
-                                <template v-else>
-                                    <span class="result-text">f({{ testValue }}) = {{ testResult }}</span>
-                                </template>
-                            </div>
-                        </transition>
-                    </div>
-                
+
                     <div class="menu-actions">
                         <v-btn color="indigo-lighten-1" variant="flat" 
-                            @click="saveToLocalStorage" class="text-white action-btn"
-                            :disabled="testPerformed && testError">
+                            @click="addSeries" class="text-white action-btn"
+                            >
                             <v-icon size="small" class="mr-1">mdi-plus</v-icon>
-                            <span>ДОБАВИТЬ</span>
+                            <span>ДОБАВИТЬ БАЗИСНЫЙ РЯД</span>
                         </v-btn>
-                        
                     </div>
                 </div>
                 
@@ -119,87 +75,34 @@
 
 <script setup>
 import { ref } from 'vue';
+const emit = defineEmits(['get-periodic-series']);
+const props = defineProps(['file'])
 
-const emit = defineEmits(['functions-updated']);
-const funcMenu = ref(false);
-const customFunction = ref({});
-const functionName = ref('');
-const functionCode = ref('');
-const functionDescription = ref('');
+const menu = ref(false);
 
-const testValue = ref(1);
-const testResult = ref(null);
-const testError = ref(null);
-const testPerformed = ref(false);
+const sinNum = ref('');
+const cosNum = ref('');
+const step = ref(1);
 
-function testFunction() {
-    testPerformed.value = true;
-    testResult.value = null;
-    testError.value = null;
-    
-    if (!functionName.value || !functionCode.value) {
-        testError.value = "Введите имя и код функции";
-        return;
+
+function addSeries() {
+
+    const options = {
+        sinNum: sinNum.value ? sinNum.value : 0,
+        cosNum: cosNum.value ? cosNum.value : 0,
+        step: Math.abs(step.value) < 0.001 ? 0.001 * Math.sign(step.value) : step.value
     }
-    
-    try {
-        const functionBody = functionCode.value;
-        const testFunc = new Function('x', functionBody);
-        
-        const x = Number(testValue.value);
-        const result = testFunc(x);
-        
-        if (typeof result !== 'number' || isNaN(result)) {
-            testError.value = "Функция должна возвращать число";
-            return;
-        }
 
-        testResult.value = result;
-    } catch (error) {
-        testError.value = `Ошибка: ${error.message}`;
-    }
+    emit('get-periodic-series', options)
 }
 
-function addFunction() {
-    if (functionName.value && functionCode.value) {
-        if (!testPerformed.value || !testError.value) {
-            const randomId = Math.floor(1000 + Math.random() * 9000);
-            const funcVal = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
-            
-            customFunction.value = {
-                id: randomId,
-                val: funcVal,
-                label: functionDescription.value || ''
-            };
-            
-            return true;
-        }
-        return false;
-    }
-    return false;
-}
 
-function saveToLocalStorage() {
-    if (addFunction()) {
-        emit('functions-updated', customFunction.value);
-        
-        functionName.value = '';
-        functionCode.value = '';
-        functionDescription.value = '';
-        testValue.value = 1;
-        testResult.value = null;
-        testError.value = null;
-        testPerformed.value = false;
-        
-        funcMenu.value = false;
-    }
-}
 
 </script>
 
 <style scoped>
 .function-menu {
-    width: 520px;
+    width: 270px;
     max-height: 700px;
     background-color: white;
     border-radius: 8px;
@@ -416,9 +319,9 @@ function saveToLocalStorage() {
     transform: translateY(4px);
 }
 
+
 .sizeable-btn {
     width: calc(50px + (110 - 50) * ((100vw - 480px) / (1980 - 480)));
-    margin: 0 calc(2px + (8 - 2) * ((100vw - 480px) / (1980 - 480)));
     font-size: calc(4px + (12 - 4) * ((100vw - 480px) / (1980 - 480)));
 }
 

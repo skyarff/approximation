@@ -214,8 +214,6 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
     let { min, max } = createPointsFromData(x1Val, x2Val, sortVal);
     const longSight = (Math.abs(max) + Math.abs(min)) * 2.2;
 
-    debugger
-
     let axisTickStep = Math.round(longSight / 75);
     axisTickStep = Math.max(Math.ceil(axisTickStep / 5) * 5, 1);
 
@@ -394,7 +392,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
         return axisGroup;
     }
-    debugger
+    
     const xAxis = createAxisWithTicks('x', '#FF0000', posAxis_);
     const yAxis = createAxisWithTicks('y', '#00FF00', posAxis_);
     const zAxis = createAxisWithTicks('z', '#0000FF', posAxis_);

@@ -138,7 +138,7 @@
                     <div class="settings-section range-section mb-0">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
-                            <span>Шаг сетки</span>
+                            <span>Шаг меток</span>
                         </div>
 
                         <div class="setting-body">
@@ -147,7 +147,7 @@
                                     <v-text-field v-model="settingsClone.gridStep" hide-details density="compact"
                                         variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Шаг сетки</div>
+                                            <div class="setting-label">Шаг меток</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-ruler</v-icon>
