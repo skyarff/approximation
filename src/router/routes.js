@@ -2,21 +2,21 @@ export const routes = [
   {
     path: '/approximation',
     name: 'Аппроксимация',
-    component: () => import('@/pages/approximation/index.vue')  // Обратите внимание на () =>
+    component: () => import('@/pages/approximation/index.vue')
   },
   {
     path: '/chart2D',
-    name: '2d графика',
-    component: () => import('@/pages/chart2D/index.vue')  // Обратите внимание на () =>
+    name: 'График 2D',
+    component: () => import('@/pages/chart2D/index.vue')
   },
   {
     path: '/chart3D',
-    name: '3d графика',
-    component: () => import('@/pages/chart3D/index.vue')  // Обратите внимание на () =>
+    name: 'График 3D',
+    component: () => import('@/pages/chart3D/index.vue')
   },
   {
     path: '/settings',
     name: 'Настройки',
-    component: () => import('@/pages/settings/index.vue')  // Обратите внимание на () =>
+    component: () => import('@/pages/settings/index.vue')
   },
 ]

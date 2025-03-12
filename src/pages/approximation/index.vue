@@ -14,7 +14,8 @@
                         <v-spacer></v-spacer>
 
                         <functionMenu ref="functionMenuRef" @functions-updated="updateFunctionList" />
-                        <periodicSeriesMenu :file="file" ref="periodicSeriesMenuRef" @get-periodic-series="addPeriodicSeriesBases" />
+                        <periodicSeriesMenu :file="file" ref="periodicSeriesMenuRef"
+                            @get-periodic-series="addPeriodicSeriesBases" />
                     </div>
 
                     <div class="config-controls">
@@ -748,8 +749,18 @@ const file = ref(null);
 async function fileUpload(event) {
     const docFile = event.target.files[0];
     if (docFile && docFile.name.endsWith('.xlsx')) {
+        
+        const readData = await readExcelFile(docFile);
+        if (!readData.length) {
+            appStore.showEvent({
+                text: 'Файл не содержит данных',
+                color: 'error'
+            });
+            return;
+        }
+
         file.value = docFile;
-        dataInfo.value.data = await readExcelFile(file.value);
+        dataInfo.value.data = readData;
         dataInfo.value.fields = Object.keys(dataInfo.value.data[0]);
         customSettings.selectedVariable = dataInfo.value.fields[1];
         allBases.value = {};
