@@ -150,35 +150,15 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
     }
 
 
-    const primaryDataMaterial = new THREE.PointsMaterial({
-        color: '#0000FF',
-        size: 0.25,
-        sizeAttenuation: true
-    });
-    const valGeometry = new THREE.BufferGeometry();
-    valGeometry.setAttribute('position', new THREE.BufferAttribute(primaryData, 3));
-    valPointsObject = new THREE.Points(valGeometry, primaryDataMaterial);
-    group.add(valPointsObject);
+    
 
     approximatedData = structuredClone(tempArr);
     for (let i = 0; i < chartData.length; i++) 
         approximatedData[i * 3 + 2] = chartData[i][chartStore.yKeys[1]];
 
-    
-    const approximatedDataMaterial = new THREE.PointsMaterial({
-        color: '#FF0000',
-        size: 0.25,
-        sizeAttenuation: true
-    });
-    const vallAppGeometry = new THREE.BufferGeometry();
-    vallAppGeometry.setAttribute('position', new THREE.BufferAttribute(approximatedData, 3));
-    vallAppPointsObject = new THREE.Points(vallAppGeometry, approximatedDataMaterial);
-    group.add(vallAppPointsObject);
 
-
-    if (renderer && scene && camera) {
+    if (renderer && scene && camera) 
         renderer.render(scene, camera);
-    }
 
 
     let min = Number.MAX_VALUE;
@@ -193,8 +173,34 @@ const createPointsFromData = (x1Val, x2Val, sortVal) => {
         if (approximatedData[i] > max) max = approximatedData[i];
     }
 
+    const longSight = (Math.abs(max) + Math.abs(min)) * 2.2;
+    const absMax = Math.max(Math.abs(max), Math.abs(min));
+    const panSpeed = 5 * absMax / 370;
+
+    const primaryDataMaterial = new THREE.PointsMaterial({
+        color: '#0000FF',
+        size: longSight / 500,
+        sizeAttenuation: true
+    });
+    const valGeometry = new THREE.BufferGeometry();
+    valGeometry.setAttribute('position', new THREE.BufferAttribute(primaryData, 3));
+    valPointsObject = new THREE.Points(valGeometry, primaryDataMaterial);
+    group.add(valPointsObject);
+
+
+    const approximatedDataMaterial = new THREE.PointsMaterial({
+        color: '#FF0000',
+        size: longSight / 500,
+        sizeAttenuation: true
+    });
+    const vallAppGeometry = new THREE.BufferGeometry();
+    vallAppGeometry.setAttribute('position', new THREE.BufferAttribute(approximatedData, 3));
+    vallAppPointsObject = new THREE.Points(vallAppGeometry, approximatedDataMaterial);
+    group.add(vallAppPointsObject);
+
+
     return {
-        min, max
+        min, max, longSight, absMax, panSpeed
     }
 };
 
@@ -211,15 +217,17 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
     const height = chartDiv.value.clientHeight;
 
 
-    let { min, max } = createPointsFromData(x1Val, x2Val, sortVal);
-    const longSight = (Math.abs(max) + Math.abs(min)) * 2.2;
+    let { min, max, longSight, absMax, panSpeed } = createPointsFromData(x1Val, x2Val, sortVal);
+  
 
-    let axisTickStep = Math.round(longSight / 75);
+    let axisTickStep = Math.round(longSight / 60);
     axisTickStep = Math.max(Math.ceil(axisTickStep / 5) * 5, 1);
 
 
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
-    camera.position.set(0.4 * max, 0.3 * max, 0.3 * max);
+
+
+    camera.position.set(0.4 * absMax, 0.3 * absMax, 0.3 * absMax);
     camera.up.set(0, 0, 1);
 
 
@@ -245,7 +253,7 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
 
 
     handleKeyDown = (e) => {
-        const panSpeed = 5 * Math.max(Math.abs(max), Math.abs(min)) / 370;
+        
         const panVector = new THREE.Vector3();
 
         switch (e.key) {
@@ -317,9 +325,9 @@ const initThree = (posAxis, negAxis, gridStep, x1Val, x2Val, sortVal) => {
         renderer.render(scene, camera);
     });
 
-    let letterSize = longSight / 75;
+    let letterSize = longSight / 50;
     let tickSize = longSight / 1000;
-    let verticalOffset = -longSight / 280;
+    let verticalOffset = -longSight / 200;
     let labelOffset = longSight / 400;
     let labelSize = longSight / 20;
     if (gridStep) {
