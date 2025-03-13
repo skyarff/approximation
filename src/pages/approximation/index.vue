@@ -112,7 +112,7 @@
                                 </template>
                             </v-tooltip>
 
-                            <v-tooltip text="Загрузить данные из Excel файла" location="bottom">
+                            <v-tooltip :text="file ? file.name : 'Загрузить данные из Excel файла'" location="bottom">
                                 <template v-slot:activator="{ props }">
                                     <v-btn color="success" variant="flat"
                                         :class="['ml-2', 'action-main-btn', { 'file-loaded': file }]"
