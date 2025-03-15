@@ -750,6 +750,7 @@ async function setChartData() {
 
 const file = ref(null);
 async function fileUpload(event) {
+    console.time('loadData')
     const docFile = event.target.files[0];
     if (docFile && docFile.name.endsWith('.xlsx')) {
         
@@ -775,6 +776,7 @@ async function fileUpload(event) {
         });
     }
     event.target.value = '';
+    console.timeEnd('loadData')
 };
 async function readExcelFile(file) {
     return new Promise((resolve, reject) => {
