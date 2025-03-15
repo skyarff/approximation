@@ -669,6 +669,7 @@ const metrics = ref({
 
 
 function calculateMetrics() {
+    console.time('metricsTiem')
     const data = dataInfo.value.data;
 
     const predicted = calculatePredicted(data, allBases.value);
@@ -677,6 +678,8 @@ function calculateMetrics() {
         AIC: calculateAIC(data, allBases.value, result.value.success, predicted),
         MSE: calculateMSE(data, allBases.value, result.value.success, predicted),
     };
+
+    console.timeEnd('metricsTiem')
 }
 
 
