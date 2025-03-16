@@ -10,9 +10,9 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 REM Проверяем наличие локальной копии serve
-IF NOT EXIST "utils\serve\build\main.js" (
+IF NOT EXIST "node_modules\serve\build\main.js" (
     echo Локальная копия serve не найдена в ожидаемом месте.
-    echo Проверьте наличие файла utils\serve\build\main.js
+    echo Проверьте наличие файла node_modules\serve\build\main.js
     pause
     exit /b 1
 )
@@ -21,7 +21,7 @@ set PORT=5000
 echo Запуск HTTPS сервера с вашим приложением...
 
 REM Запускаем serve из правильного местоположения
-start "" /B node utils\serve\build\main.js -s . --ssl-cert cert.pem --ssl-key key.pem --cors -c serve.json --listen %PORT%
+start "" /B node node_modules\serve\build\main.js -s . --ssl-cert cert.pem --ssl-key key.pem --cors -c serve.json --listen %PORT%
 
 timeout /T 3 /NOBREAK > nul
 echo Открываю https://localhost:%PORT%
