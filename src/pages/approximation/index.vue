@@ -718,7 +718,7 @@ async function setChartData() {
 
         console.log('fields', fields, xField)
 
-        const approximated = calculatePredicted(data, allBases.value, false);
+        const approximated = await calculatePredicted(data, allBases.value, false);
         const approximatedKey = `${yField} (approximated)`;
         const diffKey = `${yField} (difference)`;
 

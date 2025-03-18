@@ -70,6 +70,7 @@ async function computePrecomputedValues(data, allBasesArr) {
 
   const precomputedValues = [];
 
+
   try {
     const results = await Promise.all(preChunks.map(chunk =>
       prePool.processChunk(

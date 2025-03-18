@@ -1,22 +1,6 @@
-import { basisFunctions } from './bases';
+import { basisFunctions, serializeObject } from './bases';
 import MetricsWorkerPool from '@/app_lib/metricsWorkerPool';
 
-function serializeObject(obj, name = 'basisFunctions') {
-    let result = `const ${name} = {\n`;
-
-    for (const key in obj) {
-        if (typeof obj[key] === 'function') {
-            result += `  ${key}: ${obj[key].toString()},\n`;
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-            const nestedObj = serializeObject(obj[key], '').replace('const  = ', '');
-            result += `  ${key}: ${nestedObj},\n`;
-        } else {
-            result += `  ${key}: ${JSON.stringify(obj[key])},\n`;
-        }
-    }
-    result += `};`;
-    return result;
-}
 
 async function calculatePredicted(data, allBases, metrics = true) {
     const allBasesArr = Object.values(allBases);
