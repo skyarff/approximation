@@ -1,41 +1,83 @@
 import { basisFunctions } from './bases';
+import MetricsWorkerPool from '@/app_lib/metricsWorkerPool';
 
-function calculatePredicted(data, allBases, metrics = true) {
+function serializeObject(obj, name = 'basisFunctions') {
+    let result = `const ${name} = {\n`;
 
-    const allBasesArr = Object.values(allBases);
-
-    if (metrics)
-        allBasesArr.forEach(b => b.impact = 0);
-
-    const res = data.map((_, k) => {
-        return allBasesArr.reduce((sum, b) => {
-
-            let val = 1;
-            for (let t = 0; t < b.variables.length; t++) {
-                const func = basisFunctions.getFunction(b.functions[t]);
-                val *= Math.pow(func(data[k][b.variables[t]]), b.powers[t]);
-            }
-
-            val = basisFunctions.getFunction(b.outputFunc)(val)
-
-            if ('outputDegree' in b && b.outputDegree != 1)
-                val = Math.pow(val, b.outputDegree);
-
-
-            if (metrics) {
-                if (b.impact) b.impact += b.weight * val;
-                else b.impact = b.weight * val;
-            }
-            
-
-            return sum + b.weight * val;
-
-        }, 0);
-    }); 
-
-
-    return res;
+    for (const key in obj) {
+        if (typeof obj[key] === 'function') {
+            result += `  ${key}: ${obj[key].toString()},\n`;
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            const nestedObj = serializeObject(obj[key], '').replace('const  = ', '');
+            result += `  ${key}: ${nestedObj},\n`;
+        } else {
+            result += `  ${key}: ${JSON.stringify(obj[key])},\n`;
+        }
+    }
+    result += `};`;
+    return result;
 }
+
+async function calculatePredicted(data, allBases, metrics = true) {
+    const allBasesArr = Object.values(allBases);
+    
+    // Инициализация impact для каждого базисного элемента
+    if (metrics) {
+        allBasesArr.forEach(b => b.impact = 0);
+    }
+    
+    const serializedBasisFunctions = serializeObject(basisFunctions);
+
+    const workerPool = new MetricsWorkerPool();
+    const chunkSize = Math.ceil(data.length / workerPool.workers.length);
+    const chunks = [];
+
+    for (let i = 0; i < data.length; i += chunkSize) {
+        chunks.push({
+            start: i,
+            end: Math.min(i + chunkSize, data.length)
+        });
+    }
+
+    try {
+        const serializedAllBasesArr = JSON.stringify(allBasesArr);
+        const serializedData = JSON.stringify(data);
+
+        const results = await Promise.all(chunks.map(chunk =>
+            workerPool.processChunk(
+                serializedData,
+                serializedAllBasesArr,
+                chunk.start,
+                chunk.end,
+                serializedBasisFunctions,
+                'predicted',
+                metrics // Передаём флаг metrics для расчёта impact
+            )
+        ));
+
+        const predicted = [];
+        results.sort((a, b) => a.chunkStart - b.chunkStart);
+
+        // Собираем предсказанные значения
+        for (const chunkResult of results) {
+            predicted.push(...chunkResult.result.predicted);
+            
+            // Обновляем impact, если нужно
+            if (metrics && chunkResult.result.impacts) {
+                chunkResult.result.impacts.forEach((impact, index) => {
+                    allBasesArr[index].impact = (allBasesArr[index].impact || 0) + impact;
+                });
+            }
+        }
+
+        return predicted;
+    } catch (error) {
+        throw error;
+    } finally {
+        workerPool.terminate();
+    }
+}
+
 
 function calculateR2(data, allBases, success = true, predicted) {
     if (!success) return null;
@@ -71,7 +113,6 @@ function calculateAIC(data, allBases, success = true, predicted) {
 
     return aic;
 }
-
 
 function calculateMSE(data, allBases, success = true, predicted) {
     if (!success) return null;

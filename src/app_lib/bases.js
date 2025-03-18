@@ -112,6 +112,22 @@ const basisFunctions = {
     }
 };
 
+function serializeObject(obj, name = 'basisFunctions') {
+    let result = `const ${name} = {\n`;
+
+    for (const key in obj) {
+        if (typeof obj[key] === 'function') {
+            result += `  ${key}: ${obj[key].toString()},\n`;
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            const nestedObj = serializeObject(obj[key], '').replace('const  = ', '');
+            result += `  ${key}: ${nestedObj},\n`;
+        } else {
+            result += `  ${key}: ${JSON.stringify(obj[key])},\n`;
+        }
+    }
+    result += `};`;
+    return result;
+}
 
 function getPairsThrees(length) {
     const pairsThrees = [[], []];
@@ -312,4 +328,4 @@ function getPeriodicSeriesBases({keys = ['x'], sinNum = 0, cosNum = 0, step = 1,
     }
 }
 
-export { basisFunctions, getExtendedBases, getPeriodicSeriesBases, getBasisKey };
+export { basisFunctions, getExtendedBases, getPeriodicSeriesBases, getBasisKey, serializeObject };

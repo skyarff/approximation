@@ -668,11 +668,11 @@ const metrics = ref({
 });
 
 
-function calculateMetrics() {
+async function calculateMetrics() {
     console.time('metricsTiem')
     const data = dataInfo.value.data;
 
-    const predicted = calculatePredicted(data, allBases.value);
+    const predicted = await calculatePredicted(data, allBases.value);
     metrics.value = {
         R2: calculateR2(data, allBases.value, result.value.success, predicted),
         AIC: calculateAIC(data, allBases.value, result.value.success, predicted),
