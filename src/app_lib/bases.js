@@ -4,11 +4,11 @@ const basisFunctions = {
         if (funcKey.startsWith('uf')) {
             return new Function('x', funcKey.split('#')[1]);
         } else if (funcKey.startsWith('sin')) {
-            const match = funcKey.match(/\((\d+)\*/);
+            const match = funcKey.match(/\(([-+]?\d+)\*/);
             const k = match ? Number(match[1]) : 1;
             return x => Math.sin(k * x);
         } else if (funcKey.startsWith('cos')) {
-            const match = funcKey.match(/\((\d+)\*/);
+            const match = funcKey.match(/\(([-+]?\d+)\*/);
             const k = match ? Number(match[1]) : 1;
             return x => Math.cos(k * x);
         }
@@ -166,7 +166,7 @@ function getBasisKey(basis, periodic) {
         console.log('basis.functions[0]', basis.functions[0])
         return basis.functions[0];
     }
-        
+
 
     let name = '';
     for (let i = 0; i < basis.functions.length; i++) {
@@ -287,7 +287,7 @@ function getExtendedBases({ keys = ['x'], extendedBases = ['1^1'], allBases = {}
     return allBases;
 }
 
-function getPeriodicSeriesBases({keys = ['x'], sinNum = 0, cosNum = 0, step = 1, allBases = {}} = {}) {
+function getPeriodicSeriesBases({ keys = ['x'], sinNum = 0, cosNum = 0, step = 1, allBases = {} } = {}) {
     sinNum = Number(sinNum);
     cosNum = Number(cosNum);
 
@@ -297,7 +297,7 @@ function getPeriodicSeriesBases({keys = ['x'], sinNum = 0, cosNum = 0, step = 1,
     for (let i = step; i <= sinNum; i += step) {
         for (let j = 1; j < keys.length; j++) {
 
-            
+
             const basis = {
                 weight: 1,
                 functions: [`sin(${sign * i}*${keys[j]})`],
@@ -306,14 +306,14 @@ function getPeriodicSeriesBases({keys = ['x'], sinNum = 0, cosNum = 0, step = 1,
                 outputFunc: '',
                 outputDegree: 1
             }
-        
+
             allBases[getBasisKey(basis, true)] = basis;
-        } 
+        }
     }
 
     for (let i = step; i <= cosNum; i += step) {
         for (let j = 1; j < keys.length; j++) {
-            
+
             const basis = {
                 weight: 1,
                 functions: [`cos(${sign * i}*${keys[j]})`],
@@ -322,9 +322,9 @@ function getPeriodicSeriesBases({keys = ['x'], sinNum = 0, cosNum = 0, step = 1,
                 outputFunc: '',
                 outputDegree: 1
             }
-        
+
             allBases[getBasisKey(basis, true)] = basis;
-        } 
+        }
     }
 }
 
