@@ -87,9 +87,9 @@
                     <v-btn color="primary" variant="flat" size="small" 
                         class="predict-btn" @click="predict">
                         <v-icon size="small" class="mr-1">mdi-lightning-bolt</v-icon>
-                        Рассчитать
                         <v-progress-circular v-if="isCalculating" 
                             indeterminate color="white" :size="16" :width="2" class="ml-2"></v-progress-circular>
+                        Рассчитать
                     </v-btn>
                 </div>
             </v-card>
@@ -148,10 +148,8 @@ async function predict() {
     const isValid = await form1.value.validate();
     if (isValid) {
         isCalculating.value = true;
-        
-        setTimeout(() => {
-            try {
-                const result = calculatePredicted([predictInfo.predictData[0]], props.allBases);
+        try {
+                const result = await calculatePredicted([predictInfo.predictData[0]], props.allBases, false);
                 if (result && result.length > 0) {
                     const value = result[0];
                     if (isNaN(value) || !isFinite(value)) {
@@ -168,7 +166,6 @@ async function predict() {
             } finally {
                 isCalculating.value = false;
             }
-        }, 500);
     } else {
         alert('Пожалуйста, заполните все необходимые поля');
     }

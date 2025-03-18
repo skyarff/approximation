@@ -5,10 +5,7 @@ import MetricsWorkerPool from '@/app_lib/metricsWorkerPool';
 async function calculatePredicted(data, allBases, metrics = true) {
     const allBasesArr = Object.values(allBases);
     
-    // Инициализация impact для каждого базисного элемента
-    if (metrics) {
-        allBasesArr.forEach(b => b.impact = 0);
-    }
+    if (metrics) allBasesArr.forEach(b => b.impact = 0);
     
     const serializedBasisFunctions = serializeObject(basisFunctions);
 
@@ -35,7 +32,7 @@ async function calculatePredicted(data, allBases, metrics = true) {
                 chunk.end,
                 serializedBasisFunctions,
                 'predicted',
-                metrics // Передаём флаг metrics для расчёта impact
+                metrics
             )
         ));
 
