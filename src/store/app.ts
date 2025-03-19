@@ -9,7 +9,7 @@ interface INotify {
 }
 
 
-export const useAppStore = defineStore('app', () => {
+export const useAppStore: any = defineStore('app', () => {
     const notify = reactive<INotify>({
         text: '',
         color: '',

@@ -11,7 +11,7 @@ type TypeNumParams = {
 }
 
 
-export const useSettingsStore = defineStore('settings', () => {
+export const useSettingsStore: any = defineStore('settings', () => {
 
     const defNumParams: TypeNumParams = {
         constant: true,

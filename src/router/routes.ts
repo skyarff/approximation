@@ -1,4 +1,11 @@
-export const routes = [
+type TypeRoute = {
+  path: string,
+  name: string,
+  component: () => any,
+  [key: string]: any
+}
+
+export const routes: TypeRoute[] = [
   {
     path: '/approximation',
     name: 'Аппроксимация',

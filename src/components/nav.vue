@@ -11,7 +11,7 @@
   </template>
   
   <script setup>
-  import { routes } from '@/router/routes.js';
+  import { routes } from '@/router/routes.ts';
   import { useRouter } from 'vue-router';
   import { ref, watch, onMounted } from 'vue';
   

@@ -15,7 +15,7 @@ type TypePayload = {
 }
 
 
-export const useChartStore = defineStore('chart', () => {
+export const useChartStore: any = defineStore('chart', () => {
 
 
     const chartData = ref<TypeData>(

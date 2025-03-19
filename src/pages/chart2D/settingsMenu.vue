@@ -11,8 +11,8 @@
                         <span class="text-subtitle-2 font-weight-medium">Настройки отображения</span>
                     </div>
                     <v-spacer></v-spacer>
-                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" 
-                        @click="menu = false" size="x-small"></v-btn>
+                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" @click="menu = false"
+                        size="x-small"></v-btn>
                 </div>
 
                 <div class="panel-content">
@@ -21,17 +21,10 @@
                             <v-icon size="small" color="#1e3a5f">mdi-axis-x-arrow-lock</v-icon>
                             <span>Ось X (абсцисса)</span>
                         </div>
-                        
+
                         <div class="setting-body">
-                            <v-autocomplete 
-                                v-model="settingsClone.xVal" 
-                                item-title="val" 
-                                item-value="id" 
-                                :items="xKeys"
-                                density="compact"
-                                hide-details
-                                variant="outlined"
-                                bg-color="white"
+                            <v-autocomplete v-model="settingsClone.xVal" item-title="val" item-value="id" :items="xKeys"
+                                density="compact" hide-details variant="outlined" bg-color="white"
                                 class="rounded-lg mb-2">
                                 <template #label>
                                     <div class="setting-label">Переменная по оси X</div>
@@ -52,86 +45,72 @@
                             </v-autocomplete>
                         </div>
                     </div>
-                    
+
                     <!-- Range Settings -->
                     <div class="settings-section range-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
                             <span>Диапазон данных</span>
                         </div>
-                        
+
                         <div class="setting-body">
                             <div class="range-controls">
                                 <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.min" 
-                                        type="number"
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
+                                    <v-text-field v-model="settingsClone.min" type="number" hide-details
+                                        density="compact" variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Минимум</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-down-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-down-bold</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
-                                
+
                                 <div class="range-separator">—</div>
-                                
+
                                 <div class="range-input">
-                                    <v-text-field 
-                                        v-model="settingsClone.max"
-                                        type="number"
-                                        hide-details
-                                        density="compact"
-                                        variant="outlined"
-                                        bg-color="white"
-                                        class="rounded-lg">
+                                    <v-text-field v-model="settingsClone.max" type="number" hide-details
+                                        density="compact" variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Максимум</div>
                                         </template>
                                         <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1" class="mr-1">mdi-arrow-up-bold</v-icon>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-up-bold</v-icon>
                                         </template>
                                     </v-text-field>
                                 </div>
                             </div>
-                            
-                            <v-btn 
-                                @click="resetRange" 
-                                size="small" 
-                                variant="text" 
-                                color="grey-darken-1"
-                                class="reset-btn mt-1 px-2"
-                                density="comfortable"
-                                block>
+
+                            <v-btn @click="resetRange" size="small" variant="text" color="grey-darken-1"
+                                class="reset-btn mt-1 px-2" density="comfortable" block>
                                 <v-icon size="small" class="mr-1">mdi-refresh</v-icon>
                                 Сбросить диапазон
                             </v-btn>
                         </div>
                     </div>
 
-   
+
                     <div class="settings-section display-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-scatter-plot</v-icon>
                             <span>Тип визуализации</span>
                         </div>
-                        
+
                         <div class="setting-body">
                             <div class="display-options">
-                                <div class="display-option" :class="{ 'active': !chartStore.pointChart2D }" @click="chartStore.pointChart2D = false">
+                                <div class="display-option" :class="{ 'active': !chartStore.pointChart2D }"
+                                    @click="chartStore.pointChart2D = false">
                                     <div class="option-icon">
                                         <v-icon>mdi-chart-line</v-icon>
                                     </div>
                                     <div class="option-label">Линейный</div>
                                 </div>
-                                
-                                <div class="display-option" :class="{ 'active': chartStore.pointChart2D }" @click="chartStore.pointChart2D = true">
+
+                                <div class="display-option" :class="{ 'active': chartStore.pointChart2D }"
+                                    @click="chartStore.pointChart2D = true">
                                     <div class="option-icon">
                                         <v-icon>mdi-chart-scatter-plot</v-icon>
                                     </div>
@@ -145,21 +124,11 @@
                 <v-divider></v-divider>
 
                 <div class="panel-footer">
-                    <v-btn
-                        color="grey"
-                        variant="text"
-                        size="small"
-                        @click="menu = false"
-                        class="cancel-btn">
+                    <v-btn color="grey" variant="text" size="small" @click="menu = false" class="cancel-btn">
                         Отмена
                     </v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn 
-                        color="primary" 
-                        variant="flat" 
-                        size="small" 
-                        @click="apply()" 
-                        prepend-icon="mdi-check"
+                    <v-btn color="primary" variant="flat" size="small" @click="apply()" prepend-icon="mdi-check"
                         class="apply-btn">
                         Применить
                     </v-btn>
@@ -171,35 +140,52 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { computed } from 'vue';
+import { computed, ComputedRef } from 'vue';
 
 import { useChartStore } from '@/store/chart';
 const chartStore: any = useChartStore();
 
-const emit = defineEmits(['applySettings']);
+type TypeSettings = {
+    min: number,
+    max: number,
+    xVal: number,
+    [key: string]: string | number,
+}
 
-const props = defineProps({
-    settings: {
-        type: Object
-    }
-});
+const emit = defineEmits<{
+    (e: 'applySettings')
+}>()
 
 
+const props = defineProps<{
+    settings: TypeSettings;
+}>();
+
+type TypeKey = {
+    id: number,
+    val: string | number
+};
 
 
-
-let menu = ref(false);
-function switchMenu() {
+let menu = ref<boolean>(false);
+function switchMenu(): void {
     menu.value = !menu.value;
     if (menu.value) {
+        settingsClone.value = {
+            min: null,
+            max: null,
+            xVal: null
+        }
+
         for (const key in props.settings)
             settingsClone.value[key] = props.settings[key];
     }
 };
 
 
-let settingsClone = ref({});
-const xKeys = computed(() => {
+let settingsClone = ref<TypeSettings>(null);
+
+const xKeys: ComputedRef<TypeKey[]> = computed(() => {
     return Object.keys(chartStore.chartData[0])
         .filter(key => !chartStore.yKeys.includes(key))
         .map((key, index) => {
@@ -210,7 +196,8 @@ const xKeys = computed(() => {
         })
 });
 
-function apply() {
+function apply(): void {
+
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
@@ -218,11 +205,11 @@ function apply() {
     emit('applySettings');
 };
 
-function resetRange() {
-    props.settings.min = '';
-    props.settings.max = '';
-    settingsClone.value.min = '';
-    settingsClone.value.max = '';
+function resetRange(): void {
+    props.settings.min = null;
+    props.settings.max = null;
+    settingsClone.value.min = null;
+    settingsClone.value.max = null;
     emit('applySettings');
 };
 
@@ -373,7 +360,8 @@ defineExpose({
     border-top: 1px solid #f0f0f0;
 }
 
-.apply-btn, .cancel-btn {
+.apply-btn,
+.cancel-btn {
     text-transform: none;
     font-size: 13px;
     font-weight: 500;
