@@ -11,7 +11,7 @@ import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import { useChartStore } from '@/store/chart';
-import { ref, computed, nextTick, defineExpose } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { onActivated, onBeforeUnmount } from 'vue'
 
 

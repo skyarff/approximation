@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-menu v-model="menu" :close-on-content-click="false" location="top" :activator="'parent'" 
+        <v-menu v-model="menu" :close-on-content-click="false" location="top" :activator="'parent'"
             transition="scale-transition" :offset="8">
             <v-card min-width="380" class="metrics-card elevation-4">
                 <div class="panel-header">
@@ -12,19 +12,19 @@
                         </v-chip>
                     </div>
                     <v-spacer></v-spacer>
-                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" 
-                        @click="menu = false" size="small"></v-btn>
+                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" @click="menu = false"
+                        size="small"></v-btn>
                 </div>
 
                 <div class="panel-content">
                     <div v-if="Object.keys(metrics).length" class="metrics-container">
                         <div v-for="(value, key) in metrics" :key="key" class="metric-item">
                             <div class="metric-info">
-                                <div class="metric-name">{{ formatMetricName(key) }}</div>
-                                <div class="metric-description">{{ getMetricDescription(key) }}</div>
+                                <div class="metric-name">{{ metricNames[key] }}</div>
+                                <div class="metric-description">{{ metricDescriptions[key] }}</div>
                             </div>
                             <div class="metric-value-container">
-                                <div class="metric-value">{{ formatMetricValue(value) }}</div>
+                                <div class="metric-value">{{ value.toFixed(4) }}</div>
                                 <v-icon :color="getMetricColor(key, value)" size="small" class="ml-1">
                                     {{ getMetricIcon(key, value) }}
                                 </v-icon>
@@ -41,13 +41,12 @@
                 <v-divider></v-divider>
 
                 <div class="panel-footer">
-                    <v-btn color="primary" variant="text" size="small" class="text-caption" 
+                    <v-btn color="primary" variant="text" size="small" class="text-caption"
                         @click="copyMetricsToClipboard" prepend-icon="mdi-content-copy">
                         Копировать метрики
                     </v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn color="grey" variant="text" size="small" class="text-caption" 
-                        @click="menu = false">
+                    <v-btn color="grey" variant="text" size="small" class="text-caption" @click="menu = false">
                         Закрыть
                     </v-btn>
                 </div>
@@ -56,79 +55,77 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
+import { PropType } from 'vue';
 
 import { useAppStore } from '@/store/app';
-const appStore = useAppStore();
+const appStore: any = useAppStore();
+
+
+type ObjectStrings = Record<string, string>;
+type ObjectNumbers = Record<string, number>;
+
 
 const props = defineProps({
-    metrics: {
-        type: Object,
-        default: () => ({})
-    },
+  metrics: {
+    type: Object as PropType<ObjectNumbers>,
+    default: () => ({})
+  }
 });
 
-let menu = ref(false);
 
-function switchMenu() {
+let menu = ref<boolean>(false);
+
+function switchMenu(): void {
     menu.value = !menu.value;
 }
 
-function formatMetricName(key) {
-    const names = {
-        'R2': 'R² (коэффициент детерминации)',
-        'AIC': 'AIC (информационный критерий Акаике)',
-        'MSE': 'MSE (среднеквадратичная ошибка)'
-    };
-    return names[key] || key;
-}
+const metricNames: ObjectStrings = {
+    'R2': 'R² (коэффициент детерминации)',
+    'AIC': 'AIC (информационный критерий Акаике)',
+    'MSE': 'MSE (среднеквадратичная ошибка)'
+};
 
-function getMetricDescription(key) {
-    const descriptions = {
-        'R2': 'Оценивает качество подгонки модели к данным',
-        'AIC': 'Оценивает качество модели с учетом сложности',
-        'MSE': 'Измеряет среднюю квадратичную ошибку модели'
-    };
-    return descriptions[key] || '';
-}
 
-function formatMetricValue(value) {
-    if (typeof value === 'number') {
-        return value.toFixed(4);
-    }
-    return value;
-}
+const metricDescriptions: ObjectStrings = {
+    'R2': 'Оценивает качество подгонки модели к данным',
+    'AIC': 'Оценивает качество модели с учетом сложности',
+    'MSE': 'Измеряет среднюю квадратичную ошибку модели'
+};
 
-function getMetricIcon(key, value) {
+
+
+
+function getMetricIcon(key: string, value: number): string {
     if (key === 'R2' && value > 0.8) return 'mdi-check-circle';
     if (key === 'R2' && value > 0.5) return 'mdi-check';
     if (key === 'R2') return 'mdi-alert-circle';
-    
+
     if (key === 'MSE' && value < 0.1) return 'mdi-check-circle';
     if (key === 'MSE' && value < 0.5) return 'mdi-check';
     if (key === 'MSE') return 'mdi-alert-circle';
-    
+
     return 'mdi-information';
 }
 
-function getMetricColor(key, value) {
+function getMetricColor(key: string, value: number): string {
     if (key === 'R2' && value > 0.8) return 'success';
     if (key === 'R2' && value > 0.5) return 'info';
     if (key === 'R2') return 'warning';
-    
+
     if (key === 'MSE' && value < 0.1) return 'success';
     if (key === 'MSE' && value < 0.5) return 'info';
     if (key === 'MSE') return 'warning';
-    
+
     return 'grey';
 }
 
-function copyMetricsToClipboard() {
-    const text = Object.entries(props.metrics)
-        .map(([key, value]) => `${formatMetricName(key)}: ${value}`)
+function copyMetricsToClipboard(): void {
+    const text: string = Object.entries(props.metrics)
+        .map(([key, value]) => `${metricNames[key]}: ${value}`)
         .join('\n');
-    
+
     navigator.clipboard.writeText(text).then(() => {
         appStore.showEvent({
             text: 'Метрики успешно скопированы',

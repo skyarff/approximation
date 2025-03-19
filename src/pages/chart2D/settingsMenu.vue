@@ -65,6 +65,7 @@
                                 <div class="range-input">
                                     <v-text-field 
                                         v-model="settingsClone.min" 
+                                        type="number"
                                         hide-details
                                         density="compact"
                                         variant="outlined"
@@ -83,7 +84,8 @@
                                 
                                 <div class="range-input">
                                     <v-text-field 
-                                        v-model="settingsClone.max" 
+                                        v-model="settingsClone.max"
+                                        type="number"
                                         hide-details
                                         density="compact"
                                         variant="outlined"
@@ -167,12 +169,12 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { computed } from 'vue';
 
 import { useChartStore } from '@/store/chart';
-const chartStore = useChartStore();
+const chartStore: any = useChartStore();
 
 const emit = defineEmits(['applySettings']);
 

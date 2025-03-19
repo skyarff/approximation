@@ -11,8 +11,8 @@
                         <span class="text-subtitle-2 font-weight-medium">Прогнозирование значений</span>
                     </div>
                     <v-spacer></v-spacer>
-                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" 
-                        @click="menu = false" size="x-small"></v-btn>
+                    <v-btn icon="mdi-close" density="compact" variant="text" color="grey-darken-1" @click="menu = false"
+                        size="x-small"></v-btn>
                 </div>
 
                 <v-divider></v-divider>
@@ -27,24 +27,20 @@
                         <div class="variables-scroll-container">
                             <v-form ref="form1">
                                 <div class="variables-list">
-                                    <div v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index" 
+                                    <div v-for="(variable, index) in dataInfo.fields.slice(1)" :key="index"
                                         class="variable-input-field">
                                         <div class="variable-label">
                                             <v-icon size="x-small" color="#1e3a5f" class="mr-1">mdi-label</v-icon>
                                             {{ variable }}
                                         </div>
-                                        <v-text-field 
-                                            density="compact"
-                                            hide-details="auto"
-                                            variant="outlined" 
-                                            class="rounded-lg input-field"
-                                            bg-color="white"
+                                        <v-text-field density="compact" hide-details="auto" variant="outlined"
+                                            class="rounded-lg input-field" bg-color="white"
                                             :rules="[v => (v === 0 || !!v) || 'Поле обязательно']"
-                                            v-model="predictInfo.predictData[0][variable]"
-                                            type="number"
+                                            v-model="predictInfo.predictData[0][variable]" type="number"
                                             placeholder="Введите значение">
                                             <template v-slot:append>
-                                                <v-icon v-if="predictInfo.predictData[0][variable]" size="x-small" color="success">mdi-check-circle</v-icon>
+                                                <v-icon v-if="predictInfo.predictData[0][variable]" size="x-small"
+                                                    color="success">mdi-check-circle</v-icon>
                                             </template>
                                         </v-text-field>
                                     </div>
@@ -60,9 +56,10 @@
                             <v-icon size="small" color="#1e3a5f">mdi-calculator-variant-outline</v-icon>
                             <span>Результат прогноза</span>
                         </div>
-                        
+
                         <div v-if="predictInfo.predictAns !== ''" class="result-container">
-                            <div class="result-value" :class="{'error-result': isNaN(parseFloat(predictInfo.predictAns))}">
+                            <div class="result-value"
+                                :class="{ 'error-result': isNaN(parseFloat(predictInfo.predictAns)) }">
                                 {{ formatResult(predictInfo.predictAns) }}
                             </div>
                             <div class="result-label">
@@ -84,11 +81,10 @@
                         Сбросить
                     </v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" variant="flat" size="small" 
-                        class="predict-btn" @click="predict">
+                    <v-btn color="primary" variant="flat" size="small" class="predict-btn" @click="predict">
                         <v-icon size="small" class="mr-1">mdi-lightning-bolt</v-icon>
-                        <v-progress-circular v-if="isCalculating" 
-                            indeterminate color="white" :size="16" :width="2" class="ml-2"></v-progress-circular>
+                        <v-progress-circular v-if="isCalculating" indeterminate color="white" :size="16" :width="2"
+                            class="ml-2"></v-progress-circular>
                         Рассчитать
                     </v-btn>
                 </div>
@@ -97,38 +93,57 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { calculatePredicted } from '@/app_lib/metrics';
 import { ref, reactive } from 'vue';
 
-const props = defineProps({
-    dataInfo: {
-        type: Object
-    },
-    allBases: {
-        type: Object
-    }
-});
+
+type TypeData = Record<string | number, number>[];
+type TypeDataInfo = {
+    data: TypeData;
+    fields: string[];
+}
+
+type TypePredictInfo = {
+    predictData: TypeData;
+    predictAns: string
+}
+
+interface IBasis {
+    weight: number;
+    functions: string[];
+    variables: number[];
+    powers: number[];
+    outputFunc: string;
+    outputDegree: number;
+}
 
 
-let menu = ref(false);
-let isCalculating = ref(false);
+const props = defineProps<{
+    dataInfo: TypeDataInfo;
+    allBases: Record<string, IBasis>;
+}>();
 
-function switchMenu() {
+
+let menu = ref<boolean>(false);
+let isCalculating = ref<boolean>(false);
+
+function switchMenu(): void {
     menu.value = !menu.value;
 };
 
-const predictInfo = reactive({
+
+const predictInfo = reactive<TypePredictInfo>({
     predictData: [{}],
     predictAns: ''
 });
 
-const form1 = ref(null);
+const form1 = ref<HTMLFormElement | null>(null);
 
-function formatResult(result) {
+function formatResult(result: string): string {
     const numValue = parseFloat(result);
     if (!isNaN(numValue)) {
-        return new Intl.NumberFormat('ru-RU', { 
+        return new Intl.NumberFormat('ru-RU', {
             maximumFractionDigits: 4,
             minimumFractionDigits: 2
         }).format(numValue);
@@ -136,36 +151,34 @@ function formatResult(result) {
     return 'Ошибка расчета';
 }
 
-function resetForm() {
+function resetForm(): void {
     predictInfo.predictData = [{}];
     predictInfo.predictAns = '';
-    if (form1.value) {
-        form1.value.reset();
-    }
+    if (form1.value) form1.value.reset();
 }
 
-async function predict() {
-    const isValid = await form1.value.validate();
+async function predict(): Promise<void> {
+    const isValid: boolean = await form1.value.validate();
     if (isValid) {
         isCalculating.value = true;
         try {
-                const result = await calculatePredicted([predictInfo.predictData[0]], props.allBases, false);
-                if (result && result.length > 0) {
-                    const value = result[0];
-                    if (isNaN(value) || !isFinite(value)) {
-                        predictInfo.predictAns = 'NaN';
-                    } else {
-                        predictInfo.predictAns = value.toFixed(4);
-                    }
-                } else {
+            const result: number[] = (await calculatePredicted([predictInfo.predictData[0]], props.allBases, false));
+            if (result && result.length > 0) {
+                const value: number = result[0];
+                if (isNaN(value) || !isFinite(value)) {
                     predictInfo.predictAns = 'NaN';
+                } else {
+                    predictInfo.predictAns = value.toFixed(4);
                 }
-            } catch (error) {
-                console.error('Ошибка расчета:', error);
+            } else {
                 predictInfo.predictAns = 'NaN';
-            } finally {
-                isCalculating.value = false;
             }
+        } catch (error) {
+            console.error('Ошибка расчета:', error);
+            predictInfo.predictAns = 'NaN';
+        } finally {
+            isCalculating.value = false;
+        }
     } else {
         alert('Пожалуйста, заполните все необходимые поля');
     }

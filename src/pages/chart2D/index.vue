@@ -10,7 +10,7 @@
                     size="x-small">
                     <component :is="icons.FilterIcon" :color="'#000'" :size="17" />
                 </v-btn>
-                <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsRef" />
+                <settingsMenu @applySettings="apply()" :settings="settings" ref="settingsRef" />
             </div>
 
         </div>
@@ -26,7 +26,7 @@
 </template>
 
 
-<script setup>
+<script setup lang="ts">
 
 import icons from '@/assets/icons'
 import { ref, reactive } from 'vue'
@@ -34,10 +34,15 @@ import settingsMenu from './settingsMenu.vue';
 import chart from './chart.vue';
 
 
+type TypeSettings = {
+    min: number,
+    max: number,
+    xVal: number
+}
 
-const settings = reactive({
-    min: '',
-    max: '',
+const settings: TypeSettings = reactive({
+    min: null,
+    max: null,
     xVal: 0
 });
 
@@ -45,7 +50,7 @@ const settings = reactive({
 const chartRef = ref(null);
 const settingsRef = ref(null);
 
-function apply() {
+function apply(): void {
     chartRef.value.callChart(settings.min, settings.max);
 }
 

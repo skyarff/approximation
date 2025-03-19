@@ -1,9 +1,24 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+
+type TypeData = Record<string | number, number>[];
+type TypeKey = string | number;
+
+
+type TypePayload = {
+    chartData: TypeData,
+    xKey: TypeKey,
+    xKeys: TypeKey[],
+    yKeys: TypeKey[],
+    newData: boolean
+}
+
+
 export const useChartStore = defineStore('chart', () => {
 
-    const chartData = ref(
+
+    const chartData = ref<TypeData>(
         [
             { y1: 120, x: 1.7, 'y (approximated)': 240, 'y (difference)': 120 },
             { y1: 100, x: 1.5, 'y (approximated)': 200, 'y (difference)': 100 },
@@ -30,25 +45,25 @@ export const useChartStore = defineStore('chart', () => {
 
 
     
-    const yKeys = ref(['y1', 'y (approximated)', 'y (difference)']);
+    const yKeys = ref<TypeKey[]>(['y1', 'y (approximated)', 'y (difference)']);
 
-    const xKey = ref('x');
-    const newData = ref(true);
-    const pointChart2D = ref(false);
-    function switchPoint() {
+    const xKey = ref<TypeKey>('x');
+    const newData = ref<boolean>(true);
+    const pointChart2D = ref<boolean>(false);
+    function switchPoint(): void {
         pointChart2D.value = !pointChart2D.value;
     }
 
-    const xKeys = ref(['x']);
-    const newData3D = ref(true);
-    const pointChart3D = ref(true);
-    const grid3D = ref(false);
-    function switchPoint3D() {
+    const xKeys = ref<TypeKey[]>(['x']);
+    const newData3D = ref<boolean>(true);
+    const pointChart3D = ref<boolean>(true);
+    const grid3D = ref<boolean>(false);
+    function switchPoint3D(): void {
         pointChart3D.value = !pointChart3D.value;
     }
 
 
-    function setChartData(payload) {
+    function setChartData(payload: TypePayload): void {
         chartData.value = payload.chartData;
         xKey.value = payload.xKey;
         xKeys.value = payload.xKeys;

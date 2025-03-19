@@ -1,9 +1,19 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 
+type TypeNumParams = {
+    constant: boolean,
+    normSmallValues: boolean,
+    multiplicationFactor: number,
+    L1: number,
+    L2: number,
+    stepPower: number
+}
+
+
 export const useSettingsStore = defineStore('settings', () => {
 
-    const defNumParams = {
+    const defNumParams: TypeNumParams = {
         constant: true,
         normSmallValues: true,
         multiplicationFactor: 1,
@@ -12,7 +22,7 @@ export const useSettingsStore = defineStore('settings', () => {
         stepPower: 1,
     };
 
-    const numParams = ref({
+    const numParams = ref<TypeNumParams>({
         constant: true,
         normSmallValues: true,
         multiplicationFactor: 1,
@@ -21,18 +31,22 @@ export const useSettingsStore = defineStore('settings', () => {
         stepPower: 1,
     });
 
-    function clearNumParams() {
+    function clearNumParams(): void {
         localStorage.removeItem('numParams');
         numParams.value = structuredClone(defNumParams);
     }
 
-
-    const numParamsFromLS = JSON.parse(localStorage.getItem('numParams'));
+    let numParamsFromLS: TypeNumParams;
+    try {
+        numParams.value = JSON.parse(localStorage.getItem('numParams'));
+    } catch (error) {
+        console.error(error)
+    }
 
     if (numParamsFromLS && Object.keys(numParamsFromLS)) 
         numParams.value = numParamsFromLS;
 
-    watch(numParams, () => {
+    watch(numParams, (): void => {
         localStorage.setItem('numParams', JSON.stringify(numParams.value));
     }, { deep: true });
 

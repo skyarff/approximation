@@ -144,10 +144,10 @@
 </template>
 
 
-<script setup>
-import { useSettingsStore } from '@/store/settings'
+<script setup lang="ts">
+import { useSettingsStore } from '@/store/settings';
 
-const settingsStore = useSettingsStore();
+const settingsStore: any = useSettingsStore();
 
 </script>
 
