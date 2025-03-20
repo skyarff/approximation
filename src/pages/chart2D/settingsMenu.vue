@@ -23,7 +23,7 @@
                         </div>
 
                         <div class="setting-body">
-                            <v-autocomplete v-model="settingsClone.xVal" item-title="val" item-value="id" :items="xKeys"
+                            <v-autocomplete v-model="settingsClone.xVal" item-title="val" item-value="val" :items="chartStore.xKeys"
                                 density="compact" hide-details variant="outlined" bg-color="white"
                                 class="rounded-lg mb-2">
                                 <template #label>
@@ -46,7 +46,6 @@
                         </div>
                     </div>
 
-                    <!-- Range Settings -->
                     <div class="settings-section range-section">
                         <div class="section-title">
                             <v-icon size="small" color="#1e3a5f">mdi-chart-bell-curve-cumulative</v-icon>
@@ -59,7 +58,7 @@
                                     <v-text-field v-model="settingsClone.min" type="number" hide-details
                                         density="compact" variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Минимум</div>
+                                            <div class="setting-label">Мин.</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1"
@@ -74,7 +73,7 @@
                                     <v-text-field v-model="settingsClone.max" type="number" hide-details
                                         density="compact" variant="outlined" bg-color="white" class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Максимум</div>
+                                            <div class="setting-label">Макс.</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1"
@@ -140,17 +139,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { computed, ComputedRef } from 'vue';
+import { TypeSettings } from './index.vue';
 
 import { useChartStore } from '@/store/chart';
 const chartStore: any = useChartStore();
 
-type TypeSettings = {
-    min: number,
-    max: number,
-    xVal: number,
-    [key: string]: string | number,
-}
 
 const emit = defineEmits<{
     (e: 'applySettings')
@@ -161,11 +154,11 @@ const props = defineProps<{
     settings: TypeSettings;
 }>();
 
-type TypeKey = {
-    id: number,
-    val: string | number
-};
 
+
+
+
+let settingsClone = ref<TypeSettings>(null);
 
 let menu = ref<boolean>(false);
 function switchMenu(): void {
@@ -177,33 +170,17 @@ function switchMenu(): void {
             xVal: null
         }
 
-        console.log('props.settings', props.settings)
-
         for (const key in props.settings)
             settingsClone.value[key] = props.settings[key];
     }
 };
 
 
-let settingsClone = ref<TypeSettings>(null);
-
-const xKeys: ComputedRef<TypeKey[]> = computed(() => {
-    return Object.keys(chartStore.chartData[0])
-        .filter(key => !chartStore.yKeys.includes(key))
-        .map((key, index) => {
-            return {
-                id: index,
-                val: key
-            }
-        })
-});
-
 function apply(): void {
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
-
-    chartStore.xKey = xKeys.value[props.settings.xVal].val;
+    chartStore.xKey = settingsClone.value.xVal;
     emit('applySettings');
 };
 

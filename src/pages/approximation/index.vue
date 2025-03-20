@@ -252,7 +252,7 @@
                                 <span>Расч. метрики</span>
                             </v-btn>
 
-                            <v-btn :disabled="!allBasesKeys.length" color="blue-grey-lighten-1" size="x-small"
+                            <v-btn :disabled="metricsDisabled" color="blue-grey-lighten-1" size="x-small"
                                 variant="text" class="text-white" @click="metricsMenuRef.switchMenu()">
                                 <v-icon size="small">mdi-chart-box</v-icon>
                                 <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
@@ -667,6 +667,9 @@ const metrics = ref({
     MSE: '',
 });
 
+const metricsDisabled = computed(() => {
+    return Object.values(metrics.value).every(val => !isFinite(parseFloat(val)));
+});
 
 async function calculateMetrics() {
     console.time('metricsTiem')
@@ -681,6 +684,7 @@ async function calculateMetrics() {
 
     console.timeEnd('metricsTiem')
 }
+
 
 
 

@@ -67,8 +67,8 @@
                             </v-autocomplete>
 
                             <v-autocomplete v-model="settingsClone.sortVal" item-title="val" item-value="val"
-                                :items="[...chartStore.xKeys, ...chartStore.yKeys.slice(0, chartStore.yKeys.length - 1), '-']" density="compact" hide-details variant="outlined"
-                                bg-color="white" class="rounded-lg">
+                                :items="[...chartStore.xKeys, ...chartStore.yKeys.slice(0, chartStore.yKeys.length - 1), '-']"
+                                density="compact" hide-details variant="outlined" bg-color="white" class="rounded-lg">
                                 <template #label>
                                     <div class="setting-label">Сортировка по переменной</div>
                                 </template>
@@ -98,25 +98,11 @@
                         <div class="setting-body">
                             <div class="range-controls">
 
-
-                                <div class="range-input">
-                                    <v-text-field v-model="settingsClone.posAxis" hide-details density="compact"
-                                        variant="outlined" bg-color="white" class="rounded-lg">
-                                        <template #label>
-                                            <div class="setting-label">Пол. ось</div>
-                                        </template>
-                                        <template #prepend-inner>
-                                            <v-icon size="x-small" color="grey-darken-1"
-                                                class="mr-1">mdi-arrow-up-bold</v-icon>
-                                        </template>
-                                    </v-text-field>
-                                </div>
-                                <div class="range-separator">—</div>
                                 <div class="range-input">
                                     <v-text-field v-model="settingsClone.negAxis" hide-details density="compact"
-                                        variant="outlined" bg-color="white" class="rounded-lg">
+                                        variant="outlined" type="number" bg-color="white" class="rounded-lg">
                                         <template #label>
-                                            <div class="setting-label">Нег. ось</div>
+                                            <div class="setting-label">Нег. оси</div>
                                         </template>
                                         <template #prepend-inner>
                                             <v-icon size="x-small" color="grey-darken-1"
@@ -124,6 +110,23 @@
                                         </template>
                                     </v-text-field>
                                 </div>
+
+                                <div class="range-separator">—</div>
+
+                                <div class="range-input">
+                                    <v-text-field v-model="settingsClone.posAxis" hide-details density="compact"
+                                        variant="outlined" type="number" bg-color="white" class="rounded-lg">
+                                        <template #label>
+                                            <div class="setting-label">Пол. оси</div>
+                                        </template>
+                                        <template #prepend-inner>
+                                            <v-icon size="x-small" color="grey-darken-1"
+                                                class="mr-1">mdi-arrow-up-bold</v-icon>
+                                        </template>
+                                    </v-text-field>
+                                </div>
+                                
+                                
 
                             </div>
 
@@ -145,7 +148,7 @@
                             <div class="range-controls">
                                 <div class="range-input">
                                     <v-text-field v-model="settingsClone.gridStep" hide-details density="compact"
-                                        variant="outlined" bg-color="white" class="rounded-lg">
+                                        variant="outlined" type="number" bg-color="white" class="rounded-lg">
                                         <template #label>
                                             <div class="setting-label">Шаг меток</div>
                                         </template>
@@ -178,51 +181,65 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 import { useChartStore } from '@/store/chart';
-const chartStore = useChartStore();
+import { TypeSettings } from './index.vue'
+const chartStore: any = useChartStore();
 
-const emit = defineEmits(['applySettings']);
+const emit = defineEmits<{
+    (e: 'applySettings');
+}>()
 
-const props = defineProps({
-    settings: {
-        type: Object
-    }
-});
 
-let menu = ref(false);
-function switchMenu() {
+const props = defineProps<{
+    settings: TypeSettings;
+}>();
+
+
+
+let settingsClone = ref<TypeSettings>(null);
+
+let menu = ref<boolean>(false);
+function switchMenu(): void {
     menu.value = !menu.value;
     if (menu.value) {
+        settingsClone.value = ({
+            posAxis: null,
+            negAxis: null,
+            gridStep: null,
+            sortVal: '-',
+            x1Val: chartStore.xKeys[1] ?? '-',
+            x2Val: chartStore.xKeys[0] ?? '-',
+        });
+
+
         for (const key in props.settings)
             settingsClone.value[key] = props.settings[key];
     }
 };
 
-let settingsClone = ref({});
 
 
-
-function apply() {
+function apply(): void {
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
     emit('applySettings');
 };
 
-function resetRange() {
-    props.settings.negAxis = '';
-    props.settings.posAxis = '';
-    settingsClone.value.negAxis = '';
-    settingsClone.value.posAxis = '';
+function resetRange(): void {
+    props.settings.negAxis = null;
+    props.settings.posAxis = null;
+    settingsClone.value.negAxis = null;
+    settingsClone.value.posAxis = null;
     emit('applySettings');
 };
 
 defineExpose({
     switchMenu
-})
+});
 </script>
 
 <style scoped>

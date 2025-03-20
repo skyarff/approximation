@@ -240,8 +240,6 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
         "#16a085",
     ];
 
-    console.log('keys', yKey, xKey)
-
     const color: string = colorPalette[index];
     const yRenderer: any = am5xy.AxisRendererY.new(root, {
         minGridDistance: 25,
@@ -261,8 +259,8 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     let oneAxis: boolean = false;
     if (min || max) {
         oneAxis = true;
-        min = min ? min : 0;
-        max = max ? max : 0;
+        min = min ? Number(min) : 0;
+        max = max ? Number(max) : 0;
     }
 
     const yAxis: any = chart.yAxes.push(
@@ -398,13 +396,13 @@ function callChart(min?: number, max?: number): void {
 
 
 
-
-
 onActivated(() => {
     if (chartStore.newData) {
         chartData = [...chartStore.chartData];
         callChart();
-        chartStore.newData = false;
+        setTimeout(() => {
+            chartStore.newData = false;
+        }, 0)
     }
 });
 

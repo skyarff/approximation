@@ -5,7 +5,7 @@
             <v-btn @click="settingsRef.switchMenu()" class="mr-5" :color="'transparent'" elevation="0" icon size="x-small">
                 <component :is="icons.FilterIcon" :color="'#262525'" :size="17" />
             </v-btn>
-            <settingsMenu @applySettings="apply(settings)" :settings="settings" ref="settingsRef" />
+            <settingsMenu @applySettings="apply()" :settings="settings" ref="settingsRef" />
         </div>
 
         <chart ref="chartRef" />
@@ -14,36 +14,52 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import icons from '@/assets/icons'
 import { ref, reactive, onActivated } from 'vue';
 import chart from './chart.vue';
 import settingsMenu from './settingsMenu.vue';
 
-import { useChartStore } from '@/store/chart';
-const chartStore = useChartStore();
+import { useChartStore, TypeKey } from '@/store/chart';
+const chartStore: any = useChartStore();
 
 const chartRef = ref(null);
 const settingsRef = ref(null);
 
+export type TypeSettings = {
+    posAxis: number;
+    negAxis: number;
+    gridStep: number;
+    sortVal: TypeKey;
+    x1Val: TypeKey;
+    x2Val: TypeKey;
+    [key: string]: string | number,
+}
 
 
-const settings = reactive({
-    posAxis: '',
-    negAxis: '',
-    gridStep: '',
+const settings: TypeSettings = reactive({
+    posAxis: null,
+    negAxis: null,
+    gridStep: null,
     sortVal: '-',
     x1Val: chartStore.xKeys[1] ?? '-',
     x2Val: chartStore.xKeys[0] ?? '-',
 });
 
 onActivated(() => {
-    settings.x1Val = chartStore.xKeys[1] ?? '-';
-    settings.x2Val = chartStore.xKeys[0] ?? '-';
+    if (chartStore.newData3D) {
+        settings.x1Val = chartStore.xKeys[1] ?? '-';
+        settings.x2Val = chartStore.xKeys[0] ?? '-';
+
+        settings.sortVal = '-';
+        settings.posAxis = null;
+        settings.negAxis = null;
+        settings.negAxis = null;
+    }
 });
 
 
-function apply() {
+function apply(): void {
 
     chartRef.value.callChart(
         settings.posAxis, 
@@ -54,6 +70,7 @@ function apply() {
         settings.sortVal,
     );
 }
+
 
 </script>
 

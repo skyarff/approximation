@@ -33,14 +33,15 @@ import { ref, reactive, onActivated } from 'vue'
 import settingsMenu from './settingsMenu.vue';
 import chart from './chart.vue';
 
-import { useChartStore } from '@/store/chart';
+import { useChartStore, TypeKey } from '@/store/chart';
 const chartStore: any = useChartStore();
 
 
-type TypeSettings = {
+export type TypeSettings = {
     min: number,
     max: number,
-    xVal: string
+    xVal: TypeKey,
+    [key: string]: string | number
 }
 
 const settings: TypeSettings = reactive({
@@ -50,7 +51,11 @@ const settings: TypeSettings = reactive({
 });
 
 onActivated(() => {
-    settings.xVal = chartStore.xKey
+    if (chartStore.newData) {
+        settings.xVal = chartStore.xKey;
+        settings.min = null;
+        settings.max = null;
+    }
 });
 
 
