@@ -177,6 +177,8 @@ function switchMenu(): void {
             xVal: null
         }
 
+        console.log('props.settings', props.settings)
+
         for (const key in props.settings)
             settingsClone.value[key] = props.settings[key];
     }
@@ -197,9 +199,9 @@ const xKeys: ComputedRef<TypeKey[]> = computed(() => {
 });
 
 function apply(): void {
-
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
+
 
     chartStore.xKey = xKeys.value[props.settings.xVal].val;
     emit('applySettings');

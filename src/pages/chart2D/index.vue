@@ -29,21 +29,28 @@
 <script setup lang="ts">
 
 import icons from '@/assets/icons'
-import { ref, reactive } from 'vue'
+import { ref, reactive, onActivated } from 'vue'
 import settingsMenu from './settingsMenu.vue';
 import chart from './chart.vue';
+
+import { useChartStore } from '@/store/chart';
+const chartStore: any = useChartStore();
 
 
 type TypeSettings = {
     min: number,
     max: number,
-    xVal: number
+    xVal: string
 }
 
 const settings: TypeSettings = reactive({
     min: null,
     max: null,
-    xVal: 0
+    xVal: null
+});
+
+onActivated(() => {
+    settings.xVal = chartStore.xKey
 });
 
 

@@ -38,7 +38,7 @@ export const useSettingsStore: any = defineStore('settings', () => {
 
     let numParamsFromLS: TypeNumParams;
     try {
-        numParams.value = JSON.parse(localStorage.getItem('numParams'));
+        numParamsFromLS = JSON.parse(localStorage.getItem('numParams'));
     } catch (error) {
         console.error(error)
     }

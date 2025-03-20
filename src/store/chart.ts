@@ -72,5 +72,19 @@ export const useChartStore: any = defineStore('chart', () => {
         newData3D.value = true;
     }
 
-    return { chartData, xKey, xKeys, yKeys, pointChart2D, newData, pointChart3D, grid3D, newData3D, switchPoint, switchPoint3D, setChartData };
+    return { chartData, 
+        xKey, 
+        xKeys, 
+        yKeys, 
+        pointChart2D, 
+        newData, 
+        pointChart3D,
+        grid3D, 
+        newData3D, 
+        switchPoint, 
+        switchPoint3D, 
+        setChartData
+     };
 });
+
+export { TypeData, TypeKey }
