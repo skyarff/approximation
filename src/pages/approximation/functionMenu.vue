@@ -119,32 +119,27 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { ICustomFunction } from './index.vue';
 
-type ICustomFunction = {
-    id: number;
-    val: string;
-    label: string;
-};
-
-type TypeTestFunction = (x: number) => number;
 
 const emit = defineEmits<{
     (e: 'functions-updated', updatedFunctions: ICustomFunction): void
 }>();
 
-const funcMenu = ref<boolean>(false);
+const funcMenu = ref(false);
 const customFunction = ref<ICustomFunction>(null);
 
-const functionName = ref<string>('');
-const functionCode = ref<string>('');
-const functionDescription = ref<string>('');
+const functionName = ref('');
+const functionCode = ref('');
+const functionDescription = ref('');
 
-const testValue = ref<number>(1);
-const testResult = ref<number>(0);
-const testError = ref<string>('');
-const testPerformed = ref<boolean>(false);
+const testValue = ref(1);
+const testResult = ref(0);
+const testError = ref('');
+const testPerformed = ref(false);
 
-function testFunction(): void {
+
+function testFunction() {
     testPerformed.value = true;
     testResult.value = 0;
     testError.value = '';
@@ -155,12 +150,10 @@ function testFunction(): void {
     }
     
     try {
-        const functionBody: string = functionCode.value;
+        const functionBody = functionCode.value;
 
-        const testFunc: TypeTestFunction = new Function('x', functionBody) as TypeTestFunction;
-        
-        const x = Number(testValue.value);
-        const result: number = testFunc(x);
+        const testFunc = new Function('x', functionBody) as (x: number) => number;
+        const result = testFunc(Number(testValue.value));
         
         testResult.value = result;
     } catch (error) {
@@ -168,11 +161,11 @@ function testFunction(): void {
     }
 }
 
-function addFunction(): boolean {
+function addFunction() {
     if (functionName.value && functionCode.value) {
         if (!testPerformed.value || !testError.value) {
-            const randomId: number = Math.floor(1000 + Math.random() * 9000);
-            const funcVal: string = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
+            const randomId = Math.floor(1000 + Math.random() * 9000);
+            const funcVal = `uf${functionName.value.toUpperCase()}#${functionCode.value}`;
             
             customFunction.value = {
                 id: randomId,
@@ -186,7 +179,7 @@ function addFunction(): boolean {
     return false;
 }
 
-function saveToLocalStorage(): void {
+function saveToLocalStorage() {
     if (addFunction()) {
         emit('functions-updated', customFunction.value);
         

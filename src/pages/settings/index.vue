@@ -147,7 +147,7 @@
 <script setup lang="ts">
 import { useSettingsStore } from '@/store/settings';
 
-const settingsStore: any = useSettingsStore();
+const settingsStore = useSettingsStore();
 
 </script>
 
@@ -168,11 +168,6 @@ const settingsStore: any = useSettingsStore();
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     overflow: visible;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.settings-card:hover {
-    /* transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important; */
 }
 
 .card-header-wrapper {

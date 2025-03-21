@@ -15,8 +15,7 @@ type TypePayload = {
 }
 
 
-export const useChartStore: any = defineStore('chart', () => {
-
+export const useChartStore = defineStore('chart', () => {
 
     const chartData = ref<TypeData>(
         [
@@ -43,27 +42,26 @@ export const useChartStore: any = defineStore('chart', () => {
         ]
     );
 
-
-    
     const yKeys = ref<TypeKey[]>(['y1', 'y (approximated)', 'y (difference)']);
 
     const xKey = ref<TypeKey>('x');
-    const newData = ref<boolean>(true);
-    const pointChart2D = ref<boolean>(false);
-    function switchPoint(): void {
+    const newData = ref(true);
+    const pointChart2D = ref(false);
+
+    function switchPoint() {
         pointChart2D.value = !pointChart2D.value;
     }
 
     const xKeys = ref<TypeKey[]>(['x']);
-    const newData3D = ref<boolean>(true);
-    const pointChart3D = ref<boolean>(true);
-    const grid3D = ref<boolean>(false);
-    function switchPoint3D(): void {
+    const newData3D = ref(true);
+    const pointChart3D = ref(true);
+    const grid3D = ref(false);
+    function switchPoint3D() {
         pointChart3D.value = !pointChart3D.value;
     }
 
 
-    function setChartData(payload: TypePayload): void {
+    function setChartData(payload: TypePayload) {
         chartData.value = payload.chartData;
         xKey.value = payload.xKey;
         xKeys.value = payload.xKeys;
@@ -72,7 +70,8 @@ export const useChartStore: any = defineStore('chart', () => {
         newData3D.value = true;
     }
 
-    return { chartData, 
+    return { 
+        chartData, 
         xKey, 
         xKeys, 
         yKeys, 

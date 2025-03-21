@@ -116,7 +116,7 @@
                                 <template v-slot:activator="{ props }">
                                     <v-btn color="success" variant="flat"
                                         :class="['ml-2', 'action-main-btn', { 'file-loaded': file }]"
-                                        @click="$refs.fileInput.click()" v-bind="props">
+                                        @click="fileInput.click()" v-bind="props">
                                         <v-icon left class="mr-1">mdi-file-upload</v-icon>
                                         <span>ЗАГРУЗИТЬ</span>
                                         <v-icon v-if="file" class="ml-1" size="small">mdi-check-circle</v-icon>
@@ -252,8 +252,8 @@
                                 <span>Расч. метрики</span>
                             </v-btn>
 
-                            <v-btn :disabled="metricsDisabled" color="blue-grey-lighten-1" size="x-small"
-                                variant="text" class="text-white" @click="metricsMenuRef.switchMenu()">
+                            <v-btn :disabled="metricsDisabled" color="blue-grey-lighten-1" size="x-small" variant="text"
+                                class="text-white" @click="metricsMenuRef.switchMenu()">
                                 <v-icon size="small">mdi-chart-box</v-icon>
                                 <metricsMenu :metrics="metrics" ref="metricsMenuRef" />
                             </v-btn>
@@ -314,7 +314,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { calculateR2, calculateAIC, calculateMSE, calculatePredicted } from '@/app_lib/metrics';
 
 import { read, utils } from 'xlsx';
@@ -325,6 +325,7 @@ import metricsMenu from './metricsMenu.vue';
 import functionMenu from './functionMenu.vue';
 import periodicSeriesMenu from './periodicSeriesMenu.vue'
 import icons from '@/assets/icons';
+import { TypeData } from '@/store/chart';
 
 import { ref, reactive, toRefs } from 'vue';
 import { computed, onMounted } from 'vue';
@@ -339,13 +340,14 @@ import { useSettingsStore } from '@/store/settings'
 const settingsStore = useSettingsStore();
 
 
-const predictMenuRef = ref(null);
-const metricsMenuRef = ref(null);
-const functionMenuRef = ref(null);
+const predictMenuRef = ref<typeof predictMenu>(null);
+const metricsMenuRef = ref<typeof metricsMenu>(null);
+const functionMenuRef = ref<typeof functionMenu>(null);
+const periodicSeriesMenuRef = ref<typeof periodicSeriesMenu>(null);
+const fileInput = ref<HTMLInputElement>(null);
 
 
-const periodicSeriesMenuRef = ref(null);
-function addPeriodicSeriesBases({ ...rest } = {}) {
+function addPeriodicSeriesBases({ ...rest }: Record<string, any> = {}) {
 
     const options = {
         ...rest,
@@ -356,11 +358,14 @@ function addPeriodicSeriesBases({ ...rest } = {}) {
     getPeriodicSeriesBases(options);
 }
 
+export type ICustomFunction = {
+    id: number;
+    val: string;
+    label: string;
+};
 
-
-
-let userFunctions = ref([]);
-function updateFunctionList(userFunction) {
+let userFunctions = ref<ICustomFunction[]>([]);
+function updateFunctionList(userFunction?: ICustomFunction) {
 
     const name = userFunction?.val.split('#')[0];
     if (name) userFunctions.value = userFunctions
@@ -383,7 +388,7 @@ function updateFunctionList(userFunction) {
             ];
     }
 }
-function deleteUF(id) {
+function deleteUF(id: number) {
     userFunctions.value = userFunctions.value.filter(func => func.id != id);
     localStorage.setItem('userFunctions', JSON.stringify(userFunctions.value));
     funcSettings.basisFunctions = funcSettings.basisFunctions.filter(func => func.id != id);
@@ -407,20 +412,49 @@ const numParams = reactive({
 });
 
 
+export interface IBasis {
+    weight: number;
+    functions: string[];
+    variables: string[];
+    powers: number[];
+    outputFunc?: string;
+    outputDegree?: number;
+    impact?: number
+}
 
-const customSettings = reactive({
+type TypeCustomSettings = {
+    selectedVariable: string,
+    customBasis: IBasis
+}
+
+const customSettings: TypeCustomSettings = reactive({
     selectedVariable: '',
     customBasis: {
         functions: [],
         powers: [],
         variables: [],
-        weight: '',
+        weight: 1,
+        outputDegree: null,
+        outputFunc: null
     },
 });
 
 
+type TypeFunctionsDef = {
+    id: number,
+    val: string,
+    label: string
+}
 
-const funcSettings = reactive({
+type TypeFuncSettings = {
+    basisFunctionsDef: TypeFunctionsDef[],
+    basisFunctions: TypeFunctionsDef[],
+    selectedFunction: string,
+    selectedOutputFunction: string,
+    outputDegree: number
+}
+
+const funcSettings: TypeFuncSettings = reactive({
     basisFunctionsDef: [
         { id: 1, val: '', label: 'Идентичность' },
         { id: 2, val: 'sqrt', label: 'Квадратный корень' },
@@ -458,8 +492,9 @@ const funcSettings = reactive({
     selectedOutputFunction: '',
     outputDegree: 1
 });
+
 funcSettings.basisFunctions = [...funcSettings.basisFunctionsDef];
-function getFuncLable(item) {
+function getFuncLable(item: TypeFunctionsDef) {
     let label = item.val.split('#')[0];
     if (item.label) label += ` (${item.label})`
     return label;
@@ -471,9 +506,10 @@ function addVariable() {
 
     customBasis.value.functions.push(funcSettings.selectedFunction);
     customBasis.value.powers.push(Number(numParams.degree));
+    
     customBasis.value.variables.push(customSettings.selectedVariable);
     customBasis.value.weight = 1;
-    customBasis.value.outputDegree = funcSettings.outputDegree;
+    customBasis.value.outputDegree = Number(funcSettings.outputDegree);
 };
 function addCustomBasis() {
     allBases.value[getBasisName(customSettings.customBasis)]
@@ -494,6 +530,7 @@ function clearCustomBasis() {
         powers: [],
         variables: [],
         weight: 1,
+        outputDegree: null
     };
 };
 function addOutputFunc() {
@@ -501,7 +538,6 @@ function addOutputFunc() {
         customSettings.customBasis.outputFunc = funcSettings.selectedOutputFunction;
     } else if (customSettings.customBasis.outputFunc)
         delete customSettings.customBasis.outputFunc;
-
 };
 
 
@@ -513,7 +549,9 @@ function addExtendedBasis() {
     }
 
 };
-function getExtendedBasisName(basis) {
+
+
+function getExtendedBasisName(basis: string) {
 
     const funcs = basis.split('/');
     const rows1 = funcs[0].split('^');
@@ -522,10 +560,9 @@ function getExtendedBasisName(basis) {
     const degree1 = rows1.length > 1 ? `${rows1[1]}` : '';
     const func1 = rows1[0].substring(1).split('#')[0];
 
-
     let name = `x`;
     if (func1) name = `${func1}(x)`;
-    if (degree1 && degree1 != 1) name = `${name}^${degree1}`;
+    if (degree1 && degree1 !== '1') name = `${name}^${degree1}`;
 
 
     if (funcs[1]) {
@@ -535,7 +572,7 @@ function getExtendedBasisName(basis) {
             name = `${func2}(${name})`
         }
 
-        if (rows2[1] && rows2[1] != 1) {
+        if (rows2[1] && rows2[1] !== '1') {
             if (!rows2[0]) name = `(${name})`;
             name = `${name}^${rows2[1]}`
         }
@@ -547,7 +584,7 @@ function getExtendedBasisName(basis) {
 };
 
 onMounted(() => {
-    const extendedBasesFromLS = JSON.parse(localStorage.getItem('extendedBases'));
+    const extendedBasesFromLS: string[] = JSON.parse(localStorage.getItem('extendedBases'));
     if (extendedBasesFromLS && extendedBasesFromLS.length)
         extendedBases.value = new Set(extendedBasesFromLS);
 
@@ -559,14 +596,14 @@ function rememberExtendedBases() {
 }
 
 
-
 const dataInfo = ref({
-    data: [],
-    fields: [],
+    data: [] as TypeData,
+    fields: [] as string[]
 });
 
 
-const allBases = ref({});
+
+const allBases = ref<Record<string, IBasis>>({});
 
 const minImpact = ref(0);
 const variableImpact = ref('all');
@@ -622,14 +659,14 @@ function filterBases() {
     const fields = dataInfo.value.fields.slice(1);
     for (let key of Object.keys(allBases.value)) {
         for (let variable of allBases.value[key].variables) {
-            if (!fields.includes(variable)) {
+            if (!fields.includes(variable.toString())) {
                 delete allBases.value[key];
                 break;
             }
         }
     }
 };
-function getBasisName(basis) {
+function getBasisName(basis: IBasis): string {
     return getBasisKey(basis);
 };
 async function copyBasesRepresentation() {
@@ -654,28 +691,34 @@ function clearBases() {
     result.value = null;
 }
 
+interface IResult {
+    allBases: IBasis[];
+    success: boolean;
+    weights: number[]
+}
 
+const result = ref<IResult>(null);
 
-const result = ref(null);
 const successColor = computed(() => {
     if (result.value == null) return '';
     return result.value.success ? '#00ff0010' : '#ff000010';
 });
-const metrics = ref({
-    R2: '',
-    AIC: '',
-    MSE: '',
+
+const metrics = ref<Record<string, number>>({
+    R2: null,
+    AIC: null,
+    MSE: null,
 });
 
 const metricsDisabled = computed(() => {
-    return Object.values(metrics.value).every(val => !isFinite(parseFloat(val)));
+    return Object.values(metrics.value).every(val => !isFinite(val));
 });
 
 async function calculateMetrics() {
     console.time('metricsTiem')
     const data = dataInfo.value.data;
 
-    const predicted = await calculatePredicted(data, allBases.value);
+    const predicted: number[] = await calculatePredicted(data, allBases.value);
     metrics.value = {
         R2: calculateR2(data, allBases.value, result.value.success, predicted),
         AIC: calculateAIC(data, allBases.value, result.value.success, predicted),
@@ -686,9 +729,8 @@ async function calculateMetrics() {
 }
 
 
-
-
 const aproximationLoading = ref(false);
+
 async function makeApproximation() {
     try {
         aproximationLoading.value = true;
@@ -699,10 +741,10 @@ async function makeApproximation() {
             L1: settingsStore.numParams.L1,
             L2: settingsStore.numParams.L2,
             normSmallValues: settingsStore.numParams.normSmallValues,
-            multiplicationFactor: settingsStore.numParams.multiplicationFactor
+            multiplicationFactor: settingsStore.numParams.multiplicationFactor,
         }
 
-        result.value = await getApproximation(options);
+        result.value = await getApproximation(options) as IResult;
 
         console.log('result.value', result.value)
 
@@ -722,7 +764,7 @@ async function setChartData() {
 
         console.log('fields', fields, xField)
 
-        const approximated = await calculatePredicted(data, allBases.value, false);
+        const approximated: number[] = await calculatePredicted(data, allBases.value, false);
         const approximatedKey = `${yField} (approximated)`;
         const diffKey = `${yField} (difference)`;
 
@@ -752,12 +794,12 @@ async function setChartData() {
 
 
 
-const file = ref(null);
+const file = ref<File>(null);
 async function fileUpload(event) {
     console.time('loadData')
-    const docFile = event.target.files[0];
+    const docFile: File = event.target.files[0];
     if (docFile && docFile.name.endsWith('.xlsx')) {
-        
+
         const readData = await readExcelFile(docFile);
         if (!readData.length) {
             appStore.showEvent({
@@ -782,7 +824,7 @@ async function fileUpload(event) {
     event.target.value = '';
     console.timeEnd('loadData')
 };
-async function readExcelFile(file) {
+async function readExcelFile(file): Promise<TypeData> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -791,7 +833,7 @@ async function readExcelFile(file) {
                 const workbook = read(data, { type: 'array' });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = utils.sheet_to_json(worksheet);
+                const jsonData: TypeData = utils.sheet_to_json(worksheet);
 
                 resolve(jsonData);
             } catch (error) {
@@ -825,7 +867,6 @@ async function readExcelFile(file) {
     border-bottom: 1px solid #dde3ec;
     height: 56px;
     flex-shrink: 0;
-    /* Предотвратит сжатие при нехватке места */
 }
 
 .app-title {
@@ -840,7 +881,6 @@ async function readExcelFile(file) {
 
 .file-loaded {
     background-color: rgba(56, 142, 60, 0.8) !important;
-    /* Темно-зеленый для подтверждения загрузки */
 }
 
 .app-content {
@@ -851,7 +891,6 @@ async function readExcelFile(file) {
     height: calc(100% - 56px);
 }
 
-/* Панель конфигурации вверху */
 .configuration-panel {
     background-color: white;
     border-radius: 8px;
@@ -862,7 +901,6 @@ async function readExcelFile(file) {
     display: flex;
     gap: 12px;
     flex-shrink: 0;
-    /* Предотвратит сжатие при нехватке места */
 }
 
 .config-section {
@@ -870,7 +908,6 @@ async function readExcelFile(file) {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    /* Позволяет flex-контейнеру сжиматься */
 }
 
 .action-section {
@@ -897,24 +934,20 @@ async function readExcelFile(file) {
 .config-controls {
     display: flex;
     gap: 8px;
-    /* flex-grow: 1; */
 }
 
-/* Основные панели */
 .panels-container {
     display: flex;
     flex-direction: column;
     flex: 1;
     overflow: hidden;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .panels-row {
     display: flex;
     height: 40%;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .panel {
@@ -928,7 +961,6 @@ async function readExcelFile(file) {
     margin: 0 8px 8px 8px;
     flex: 1;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .adding-basis {
@@ -942,7 +974,6 @@ async function readExcelFile(file) {
 .bases-panel {
     flex: 1;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
     display: flex;
     flex-direction: column;
 }
@@ -957,7 +988,6 @@ async function readExcelFile(file) {
     font-size: 15px;
     color: #1e3a5f;
     flex-shrink: 0;
-    /* Предотвратит сжатие при нехватке места */
 }
 
 .panel-counter {
@@ -976,19 +1006,16 @@ async function readExcelFile(file) {
 .panel-actions {
     display: flex;
     margin-left: auto;
-    /* Убедимся, что действия всегда справа */
 }
 
 .panel-content {
     padding: 0.75rem;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Предотвращает горизонтальный скролл */
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .bases-content {
@@ -1041,10 +1068,8 @@ async function readExcelFile(file) {
     gap: 0.5rem;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Предотвращает горизонтальный скролл */
     height: 100%;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .basis-item {
@@ -1057,15 +1082,12 @@ async function readExcelFile(file) {
     border-radius: 6px;
     transition: all 0.2s;
     width: 100%;
-    /* Фиксированная ширина */
     box-sizing: border-box;
-    /* Учитывает padding в размере */
 }
 
 .basis-item:hover {
     background-color: #e6f1fa;
     transform: translateX(2px);
-    /* Сдвиг вместо роста, который может вызвать скролл */
 }
 
 .basis-formula {
@@ -1074,9 +1096,7 @@ async function readExcelFile(file) {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1;
-    /* Занимает доступное пространство */
     margin-right: 8px;
-    /* Отступ от кнопки удаления */
 }
 
 .basis-preview {
@@ -1089,10 +1109,8 @@ async function readExcelFile(file) {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Предотвращает горизонтальный скролл */
     word-break: break-word;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .basis-list-container {
@@ -1101,7 +1119,6 @@ async function readExcelFile(file) {
     gap: 0.5rem;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Предотвращает горизонтальный скролл */
     flex: 1;
     padding: 0.5rem;
     background-color: #f8f9fa;
@@ -1109,7 +1126,6 @@ async function readExcelFile(file) {
     border: 1px solid #e0e6ed;
     margin-bottom: 0.75rem;
     min-height: 0;
-    /* Важно для работы flex и overflow в Firefox */
 }
 
 .success-highlight {
@@ -1121,7 +1137,6 @@ async function readExcelFile(file) {
     display: flex;
     margin-top: auto;
     flex-shrink: 0;
-    /* Предотвратит сжатие при нехватке места */
 }
 
 .no-data-message {

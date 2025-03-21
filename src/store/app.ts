@@ -9,20 +9,20 @@ interface INotify {
 }
 
 
-export const useAppStore: any = defineStore('app', () => {
-    const notify = reactive<INotify>({
+export const useAppStore = defineStore('app', () => {
+    const notify: INotify = reactive({
         text: '',
         color: '',
         snackbar: false
     });
 
-    function showEvent(payload: INotify): void {
+    function showEvent(payload: INotify) {
         notify.text = payload.text;
         notify.color = payload.color ? payload.color : 'error';
         notify.snackbar = true;
     };
 
-    function setSnackbar(value): void {
+    function setSnackbar(value) {
         notify.snackbar = value;
     };
 

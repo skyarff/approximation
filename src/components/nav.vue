@@ -24,7 +24,6 @@
     if (matchingRoute) {
       path.value = matchingRoute.path;
     }
-    // Только если мы находимся на корневом маршруте, выполняем перенаправление
     else if (currentPath === '/') {
       router.push(routes[0].path);
     }
@@ -40,9 +39,9 @@
     background: linear-gradient(to right, #f5f7fa, #e1e5ea);
     border-bottom: 1px solid #dde3ec;
     height: 48px;
-    flex-shrink: 0; /* Предотвращает сжатие навигации */
+    flex-shrink: 0;
     width: 100%;
-    overflow: hidden; /* Предотвращает любые скроллы */
+    overflow: hidden;
   }
   
   .nav-tab {

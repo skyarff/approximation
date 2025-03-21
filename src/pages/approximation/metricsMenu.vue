@@ -60,35 +60,30 @@ import { ref } from 'vue';
 import { PropType } from 'vue';
 
 import { useAppStore } from '@/store/app';
-const appStore: any = useAppStore();
-
-
-type ObjectStrings = Record<string, string>;
-type ObjectNumbers = Record<string, number>;
+const appStore = useAppStore();
 
 
 const props = defineProps({
   metrics: {
-    type: Object as PropType<ObjectNumbers>,
+    type: Object as PropType<Record<string, number>>,
     default: () => ({})
   }
 });
 
 
-let menu = ref<boolean>(false);
+let menu = ref(false);
 
-function switchMenu(): void {
+function switchMenu() {
     menu.value = !menu.value;
 }
 
-const metricNames: ObjectStrings = {
+const metricNames = {
     'R2': 'R² (коэффициент детерминации)',
     'AIC': 'AIC (информационный критерий Акаике)',
     'MSE': 'MSE (среднеквадратичная ошибка)'
 };
 
-
-const metricDescriptions: ObjectStrings = {
+const metricDescriptions = {
     'R2': 'Оценивает качество подгонки модели к данным',
     'AIC': 'Оценивает качество модели с учетом сложности',
     'MSE': 'Измеряет среднюю квадратичную ошибку модели'
@@ -96,8 +91,7 @@ const metricDescriptions: ObjectStrings = {
 
 
 
-
-function getMetricIcon(key: string, value: number): string {
+function getMetricIcon(key: string, value: number) {
     if (key === 'R2' && value > 0.8) return 'mdi-check-circle';
     if (key === 'R2' && value > 0.5) return 'mdi-check';
     if (key === 'R2') return 'mdi-alert-circle';
@@ -109,7 +103,7 @@ function getMetricIcon(key: string, value: number): string {
     return 'mdi-information';
 }
 
-function getMetricColor(key: string, value: number): string {
+function getMetricColor(key: string, value: number) {
     if (key === 'R2' && value > 0.8) return 'success';
     if (key === 'R2' && value > 0.5) return 'info';
     if (key === 'R2') return 'warning';
@@ -121,8 +115,8 @@ function getMetricColor(key: string, value: number): string {
     return 'grey';
 }
 
-function copyMetricsToClipboard(): void {
-    const text: string = Object.entries(props.metrics)
+function copyMetricsToClipboard() {
+    const text = Object.entries(props.metrics)
         .map(([key, value]) => `${metricNames[key]}: ${value}`)
         .join('\n');
 

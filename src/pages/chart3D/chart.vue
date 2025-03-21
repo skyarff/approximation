@@ -11,22 +11,22 @@ import { useChartStore } from '@/store/chart';
 import { ref, onBeforeUnmount, nextTick, onActivated } from 'vue';
 import { TypeData, TypeKey } from '@/store/chart';
 
-const chartDiv = ref(null);
+const chartDiv = ref<HTMLDivElement>(null);
 const chartStore = useChartStore();
 let chartData: TypeData = [];
 
 
 
-let scene: any, camera: any, renderer: any, controls: any;
-let group: any;
-let gridXY: any, gridXZ: any, gridYZ: any;
+let scene, camera, renderer, controls;
+let group;
+let gridXY, gridXZ, gridYZ;
 
-let valPointsObject: any, vallAppPointsObject: any;
-let primaryLines: any, approximatedLines: any;
+let valPointsObject, vallAppPointsObject;
+let primaryLines, approximatedLines;
 
 let handleKeyDown: (e: { key: string }) => void;
 
-const toggleGrids = (): void => {
+const toggleGrids = () => {
     gridXY.visible = chartStore.grid3D;
     gridXZ.visible = chartStore.grid3D;
     gridYZ.visible = chartStore.grid3D;
@@ -34,11 +34,11 @@ const toggleGrids = (): void => {
     if (renderer && scene && camera) renderer.render(scene, camera);
 };
 
-const toggleConnectPoints = (): void => {
+const toggleConnectPoints = () => {
 
     if (chartStore.pointChart3D) {
         if (valPointsObject) {
-            const positions: any = valPointsObject.geometry.attributes.position.array;
+            const positions = valPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
             lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
@@ -52,7 +52,7 @@ const toggleConnectPoints = (): void => {
             group.add(primaryLines);
         }
         if (vallAppPointsObject) {
-            const positions: any = vallAppPointsObject.geometry.attributes.position.array;
+            const positions = vallAppPointsObject.geometry.attributes.position.array;
             const lineGeometry = new THREE.BufferGeometry();
             lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
@@ -82,8 +82,8 @@ const toggleConnectPoints = (): void => {
 };
 
 
-let switcher: number = 0;
-const toggleDataVisible = (): void => {
+let switcher = 0;
+const toggleDataVisible = () => {
     if (valPointsObject) {
         if (switcher == 2) {
             valPointsObject.visible = true;
@@ -111,22 +111,20 @@ const toggleDataVisible = (): void => {
 };
 
 
-
 const createPointsFromData = (x1Val: TypeKey, x2Val: TypeKey, sortVal: TypeKey): Record<string, number> => {
 
     if (valPointsObject) group.remove(valPointsObject);
     if (vallAppPointsObject) group.remove(vallAppPointsObject);
 
-
     const keys: TypeKey[] = Object.keys(chartData[0]);
-    let xKeys: TypeKey[] = keys.slice(1, keys.length - 2).slice(0, 2);
+    let xKeys = keys.slice(1, keys.length - 2).slice(0, 2);
 
     if (x2Val) xKeys[0] = x2Val;
     if (x1Val) xKeys[1] = x1Val;
 
 
-    const x2Active: boolean = Boolean(x2Val && x2Val != '-' || !x2Val && xKeys[0]);
-    const x1Active: boolean = Boolean(x1Val && x1Val != '-' || !x1Val && xKeys[1]);
+    const x2Active = Boolean(x2Val && x2Val != '-' || !x2Val && xKeys[0]);
+    const x1Active = Boolean(x1Val && x1Val != '-' || !x1Val && xKeys[1]);
 
 
     if (sortVal && sortVal != '-')
@@ -138,19 +136,19 @@ const createPointsFromData = (x1Val: TypeKey, x2Val: TypeKey, sortVal: TypeKey):
     let tempArr: Float32Array<ArrayBuffer> = null;
 
     tempArr = new Float32Array(chartData.length * 3);
-    for (let i: number = 0; i < chartData.length; i++) {
+    for (let i = 0; i < chartData.length; i++) {
         tempArr[i * 3] = x1Active ? chartData[i][xKeys[1]] : 0;
         tempArr[i * 3 + 1] = x2Active ? chartData[i][xKeys[0]] : 0;
     }
 
     primaryData = structuredClone(tempArr);
-    for (let i: number = 0; i < chartData.length; i++) {
+    for (let i = 0; i < chartData.length; i++) {
         primaryData[i * 3 + 2] = chartData[i][chartStore.yKeys[0]];
     }
 
 
     approximatedData = structuredClone(tempArr);
-    for (let i: number = 0; i < chartData.length; i++) 
+    for (let i = 0; i < chartData.length; i++) 
         approximatedData[i * 3 + 2] = chartData[i][chartStore.yKeys[1]];
 
 
@@ -158,11 +156,11 @@ const createPointsFromData = (x1Val: TypeKey, x2Val: TypeKey, sortVal: TypeKey):
         renderer.render(scene, camera);
 
 
-    let min: number = Number.MAX_VALUE;
-    let max: number = Number.MIN_VALUE;
+    let min = Number.MAX_VALUE;
+    let max = Number.MIN_VALUE;
 
 
-    for (let i: number = 0; i < primaryData?.length; i++) {
+    for (let i = 0; i < primaryData?.length; i++) {
         if (primaryData[i] < min) min = primaryData[i];
         if (primaryData[i] > max) max = primaryData[i];
 
@@ -170,9 +168,9 @@ const createPointsFromData = (x1Val: TypeKey, x2Val: TypeKey, sortVal: TypeKey):
         if (approximatedData[i] > max) max = approximatedData[i];
     }
 
-    const longSight: number = (Math.abs(max) + Math.abs(min)) * 2.2;
-    const absMax: number = Math.max(Math.abs(max), Math.abs(min));
-    const panSpeed: number = 5 * absMax / 370;
+    const longSight = (Math.abs(max) + Math.abs(min)) * 2.2;
+    const absMax = Math.max(Math.abs(max), Math.abs(min));
+    const panSpeed = 5 * absMax / 370;
 
     const primaryDataMaterial = new THREE.PointsMaterial({
         color: '#0000FF',
@@ -202,7 +200,7 @@ const createPointsFromData = (x1Val: TypeKey, x2Val: TypeKey, sortVal: TypeKey):
 };
 
 
-const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?: TypeKey, x2Val?: TypeKey, sortVal?: TypeKey): void => {
+const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?: TypeKey, x2Val?: TypeKey, sortVal?: TypeKey) => {
     if (!chartDiv.value) return;
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -210,18 +208,17 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
     group = new THREE.Group();
     scene.add(group);
 
-    const width: number = chartDiv.value.clientWidth;
-    const height: number = chartDiv.value.clientHeight;
+    const width = chartDiv.value.clientWidth;
+    const height = chartDiv.value.clientHeight;
 
-    let { min, max, longSight, absMax, panSpeed }: Record<string, number> = createPointsFromData(x1Val, x2Val, sortVal);
+    let { min, max, longSight, absMax, panSpeed } = createPointsFromData(x1Val, x2Val, sortVal);
 
 
-    let axisTickStep: number = Math.round(longSight / 60);
+    let axisTickStep = Math.round(longSight / 60);
     axisTickStep = Math.max(Math.ceil(axisTickStep / 5) * 5, 1);
 
-
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, longSight);
-
+    console.log('longSight', longSight)
 
     camera.position.set(0.4 * absMax, 0.3 * absMax, 0.3 * absMax);
     camera.up.set(0, 0, 1);
@@ -265,7 +262,6 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
             case 'ArrowDown':
                 panVector.set(0, -panSpeed, 0);
                 break;
-
 
             case 'a':
             case 'A':
@@ -314,31 +310,36 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
         controls.update();
         renderer.render(scene, camera);
     };
+
     window.addEventListener('keydown', handleKeyDown);
 
     controls.addEventListener('change', () => {
         renderer.render(scene, camera);
     });
 
-    let letterSize: number = longSight / 50;
-    let tickSize: number = longSight / 1000;
-    let verticalOffset: number = -longSight / 200;
-    let labelOffset: number = longSight / 400;
-    let labelSize: number = longSight / 20;
+    let letterSize = longSight / 50;
+    let tickSize = longSight / 1000;
+    let verticalOffset = -longSight / 200;
+    let labelOffset = longSight / 400;
+    let labelSize = longSight / 20;
     if (gridStep) {
         letterSize *= gridStep / axisTickStep;
         tickSize *= gridStep / axisTickStep;
         verticalOffset *= gridStep / axisTickStep;
         labelOffset *= gridStep / axisTickStep;
         labelSize *= gridStep / axisTickStep;
-        longSight *= gridStep / axisTickStep;
+
+        longSight *= Number(gridStep) / axisTickStep;
+        camera.far = longSight;
+        camera.updateProjectionMatrix();
+
         axisTickStep = Number(gridStep);
     }
 
-    
+
     max = max > 0 ? max : 0;
-    const posAxis_: number = Number(posAxis) ? posAxis : max;
-    function createAxisWithTicks(direction: TypeKey, color: string, length: number, sign: number = 1): THREE.Group<THREE.Object3DEventMap> {
+    const posAxis_ = Number(posAxis) ? posAxis : max;
+    function createAxisWithTicks(direction: TypeKey, color: string, length: number, sign: number = 1) {
         const axisGroup = new THREE.Group();
 
         const lineGeometry = new THREE.BufferGeometry();
@@ -361,7 +362,7 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
 
         const tickMaterial = new THREE.LineBasicMaterial({ color: color });
 
-        for (let i: number = axisTickStep; i < length; i += axisTickStep) {
+        for (let i = axisTickStep; i < length; i += axisTickStep) {
 
             const tickGeometry = new THREE.BufferGeometry();
             const tickPoints: THREE.Vector3[] = [];
@@ -404,7 +405,7 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
 
 
     min = min < 0 ? min : 0;
-    const negAxis_: number = Number(negAxis) ? negAxis : -min;
+    const negAxis_ = Number(negAxis) ? negAxis : -min;
     const negXAxis = createAxisWithTicks('x', '#FF0000', negAxis_, -1);
     const negYAxis = createAxisWithTicks('y', '#00FF00', negAxis_, -1);
     const negZAxis = createAxisWithTicks('z', '#0000FF', negAxis_, -1);
@@ -414,12 +415,12 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
     group.add(negZAxis);
 
 
-    function createTextSprite(text: string, color: string, position: THREE.Vector3, size: number = 1.0): THREE.Sprite<THREE.Object3DEventMap> {
-        const canvas: HTMLCanvasElement = document.createElement('canvas');
+    function createTextSprite(text: string, color: string, position: THREE.Vector3, size: number = 1.0) {
+        const canvas = document.createElement('canvas');
         canvas.width = 512;
         canvas.height = 512;
 
-        const context: CanvasRenderingContext2D = canvas.getContext('2d');
+        const context = canvas.getContext('2d');
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -430,17 +431,17 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
 
         context.fillText(text, 256, 256);
 
-        const texture: THREE.CanvasTexture = new THREE.CanvasTexture(canvas);
+        const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearMipMapLinearFilter;
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-        const spriteMaterial: THREE.SpriteMaterial = new THREE.SpriteMaterial({
+        const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
             depthWrite: false
         });
 
-        const sprite: THREE.Sprite<THREE.Object3DEventMap> = new THREE.Sprite(spriteMaterial);
+        const sprite = new THREE.Sprite(spriteMaterial);
         sprite.position.copy(position);
         sprite.scale.set(size, size, size);
 
@@ -458,7 +459,7 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
     group.add(zLabel);
 
 
-    const gridLength: number = Math.max(posAxis_, negAxis_) * 2;
+    const gridLength = Math.max(posAxis_, negAxis_) * 2;
     gridXY = new THREE.GridHelper(gridLength, gridLength);
     gridXY.material.opacity = 0.055;
     gridXY.material.transparent = true;
@@ -486,7 +487,7 @@ const initThree = (posAxis?: number, negAxis?: number, gridStep?: number, x1Val?
         toggleDataVisible();
     });
 
-    let menuTemp: boolean = true;
+    let menuTemp = true;
     renderer.domElement.addEventListener('contextmenu', () => {
         if (menuTemp) {
             chartStore.grid3D = !chartStore.grid3D;
@@ -555,8 +556,8 @@ function disposeThree() {
 }
 
 
-const chartDivOn = ref<boolean>(true);
-async function disposeAndCall(func: (...args: any) => any, ...args: any[]): Promise<void> {
+const chartDivOn = ref(true);
+async function disposeAndCall(func: (...args: any[]) => any, ...args: any[]) {
 
     disposeThree();
 
@@ -568,7 +569,7 @@ async function disposeAndCall(func: (...args: any) => any, ...args: any[]): Prom
     func(...args);
 };
 
-function callChart(...args: any[]): void {
+function callChart(...args: any[]) {
     disposeAndCall(
         initThree,
         ...args

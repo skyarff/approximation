@@ -8,7 +8,7 @@ import { loadFonts } from './plugins/webfontloader';
 
 loadFonts();
 
-const pinia: any = createPinia();
+const pinia = createPinia();
 
 createApp(App)
   .use(router)

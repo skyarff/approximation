@@ -96,26 +96,13 @@
 <script setup lang="ts">
 import { calculatePredicted } from '@/app_lib/metrics';
 import { ref, reactive } from 'vue';
+import { IBasis } from './index.vue'
+import { TypeData } from '@/store/chart';
 
 
-type TypeData = Record<string | number, number>[];
 type TypeDataInfo = {
     data: TypeData;
     fields: string[];
-}
-
-type TypePredictInfo = {
-    predictData: TypeData;
-    predictAns: string
-}
-
-interface IBasis {
-    weight: number;
-    functions: string[];
-    variables: number[];
-    powers: number[];
-    outputFunc: string;
-    outputDegree: number;
 }
 
 
@@ -125,22 +112,26 @@ const props = defineProps<{
 }>();
 
 
-let menu = ref<boolean>(false);
-let isCalculating = ref<boolean>(false);
+let menu = ref(false);
+let isCalculating = ref(false);
 
-function switchMenu(): void {
+function switchMenu() {
     menu.value = !menu.value;
 };
 
+type TypePredictInfo = {
+    predictData: TypeData;
+    predictAns: string
+}
 
 const predictInfo = reactive<TypePredictInfo>({
     predictData: [{}],
     predictAns: ''
 });
 
-const form1 = ref<HTMLFormElement | null>(null);
+const form1 = ref<HTMLFormElement>(null);
 
-function formatResult(result: string): string {
+function formatResult(result: string) {
     const numValue = parseFloat(result);
     if (!isNaN(numValue)) {
         return new Intl.NumberFormat('ru-RU', {
@@ -151,20 +142,20 @@ function formatResult(result: string): string {
     return 'Ошибка расчета';
 }
 
-function resetForm(): void {
+function resetForm() {
     predictInfo.predictData = [{}];
     predictInfo.predictAns = '';
     if (form1.value) form1.value.reset();
 }
 
-async function predict(): Promise<void> {
+async function predict() {
     const isValid: boolean = await form1.value.validate();
     if (isValid) {
         isCalculating.value = true;
         try {
             const result: number[] = (await calculatePredicted([predictInfo.predictData[0]], props.allBases, false));
             if (result && result.length > 0) {
-                const value: number = result[0];
+                const value = result[0];
                 if (isNaN(value) || !isFinite(value)) {
                     predictInfo.predictAns = 'NaN';
                 } else {
@@ -186,7 +177,7 @@ async function predict(): Promise<void> {
 
 defineExpose({
     switchMenu,
-    predict
+    predict,
 });
 </script>
 

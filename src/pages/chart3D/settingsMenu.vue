@@ -186,7 +186,7 @@ import { ref } from 'vue';
 
 import { useChartStore } from '@/store/chart';
 import { TypeSettings } from './index.vue'
-const chartStore: any = useChartStore();
+const chartStore = useChartStore();
 
 const emit = defineEmits<{
     (e: 'applySettings');
@@ -198,11 +198,11 @@ const props = defineProps<{
 }>();
 
 
-
 let settingsClone = ref<TypeSettings>(null);
 
-let menu = ref<boolean>(false);
-function switchMenu(): void {
+let menu = ref(false);
+
+function switchMenu() {
     menu.value = !menu.value;
     if (menu.value) {
         settingsClone.value = ({
@@ -222,14 +222,14 @@ function switchMenu(): void {
 
 
 
-function apply(): void {
+function apply() {
     for (let key of Object.keys(settingsClone.value))
         props.settings[key] = settingsClone.value[key];
 
     emit('applySettings');
 };
 
-function resetRange(): void {
+function resetRange() {
     props.settings.negAxis = null;
     props.settings.posAxis = null;
     settingsClone.value.negAxis = null;
@@ -395,7 +395,6 @@ defineExpose({
     min-width: 100px;
 }
 
-/* Additional styles for better visual cues */
 .v-text-field:focus-within {
     box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
 }

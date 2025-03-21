@@ -77,27 +77,23 @@
 import { ref } from 'vue';
 
 
-type TypeObjectNumbers = Record<string, number>;
-
 const emit = defineEmits<{
-    (e: 'get-periodic-series', options: TypeObjectNumbers): void
+    (e: 'get-periodic-series', options: Record<string, number>): void
 }>();
 
-
 const props: any = defineProps<{
-    file: | File | null;
+    file: File;
 }>();
 
 const menu = ref(false);
 
-const sinNum = ref<number>(0);
-const cosNum = ref<number>(0);
-const step = ref<number>(1);
+const sinNum = ref(0);
+const cosNum = ref(0);
+const step = ref(1);
 
 
-
-function addSeries():void {
-    const options: TypeObjectNumbers = {
+function addSeries() {
+    const options = {
         sinNum: sinNum.value ? sinNum.value : 0,
         cosNum: cosNum.value ? cosNum.value : 0,
         step: Math.abs(step.value) < 0.001 ? 0.001 * Math.sign(step.value) : step.value
@@ -105,8 +101,6 @@ function addSeries():void {
 
     emit('get-periodic-series', options)
 }
-
-
 
 </script>
 

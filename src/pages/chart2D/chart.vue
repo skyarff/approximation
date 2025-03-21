@@ -11,35 +11,31 @@ import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import { useChartStore, TypeData, TypeKey } from '@/store/chart';
-import { ref, computed, nextTick, ComputedRef } from 'vue'
+import { ref, computed, nextTick, ComputedRef, Ref } from 'vue'
 import { onActivated, onBeforeUnmount } from 'vue'
 
+
+
+const chartStore = useChartStore();
+const chartDiv = ref<HTMLDivElement>(null);
+
+let chartData: TypeData = [];
+
+type TypeSeriesVisibility = {
+    [key: string]: boolean
+}
+const seriesVisibility = ref<TypeSeriesVisibility>({});
+
+let root: am5.Root = null;
+const self = {
+    seriesVisibility,
+    root
+}
 
 type TypeChartKeys = ComputedRef<{
     xKey: TypeKey;
     yKeys: TypeKey[];
 }>
-
-type TypeSeriesVisibility = {
-    [key: string]: boolean
-}
-
-const chartStore = useChartStore();
-const chartDiv = ref(null);
-
-
-let chartData: TypeData = [];
-
-
-
-const seriesVisibility = ref<TypeSeriesVisibility>({});
-
-let root = null;
-
-const self: any = {
-    seriesVisibility,
-    root
-}
 
 const chartKeys: TypeChartKeys = computed(() => {
     return {
@@ -49,16 +45,16 @@ const chartKeys: TypeChartKeys = computed(() => {
 });
 
 
-function createChart(context: any, ref: any,
+function createChart(context: any, ref: Ref<HTMLDivElement>,
     data: TypeData, chartKeys: TypeChartKeys,
-    pointChart2D: boolean = false, min: number, max: number): void {
+    pointChart2D: boolean = false, min: number, max: number) {
 
-    const root: any = am5.Root.new(ref.value);
+    const root = am5.Root.new(ref.value);
     root._logo.dispose();
 
     root.setThemes([am5themes_Animated.new(root)]);
 
-    const chart: any = root.container.children.push(
+    const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
             panX: true,
             panY: false,
@@ -76,7 +72,7 @@ function createChart(context: any, ref: any,
         })
     );
 
-    const xRenderer: any = am5xy.AxisRendererX.new(root, {
+    const xRenderer = am5xy.AxisRendererX.new(root, {
         minGridDistance: 40,
         cellStartLocation: 0,
         cellEndLocation: 1,
@@ -97,13 +93,12 @@ function createChart(context: any, ref: any,
         strokeOpacity: 1
     });
 
-    let tooltip: any = am5.Tooltip.new(root, {
+    let tooltip = am5.Tooltip.new(root, {
         pointerOrientation: 'horizontal',
         getFillFromSprite: false,
         getStrokeFromSprite: true,
         autoTextColor: false,
         getLabelFillFromSprite: true,
-        position: 'auto',
     });
 
     tooltip.get('background').setAll({
@@ -117,7 +112,7 @@ function createChart(context: any, ref: any,
         fill: am5.color("#1e3a5f")
     });
 
-    const xAxis: any = chart.xAxes.push(
+    const xAxis = chart.xAxes.push(
         am5xy.ValueAxis.new(root, {
             renderer: xRenderer,
             paddingTop: 18,
@@ -126,12 +121,12 @@ function createChart(context: any, ref: any,
         })
     );
 
-    const { xKey, yKeys }: { xKey: TypeKey; yKeys: TypeKey[] } = chartKeys.value;
+    const { xKey, yKeys } = chartKeys.value;
     data.sort((a, b) => a[xKey] - b[xKey]);
 
     xAxis.data.setAll(data);
 
-    const legend: any = chart.children.push(
+    const legend = chart.children.push(
         am5.Legend.new(root, {
             centerX: am5.p50,
             x: am5.p50,
@@ -139,6 +134,8 @@ function createChart(context: any, ref: any,
             useDefaultMarker: true
         })
     );
+
+
     legend.markers.template.setAll({
         width: 9,
         height: 9,
@@ -159,8 +156,8 @@ function createChart(context: any, ref: any,
     legend.itemContainers.template.events.on("click", function (e) {
         let itemContainer = e.target;
         let dataItem = itemContainer.dataItem;
+        const seriesName = dataItem.get('name' as any);
 
-        const seriesName = dataItem.get('name');
         if (seriesName) {
             const clickedSeries = chart.series.values.find(s => s.get("name") === seriesName);
             context.seriesVisibility.value[seriesName] = clickedSeries.isHidden();
@@ -171,20 +168,8 @@ function createChart(context: any, ref: any,
     if (min == 0) min = null;
     if (max == 0) max = null;
 
-    type TypeChartOptions = {
-        context: any,
-        root: any,
-        chart: any,
-        xAxis: any,
-        data: TypeData,
-        legend: any,
-        min: number,
-        max: number,
-        pointChart2D: boolean
-    }
 
-
-    const options: TypeChartOptions = {
+    const options = {
         context,
         root,
         chart,
@@ -213,11 +198,11 @@ function createChart(context: any, ref: any,
 
 type TypeAxisAndSeriesOptions = {
     context?: any,
-    root?: any,
-    chart?: any,
-    xAxis?: any,
+    root?: am5.Root,
+    chart?: am5xy.XYChart,
+    xAxis?: am5xy.ValueAxis<am5xy.AxisRenderer>,
     data?: TypeData,
-    legend?: any,
+    legend?: am5.Legend,
     min?: number,
     max?: number,
     pointChart2D?: boolean,
@@ -240,8 +225,8 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
         "#16a085",
     ];
 
-    const color: string = colorPalette[index];
-    const yRenderer: any = am5xy.AxisRendererY.new(root, {
+    const color = colorPalette[index];
+    const yRenderer = am5xy.AxisRendererY.new(root, {
         minGridDistance: 25,
         cellStartLocation: 0,
         cellEndLocation: 1,
@@ -256,14 +241,14 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     });
 
 
-    let oneAxis: boolean = false;
+    let oneAxis = false;
     if (min || max) {
         oneAxis = true;
         min = min ? Number(min) : 0;
         max = max ? Number(max) : 0;
     }
 
-    const yAxis: any = chart.yAxes.push(
+    const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
             min: min,
             max: max,
@@ -281,14 +266,13 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     //   yAxis.set('syncWithAxis', chart.yAxes.getIndex(0));
     // }
 
-    let tooltip: any = am5.Tooltip.new(root, {
+    let tooltip = am5.Tooltip.new(root, {
         pointerOrientation: 'horizontal',
         getFillFromSprite: false,
         getStrokeFromSprite: true,
         autoTextColor: false,
         getLabelFillFromSprite: true,
         labelText: '{valueY}',
-        position: 'auto',
     });
 
     tooltip.get('background').setAll({
@@ -303,17 +287,16 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
     });
 
 
-    const series: any = chart.series.push(
+    const series = chart.series.push(
         am5xy.LineSeries.new(root, {
-            name: yKey,
+            name: yKey.toString(),
             xAxis: xAxis,
             yAxis: yAxis,
-            valueYField: yKey,
-            valueXField: xKey,
+            valueYField: yKey.toString(),
+            valueXField: xKey.toString(),
             stroke: am5.color(color),
             fill: am5.color(color),
-            tooltip,
-            strokeWidth: 2
+            tooltip
         })
     );
 
@@ -372,7 +355,7 @@ function createAxisAndSeries({ context, root, chart, xAxis, data, legend, pointC
 
 
 const chartDivOn = ref(true);
-async function disposeAndCall(func: (...args: any[]) => any, ...args : any[]): Promise<void> {
+async function disposeAndCall(func: (...args: any[]) => any, ...args : any[]) {
     chartDivOn.value = false;
 
     await nextTick();
@@ -382,7 +365,7 @@ async function disposeAndCall(func: (...args: any[]) => any, ...args : any[]): P
     func(...args);
 };
 
-function callChart(min?: number, max?: number): void {
+function callChart(min?: number, max?: number) {
     disposeAndCall(
         createChart,
         self,

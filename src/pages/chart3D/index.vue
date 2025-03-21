@@ -21,10 +21,10 @@ import chart from './chart.vue';
 import settingsMenu from './settingsMenu.vue';
 
 import { useChartStore, TypeKey } from '@/store/chart';
-const chartStore: any = useChartStore();
+const chartStore = useChartStore();
 
-const chartRef = ref(null);
-const settingsRef = ref(null);
+const chartRef = ref<typeof chart>(null);
+const settingsRef = ref<typeof settingsMenu>(null);
 
 export type TypeSettings = {
     posAxis: number;
@@ -36,7 +36,6 @@ export type TypeSettings = {
     [key: string]: string | number,
 }
 
-
 const settings: TypeSettings = reactive({
     posAxis: null,
     negAxis: null,
@@ -45,6 +44,7 @@ const settings: TypeSettings = reactive({
     x1Val: chartStore.xKeys[1] ?? '-',
     x2Val: chartStore.xKeys[0] ?? '-',
 });
+
 
 onActivated(() => {
     if (chartStore.newData3D) {
@@ -59,7 +59,7 @@ onActivated(() => {
 });
 
 
-function apply(): void {
+function apply() {
 
     chartRef.value.callChart(
         settings.posAxis, 

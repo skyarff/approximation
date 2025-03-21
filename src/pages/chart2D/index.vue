@@ -34,7 +34,7 @@ import settingsMenu from './settingsMenu.vue';
 import chart from './chart.vue';
 
 import { useChartStore, TypeKey } from '@/store/chart';
-const chartStore: any = useChartStore();
+const chartStore = useChartStore();
 
 
 export type TypeSettings = {
@@ -59,10 +59,10 @@ onActivated(() => {
 });
 
 
-const chartRef = ref(null);
-const settingsRef = ref(null);
+const chartRef = ref<typeof chart>(null);
+const settingsRef = ref<typeof settingsMenu>(null);
 
-function apply(): void {
+function apply() {
     chartRef.value.callChart(settings.min, settings.max);
 }
 

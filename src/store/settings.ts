@@ -31,7 +31,7 @@ export const useSettingsStore: any = defineStore('settings', () => {
         stepPower: 1,
     });
 
-    function clearNumParams(): void {
+    function clearNumParams() {
         localStorage.removeItem('numParams');
         numParams.value = structuredClone(defNumParams);
     }
@@ -46,7 +46,7 @@ export const useSettingsStore: any = defineStore('settings', () => {
     if (numParamsFromLS && Object.keys(numParamsFromLS)) 
         numParams.value = numParamsFromLS;
 
-    watch(numParams, (): void => {
+    watch(numParams, () => {
         localStorage.setItem('numParams', JSON.stringify(numParams.value));
     }, { deep: true });
 
